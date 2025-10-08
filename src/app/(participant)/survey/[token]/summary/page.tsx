@@ -45,11 +45,14 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
             };
           });
 
+          const status: "complete" | "incomplete" | "empty" =
+            Object.keys(weights).length === 0 ? "empty" : isComplete ? "complete" : "incomplete";
+
           return {
             scenarioId: scenario.id,
             scenarioTitle: scenario.title,
             order: scenario.order,
-            status: Object.keys(weights).length === 0 ? "empty" : isComplete ? "complete" : "incomplete",
+            status,
             totalWeight,
             indicators,
           };
