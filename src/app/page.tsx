@@ -55,16 +55,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-8 text-sm text-slate-600">
-          <h2 className="text-base font-semibold text-slate-900">Siguientes integraciones</h2>
-          <ul className="mt-4 space-y-2">
-            <li>- Conectar endpoints descritos en el PRD.</li>
-            <li>- Añadir persistencia segura de sesiones y autosave con debounce.</li>
-            <li>- Completar flujos de validación (pesos = 100%, “No aplica”).</li>
-            <li>- Internationalización es/en y métricas de completitud (KPIs).</li>
-          </ul>
-        </section>
       </div>
     </main>
   );

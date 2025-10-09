@@ -3,8 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
-import { mockApi } from "@/lib/mock/api";
-import { MOCK_SCENARIOS } from "@/lib/mock/data";
+import { apiRoutes } from "@/lib/api/routes";
 
 interface ScenarioStatus {
   id: string;
@@ -20,18 +19,31 @@ export default function ScenarioOverviewPage({ params }: { params: Promise<{ tok
   const [scenarios, setScenarios] = useState<ScenarioStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProgress() {
       try {
-        const session = await mockApi.getSessionSummary(`session-${token}`);
+        // Get session
+        const sessionResponse = await fetch(apiRoutes.sessionGet(token));
+        if (!sessionResponse.ok) {
+          throw new Error("Failed to load session");
+        }
+        const session = await sessionResponse.json();
+        setSessionId(session.id);
 
-        // Mapear escenarios con su estado
-        const scenariosWithStatus = MOCK_SCENARIOS.map((scenario) => {
-          const scenarioProgress = session.scenarioProgress[scenario.id];
-          const weights = scenarioProgress?.weights || {};
+        // Get session summary with scenarios
+        const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
+        if (!summaryResponse.ok) {
+          throw new Error("Failed to load summary");
+        }
+        const summary = await summaryResponse.json();
+
+        // Map scenarios with their status
+        const scenariosWithStatus = summary.scenarios.map((scenario: any) => {
+          const weights = scenario.weights || {};
           const hasWeights = Object.keys(weights).length > 0;
-          const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+          const totalWeight = Object.values(weights).reduce((sum: number, w) => sum + (w as number), 0);
           const completed = hasWeights && Math.abs(totalWeight - 100) < 0.1;
 
           return {
@@ -40,14 +52,14 @@ export default function ScenarioOverviewPage({ params }: { params: Promise<{ tok
             description: scenario.description || "",
             order: scenario.order,
             completed,
-            indicatorCount: scenario.indicators.length,
+            indicatorCount: scenario.indicatorCount || 0,
           };
         });
 
         setScenarios(scenariosWithStatus);
 
-        // Calcular progreso global
-        const completedCount = scenariosWithStatus.filter((s) => s.completed).length;
+        // Calculate global progress
+        const completedCount = scenariosWithStatus.filter((s: ScenarioStatus) => s.completed).length;
         setProgress(completedCount / scenariosWithStatus.length);
       } catch (error) {
         console.error("Error loading progress:", error);

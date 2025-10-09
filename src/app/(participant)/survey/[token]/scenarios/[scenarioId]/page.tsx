@@ -1,11 +1,10 @@
 "use client";
 
-import { use, useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
-import { mockApi } from "@/lib/mock/api";
-import { MOCK_SCENARIOS, MOCK_INDICATORS } from "@/lib/mock/data";
+import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator, ScenarioDefinition } from "@/domain/models";
 
 interface ScenarioPageParams {
@@ -17,7 +16,9 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
   const router = useRouter();
   const { token, scenarioId } = use(params);
 
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [scenario, setScenario] = useState<ScenarioDefinition | null>(null);
+  const [scenarios, setScenarios] = useState<any[]>([]);
   const [availableIndicators, setAvailableIndicators] = useState<Indicator[]>([]);
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
   const [weights, setWeights] = useState<Record<string, number>>({});
@@ -28,37 +29,83 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
 
   // Cargar datos del escenario
   useEffect(() => {
-    const currentScenario = MOCK_SCENARIOS.find((s) => s.id === scenarioId);
-    if (!currentScenario) {
-      setError("Escenario no encontrado");
-      return;
+    async function loadScenario() {
+      try {
+        // Get session
+        const sessionResponse = await fetch(apiRoutes.sessionGet(token));
+        if (!sessionResponse.ok) {
+          throw new Error("Failed to load session");
+        }
+        const session = await sessionResponse.json();
+        setSessionId(session.id);
+
+        // Get indicators
+        const indicatorsResponse = await fetch(apiRoutes.indicatorsGet({ active: true }));
+        if (!indicatorsResponse.ok) {
+          throw new Error("Failed to load indicators");
+        }
+        const indicatorsData = await indicatorsResponse.json();
+
+        // Get session summary with scenarios and responses
+        const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
+        if (!summaryResponse.ok) {
+          throw new Error("Failed to load summary");
+        }
+        const summary = await summaryResponse.json();
+
+        setScenarios(summary.scenarios);
+
+        // Find current scenario
+        const currentScenario = summary.scenarios.find((s: any) => s.id === scenarioId);
+        if (!currentScenario) {
+          setError("Escenario no encontrado");
+          return;
+        }
+
+        setScenario(currentScenario);
+
+        // Get indicators for this scenario
+        const scenarioIndicatorIds = currentScenario.indicatorIds || [];
+        const indicators = indicatorsData.indicators.filter((ind: Indicator) =>
+          scenarioIndicatorIds.includes(ind.id)
+        );
+        setAvailableIndicators(indicators);
+
+        // Load saved weights
+        const savedWeights = currentScenario.weights || {};
+        setWeights(savedWeights);
+        setSelectedIndicators(new Set(Object.keys(savedWeights)));
+      } catch (err) {
+        console.error("Error loading scenario:", err);
+        setError("Error al cargar el escenario");
+      }
     }
 
-    setScenario(currentScenario);
-
-    // Obtener indicadores disponibles para este escenario
-    const indicatorIds = currentScenario.indicators.map((ind) => ind.indicatorId);
-    const indicators = MOCK_INDICATORS.filter((ind) => indicatorIds.includes(ind.id));
-    setAvailableIndicators(indicators);
-
-    // Cargar progreso guardado
-    const sessionKey = `session-session-${token}-${scenarioId}`;
-    const stored = localStorage.getItem(sessionKey);
-    if (stored) {
-      const { weights: savedWeights } = JSON.parse(stored);
-      setWeights(savedWeights);
-      setSelectedIndicators(new Set(Object.keys(savedWeights)));
-    }
+    loadScenario();
   }, [token, scenarioId]);
 
   // Autosave con debounce
   useEffect(() => {
-    if (Object.keys(weights).length === 0) return;
+    if (!sessionId || Object.keys(weights).length === 0) return;
 
     const timeoutId = setTimeout(async () => {
       setSaving(true);
       try {
-        await mockApi.saveDraft(`session-${token}`, scenarioId, weights);
+        const response = await fetch(apiRoutes.sessionDraft(sessionId), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            scenarioId,
+            weights,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save draft");
+        }
+
         setLastSaved(new Date());
       } catch (err) {
         console.error("Error saving:", err);
@@ -68,7 +115,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
     }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [weights, token, scenarioId]);
+  }, [weights, sessionId, scenarioId]);
 
   const handleToggleIndicator = (indicatorId: string) => {
     const newSelected = new Set(selectedIndicators);
@@ -109,8 +156,8 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
   const isValid = Math.abs(totalWeight - 100) < 0.1 && selectedIndicators.size > 0;
   const remaining = 100 - totalWeight;
 
-  const currentIndex = MOCK_SCENARIOS.findIndex((s) => s.id === scenarioId);
-  const hasNext = currentIndex < MOCK_SCENARIOS.length - 1;
+  const currentIndex = scenarios.findIndex((s) => s.id === scenarioId);
+  const hasNext = currentIndex >= 0 && currentIndex < scenarios.length - 1;
   const hasPrev = currentIndex > 0;
 
   const handleNext = () => {
@@ -119,7 +166,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
       return;
     }
     if (hasNext) {
-      router.push(`/survey/${token}/scenarios/${MOCK_SCENARIOS[currentIndex + 1].id}`);
+      router.push(`/survey/${token}/scenarios/${scenarios[currentIndex + 1].id}`);
     } else {
       router.push(`/survey/${token}/summary`);
     }
@@ -127,7 +174,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
 
   const handlePrev = () => {
     if (hasPrev) {
-      router.push(`/survey/${token}/scenarios/${MOCK_SCENARIOS[currentIndex - 1].id}`);
+      router.push(`/survey/${token}/scenarios/${scenarios[currentIndex - 1].id}`);
     }
   };
 
@@ -158,7 +205,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
               </Link>
               <span className="text-slate-300">|</span>
               <span className="text-sm text-slate-600">
-                Escenario {currentIndex + 1} de {MOCK_SCENARIOS.length}
+                Escenario {currentIndex + 1} de {scenarios.length}
               </span>
             </div>
             <div className="text-xs text-slate-500">
@@ -172,8 +219,8 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
           </div>
 
           <ProgressBar
-            value={(currentIndex + 1) / MOCK_SCENARIOS.length}
-            label={`Progreso: ${currentIndex + 1}/${MOCK_SCENARIOS.length}`}
+            value={(currentIndex + 1) / scenarios.length}
+            label={`Progreso: ${currentIndex + 1}/${scenarios.length}`}
           />
         </header>
 

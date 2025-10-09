@@ -1,17 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { mockApi } from "@/lib/mock/api";
-import { MOCK_SURVEY } from "@/lib/mock/data";
+
+const SURVEY_ID = "survey-dengue-2025";
+
+interface Survey {
+  id: string;
+  title: string;
+  version: string;
+  totalScenarios: number;
+  active: boolean;
+}
 
 export default function AdminExportsPage() {
   const [exporting, setExporting] = useState(false);
+  const [survey, setSurvey] = useState<Survey | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSurvey() {
+      try {
+        const response = await fetch(`/api/surveys/${SURVEY_ID}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to load survey");
+        }
+
+        const data = await response.json();
+        setSurvey(data);
+      } catch (err) {
+        console.error("Error loading survey:", err);
+        setError("Error al cargar la información de la encuesta");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadSurvey();
+  }, []);
 
   const handleExportCSV = async () => {
     setExporting(true);
     try {
-      const blob = await mockApi.exportCSV(MOCK_SURVEY.id);
+      const response = await fetch(`/api/admin/exports/csv?surveyId=${SURVEY_ID}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to export data");
+      }
+
+      const blob = await response.blob();
 
       // Crear link de descarga
       const url = window.URL.createObjectURL(blob);
@@ -111,31 +150,41 @@ export default function AdminExportsPage() {
         </section>
 
         {/* Export Info */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">Información de la Encuesta</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm font-medium text-slate-700">Título</p>
-              <p className="mt-1 text-slate-900">{MOCK_SURVEY.title}</p>
+        {loading ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="text-center text-slate-600">Cargando información de la encuesta...</div>
+          </section>
+        ) : error ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="text-center text-red-600">{error}</div>
+          </section>
+        ) : survey ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Información de la Encuesta</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium text-slate-700">Título</p>
+                <p className="mt-1 text-slate-900">{survey.title}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Versión</p>
+                <p className="mt-1 text-slate-900">{survey.version}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Total de escenarios</p>
+                <p className="mt-1 text-slate-900">{survey.totalScenarios}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700">Estado</p>
+                <p className="mt-1">
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                    {survey.active ? "Activa" : "Inactiva"}
+                  </span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-slate-700">Versión</p>
-              <p className="mt-1 text-slate-900">{MOCK_SURVEY.version}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-700">Total de escenarios</p>
-              <p className="mt-1 text-slate-900">{MOCK_SURVEY.totalScenarios}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-700">Estado</p>
-              <p className="mt-1">
-                <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                  {MOCK_SURVEY.active ? "Activa" : "Inactiva"}
-                </span>
-              </p>
-            </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         {/* Usage Guide */}
         <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">

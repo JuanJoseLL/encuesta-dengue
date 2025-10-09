@@ -4,8 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
-import { mockApi } from "@/lib/mock/api";
-import { MOCK_SCENARIOS, MOCK_INDICATORS } from "@/lib/mock/data";
+import { apiRoutes } from "@/lib/api/routes";
 
 interface ScenarioSummary {
   scenarioId: string;
@@ -20,6 +19,7 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
   const router = useRouter();
   const { token } = use(params);
 
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [summaries, setSummaries] = useState<ScenarioSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -28,22 +28,32 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
   useEffect(() => {
     async function loadSummary() {
       try {
-        const session = await mockApi.getSessionSummary(`session-${token}`);
+        // Get session
+        const sessionResponse = await fetch(apiRoutes.sessionGet(token));
+        if (!sessionResponse.ok) {
+          throw new Error("Failed to load session");
+        }
+        const session = await sessionResponse.json();
+        setSessionId(session.id);
 
-        const scenarioSummaries = MOCK_SCENARIOS.map((scenario) => {
-          const progress = session.scenarioProgress[scenario.id];
-          const weights = progress?.weights || {};
-          const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+        // Get session summary with scenarios
+        const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
+        if (!summaryResponse.ok) {
+          throw new Error("Failed to load summary");
+        }
+        const summary = await summaryResponse.json();
+
+        // Map scenarios with their status
+        const scenarioSummaries = summary.scenarios.map((scenario: any) => {
+          const weights = scenario.weights || {};
+          const totalWeight = Object.values(weights).reduce((sum: number, w) => sum + (w as number), 0);
           const isComplete = Object.keys(weights).length > 0 && Math.abs(totalWeight - 100) < 0.1;
 
-          const indicators = Object.entries(weights).map(([indicatorId, weight]) => {
-            const indicator = MOCK_INDICATORS.find((ind) => ind.id === indicatorId);
-            return {
-              id: indicatorId,
-              name: indicator?.name || indicatorId,
-              weight,
-            };
-          });
+          const indicators = Object.entries(weights).map(([indicatorId, weight]) => ({
+            id: indicatorId,
+            name: scenario.indicatorNames?.[indicatorId] || indicatorId,
+            weight: weight as number,
+          }));
 
           const status: "complete" | "incomplete" | "empty" =
             Object.keys(weights).length === 0 ? "empty" : isComplete ? "complete" : "incomplete";
@@ -61,7 +71,7 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
         setSummaries(scenarioSummaries);
 
         // Verificar si todos los escenarios están completos
-        const allComplete = scenarioSummaries.every((s) => s.status === "complete");
+        const allComplete = scenarioSummaries.every((s: ScenarioSummary) => s.status === "complete");
         setCanSubmit(allComplete);
       } catch (error) {
         console.error("Error loading summary:", error);
@@ -74,7 +84,7 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
   }, [token]);
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || !sessionId) return;
 
     if (!confirm("¿Estás seguro/a de enviar tu encuesta? Una vez enviada no podrás modificarla.")) {
       return;
@@ -82,7 +92,18 @@ export default function SurveySummaryPage({ params }: { params: Promise<{ token:
 
     setSubmitting(true);
     try {
-      await mockApi.submitSession(`session-${token}`);
+      const response = await fetch(apiRoutes.sessionSubmit(sessionId), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit session");
+      }
+
       router.push(`/survey/${token}/success`);
     } catch (error) {
       alert("Error al enviar la encuesta. Por favor intenta nuevamente.");

@@ -3,7 +3,9 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PARTICIPANT_ROLES, PARTICIPANT_ROLE_LABELS, ParticipantRole } from "@/domain/constants/roles";
-import { mockApi } from "@/lib/mock/api";
+import { apiRoutes } from "@/lib/api/routes";
+
+const SURVEY_ID = "survey-dengue-2025";
 
 export default function SurveyWelcomePage({ params }: { params: Promise<{ token: string }> }) {
   const router = useRouter();
@@ -16,18 +18,26 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
 
   useEffect(() => {
     // Cargar datos de la encuesta
-    mockApi
-      .getSurveyDefinition("survey-dengue-2025")
-      .then((data) => {
+    async function loadSurvey() {
+      try {
+        const response = await fetch(apiRoutes.surveyGet(SURVEY_ID));
+
+        if (!response.ok) {
+          throw new Error("Failed to load survey");
+        }
+
+        const data = await response.json();
         setSurveyData({
-          title: data.survey.title,
-          totalScenarios: data.survey.totalScenarios,
+          title: data.title,
+          totalScenarios: data.totalScenarios,
         });
-      })
-      .catch((err) => {
+      } catch (err) {
         setError("No se pudo cargar la encuesta");
         console.error(err);
-      });
+      }
+    }
+
+    loadSurvey();
   }, []);
 
   const handleStart = async () => {
@@ -40,8 +50,14 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
     setError("");
 
     try {
-      // Crear sesión
-      await mockApi.getOrCreateSession(token);
+      // Crear o obtener sesión
+      const response = await fetch(apiRoutes.sessionGet(token));
+
+      if (!response.ok) {
+        throw new Error("Failed to get session");
+      }
+
+      const session = await response.json();
 
       // Guardar rol en localStorage
       localStorage.setItem(`session-${token}-role`, selectedRole);
