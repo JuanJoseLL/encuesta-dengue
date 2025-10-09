@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         inProgressSessions: 0,
         completionRate: 0,
         averageProgress: 0,
+        averageCompletedScenarios: 0,
         totalScenarios: 0,
         totalIndicators: await prisma.indicator.count({ where: { active: true } }),
       });
