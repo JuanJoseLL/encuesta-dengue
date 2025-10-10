@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <header className="flex flex-col gap-1">
           <span className="text-xs uppercase tracking-[0.28em] text-slate-400">Panel administrativo</span>
           <h1 className="text-2xl font-semibold text-slate-900">Encuesta de indicadores de dengue</h1>
-          <p className="text-sm text-slate-500">Gestiona escenarios, sesiones activas y exportaciones.</p>
+          <p className="text-sm text-slate-500">Gestiona estrategias, sesiones activas y exportaciones.</p>
         </header>
         {children}
       </div>

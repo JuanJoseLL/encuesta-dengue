@@ -1,35 +1,78 @@
 import { ApiClient, defaultApiClient } from "@/lib/api/client";
 import { apiRoutes } from "@/lib/api/routes";
 import {
-  ScenarioProgress,
-  SessionDraftPayload,
   SessionSubmissionRequest,
   SessionSummaryResponse,
   SessionStatus,
 } from "@/domain/models";
 
-export interface CreateSessionRequest {
-  token: string;
-  role?: string;
+export interface LoadSessionResponse {
+  session: {
+    id: string;
+    surveyId: string;
+    respondentId: string;
+    token: string;
+    progress: number;
+    status: SessionStatus;
+    currentStrategyId?: string;
+    responses: Array<{
+      id: string;
+      strategyId: string;
+      indicatorId: string;
+      weight: number;
+      indicator: {
+        id: string;
+        name: string;
+      };
+      strategy: {
+        id: string;
+        title: string;
+      };
+    }>;
+    survey: {
+      id: string;
+      title: string;
+      strategies: Array<{
+        id: string;
+        title: string;
+        description?: string;
+        order: number;
+      }>;
+    };
+  };
+  message: string;
+  alreadySubmitted?: boolean;
 }
 
-export interface CreateSessionResponse {
-  sessionId: string;
-  surveyId: string;
-  respondentId: string;
-  status: SessionStatus;
+export interface SaveDraftResponse {
+  session: {
+    id: string;
+    progress: number;
+    updatedAt: string;
+  };
+  message: string;
   progress: number;
 }
 
 export class SessionService {
   constructor(private readonly api: ApiClient = defaultApiClient) {}
 
-  async createOrResumeSession({ token, role }: CreateSessionRequest): Promise<CreateSessionResponse> {
-    return this.api.request<CreateSessionResponse>(apiRoutes.sessionCreate(token), "POST", { role });
+  async loadSession(token: string): Promise<LoadSessionResponse> {
+    return this.api.request<LoadSessionResponse>(apiRoutes.sessionGet(token), "GET");
   }
 
-  async saveDraft(payload: SessionDraftPayload): Promise<void> {
-    await this.api.request<void>(apiRoutes.sessionDraft(payload.sessionId), "PATCH", payload);
+  async saveDraft(
+    sessionId: string,
+    strategyId: string,
+    weights: Array<{ indicatorId: string; weight: number }>,
+    currentStrategyId?: string
+  ): Promise<SaveDraftResponse> {
+    return this.api.request<SaveDraftResponse>(apiRoutes.sessionDraft(sessionId), "PATCH", {
+      strategyId,
+      weights,
+      currentStrategyId,
+      autosave: true,
+    });
   }
 
   async submitSession(request: SessionSubmissionRequest): Promise<void> {

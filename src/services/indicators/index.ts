@@ -1,13 +1,34 @@
+import { ApiClient, defaultApiClient } from "@/lib/api/client";
+import { apiRoutes } from "@/lib/api/routes";
 import { Indicator } from "@/domain/models";
 
-// Placeholder until API endpoints are wired. Keeps the shape of dependency injection ready.
+export interface IndicatorsResponse {
+  indicators: Indicator[];
+  total: number;
+}
+
 export class IndicatorService {
-  async searchIndicators(_query: string, source: Indicator[]): Promise<Indicator[]> {
-    const q = _query.trim().toLowerCase();
+  constructor(private readonly api: ApiClient = defaultApiClient) {}
+
+  async getIndicators(params?: {
+    domain?: string;
+    search?: string;
+    active?: boolean;
+  }): Promise<IndicatorsResponse> {
+    return this.api.request<IndicatorsResponse>(
+      apiRoutes.indicatorsGet(params),
+      "GET"
+    );
+  }
+
+  async searchIndicators(query: string, source: Indicator[]): Promise<Indicator[]> {
+    const q = query.trim().toLowerCase();
     if (!q) {
       return source;
     }
-    return source.filter((indicator) => indicator.name.toLowerCase().includes(q));
+    return source.filter((indicator) =>
+      indicator.name.toLowerCase().includes(q)
+    );
   }
 }
 

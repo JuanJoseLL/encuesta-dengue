@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// Survey Structure
+// ==========================================
+
+model Survey {
+  id          String            @id @default(cuid())
+  title       String
+  version     String            @default("1.0")
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  strategies  Strategy[]
+  sessions    ResponseSession[]
+
+  @@index([active])
+}
+
+model Strategy {
+  id          String     @id @default(cuid())
+  surveyId    String
+  title       String
+  description String?
+  order       Int
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  survey      Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  responses   Response[]
+
+  @@unique([surveyId, order])
+  @@index([active])
+}
+
+model Indicator {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  domain      String?    // "epidemiological", "entomological", etc.
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  responses   Response[]
+
+  @@index([active])
+  @@index([domain])
+}
+
+// ==========================================
+// Participants & Sessions
+// ==========================================
+
+model Respondent {
+  id           String            @id @default(cuid())
+  name         String?
+  email        String?
+  role         String            // "epidemiologist", "entomologist", etc.
+  organization String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  sessions     ResponseSession[]
+  invites      RespondentInvite[]
+
+  @@index([role])
+}
+
+model RespondentInvite {
+  id           String     @id @default(cuid())
+  token        String     @unique
+  surveyId     String
+  respondentId String?
+  status       String     @default("pending") // "pending" | "sent" | "accepted" | "expired" | "completed"
+  expiresAt    DateTime
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  respondent   Respondent? @relation(fields: [respondentId], references: [id])
+
+  @@index([token])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model ResponseSession {
+  id                String       @id @default(cuid())
+  surveyId          String
+  respondentId      String
+  token             String       @unique
+  progress          Float        @default(0) // 0.0 - 1.0
+  status            String       @default("draft") // "draft" | "submitted"
+  startedAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  completedAt       DateTime?
+  currentStrategyId String?
+  metadata          Json?        // JSON - native JSON type for PostgreSQL
+
+  survey            Survey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondent        Respondent   @relation(fields: [respondentId], references: [id], onDelete: Cascade)
+  responses         Response[]
+  logs              SessionLog[]
+
+  @@index([token])
+  @@index([status])
+  @@index([surveyId])
+  @@index([respondentId])
+}
+
+model Response {
+  id          String          @id @default(cuid())
+  sessionId   String
+  strategyId  String
+  indicatorId String
+  weight      Float           @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  session     ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  strategy    Strategy        @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  indicator   Indicator       @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, strategyId, indicatorId])
+  @@index([sessionId, strategyId])
+}
+
+model SessionLog {
+  id         String          @id @default(cuid())
+  sessionId  String
+  event      String          // "autosave" | "strategy-enter" | "strategy-exit" | "submit" | "resume"
+  strategyId String?
+  payload    Json?           // JSON - native JSON type for PostgreSQL
+  timestamp  DateTime        @default(now())
+
+  session    ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+}

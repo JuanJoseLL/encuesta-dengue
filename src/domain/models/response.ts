@@ -4,11 +4,11 @@ export interface IndicatorWeightDraft {
   justification?: string;
 }
 
-export interface ScenarioResponsePayload {
+export interface StrategyResponsePayload {
   sessionId: string;
-  scenarioId: string;
+  strategyId: string;
   weights: IndicatorWeightDraft[];
-  copiedFromScenarioId?: string;
+  copiedFromStrategyId?: string;
   remainingWeight?: number;
 }
 
@@ -19,8 +19,8 @@ export interface SessionSubmissionRequest {
 }
 
 export interface SessionSummaryItem {
-  scenarioId: string;
-  scenarioTitle: string;
+  strategyId: string;
+  strategyTitle: string;
   status: "complete" | "incomplete" | "not-applicable";
   totalWeight: number;
   indicators: IndicatorWeightDraft[];

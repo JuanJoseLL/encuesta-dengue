@@ -7,36 +7,30 @@ import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
 import { PARTICIPANT_ROLES, PARTICIPANT_ROLE_LABELS } from "@/domain/constants/roles";
 
-interface StrategySummary {
-  strategyId: string;
-  strategyTitle: string;
-  strategyDescription?: string;
+interface StrategyStatus {
+  id: string;
+  title: string;
+  description: string;
   order: number;
-  status: "complete" | "incomplete" | "empty";
-  totalWeight: number;
-  indicators: Array<{ id: string; name: string; weight: number }>;
+  completed: boolean;
+  indicatorCount: number;
 }
 
-export default function SurveySummaryPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+export default function StrategyOverviewPage({ params }: { params: Promise<{ token: string }> }) {
   const router = useRouter();
   const { token } = use(params);
-
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [summaries, setSummaries] = useState<StrategySummary[]>([]);
+  const [strategies, setStrategies] = useState<StrategyStatus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<string>("draft");
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>("");
-  const [sessionStatus, setSessionStatus] = useState<string>("draft");
+  const [selectedRole, setSelectedRole] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    async function loadSummary() {
+    async function loadProgress() {
       try {
         // Get session
         const sessionResponse = await fetch(apiRoutes.sessionGet(token));
@@ -49,53 +43,54 @@ export default function SurveySummaryPage({
         setSessionStatus(session.status);
 
         // Get session summary with strategies
-        const summaryResponse = await fetch(
-          apiRoutes.sessionSummary(session.id)
-        );
+        const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
         if (!summaryResponse.ok) {
           throw new Error("Failed to load summary");
         }
         const summary = await summaryResponse.json();
 
-        // Map items to strategy summaries
-        const strategySummaries = (summary.items || []).map((item: any) => {
-          const status: "complete" | "incomplete" | "empty" =
-            item.status === "complete"
-              ? "complete"
-              : item.status === "not-applicable"
-              ? "empty"
-              : "incomplete";
-
+        // Map strategies with their status
+        const strategiesWithStatus = (summary.items || []).map((item: any) => {
+          const completed = item.status === "complete";
+          
           return {
-            strategyId: item.strategyId,
-            strategyTitle: item.strategyTitle,
-            strategyDescription: item.strategyDescription,
+            id: item.strategyId,
+            title: item.strategyTitle,
+            description: item.strategyDescription || "",
             order: item.strategyOrder,
-            status,
-            totalWeight: item.totalWeight,
-            indicators: item.indicators || [],
+            completed,
+            indicatorCount: item.indicatorCount || 0,
           };
         });
 
-        setSummaries(strategySummaries);
+        setStrategies(strategiesWithStatus);
 
-        // Verificar si todas las estrategias están completas
-        const allComplete = strategySummaries.every(
-          (s: StrategySummary) => s.status === "complete"
-        );
-        setCanSubmit(allComplete);
+        // Calculate global progress
+        const completedCount = strategiesWithStatus.filter((s: StrategyStatus) => s.completed).length;
+        setProgress(completedCount / strategiesWithStatus.length);
       } catch (error) {
-        console.error("Error loading summary:", error);
+        console.error("Error loading progress:", error);
       } finally {
         setLoading(false);
       }
     }
 
-    loadSummary();
+    loadProgress();
   }, [token]);
 
-  const handleSubmit = async () => {
-    if (!canSubmit || !sessionId) return;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-slate-600">Cargando estrategias...</div>
+      </div>
+    );
+  }
+
+  const completedCount = strategies.filter((s) => s.completed).length;
+  const canSubmit = completedCount === strategies.length && strategies.length > 0;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
     setShowRoleModal(true);
   };
 
@@ -150,22 +145,6 @@ export default function SurveySummaryPage({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-slate-600">Cargando resumen...</div>
-      </div>
-    );
-  }
-
-  const completedCount = summaries.filter(
-    (s) => s.status === "complete"
-  ).length;
-  const incompleteCount = summaries.filter(
-    (s) => s.status === "incomplete"
-  ).length;
-  const emptyCount = summaries.filter((s) => s.status === "empty").length;
-
   // Si la sesión ya fue enviada, mostrar mensaje
   if (sessionStatus === "submitted") {
     return (
@@ -193,210 +172,109 @@ export default function SurveySummaryPage({
     );
   }
 
-  const renderSummaryActions = () => (
-    <footer className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <Link
-        href={`/survey/${token}/strategies`}
-        className="rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
-      >
-        ← Continuar editando
-      </Link>
-
-      {sessionStatus !== "submitted" && (
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit || submitting}
-          className="rounded-full bg-green-600 px-8 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {submitting ? "Enviando..." : "Enviar encuesta final"}
-        </button>
-      )}
-    </footer>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Header */}
         <header className="space-y-4">
-          {renderSummaryActions()}
-
-          <Link
-            href={`/survey/${token}/strategies`}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            ← Volver a estrategias
-          </Link>
-
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              Resumen de tu ponderación
-            </h1>
-            <p className="mt-2 text-slate-600">
-              Revisa tus respuestas antes de enviar. Puedes editar cualquier
-              estrategia haciendo clic en "Editar".
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-2xl font-bold text-green-600">
-                {completedCount}
-              </div>
-              <div className="text-sm text-slate-600">Completos</div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Estrategias de mitigación</h1>
+              <p className="mt-2 text-slate-600">
+                Pondera los indicadores más relevantes para cada estrategia. Tu progreso se guarda automáticamente.
+              </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-2xl font-bold text-amber-600">
-                {incompleteCount}
+            <div className="text-right">
+              <div className="text-3xl font-bold text-blue-600">
+                {completedCount}/{strategies.length}
               </div>
-              <div className="text-sm text-slate-600">Incompletos</div>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="text-2xl font-bold text-slate-400">
-                {emptyCount}
-              </div>
-              <div className="text-sm text-slate-600">Sin responder</div>
+              <div className="text-sm text-slate-600">completadas</div>
             </div>
           </div>
-
-          <ProgressBar
-            value={completedCount / summaries.length}
-            label={`Progreso: ${completedCount}/${summaries.length} completos`}
-          />
-
-          {!canSubmit && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
-              <strong>Atención:</strong> Debes completar todos las estrategias
-              (pesos sumando 100%) antes de enviar la encuesta.
-            </div>
-          )}
-
-          {canSubmit && (
-            <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
-              <strong>Listo para enviar:</strong> Todas las estrategias están
-              completas. Puedes revisar y enviar tu encuesta.
-            </div>
-          )}
+          <ProgressBar value={progress} label={`Progreso global: ${Math.round(progress * 100)}%`} />
         </header>
 
-        {/* Strategies Summary */}
-        <section className="space-y-4">
-          {summaries.map((summary) => (
-            <article
-              key={summary.strategyId}
-              className={`rounded-2xl border-2 bg-white p-6 shadow-sm ${
-                summary.status === "complete"
-                  ? "border-green-200"
-                  : summary.status === "incomplete"
-                  ? "border-amber-200"
-                  : "border-slate-200"
-              }`}
+        {/* Actions */}
+        <div className="flex gap-3">
+          <Link
+            href={`/survey/${token}/summary`}
+            className="rounded-full border-2 border-slate-200 bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            Ver resumen completo
+          </Link>
+          {canSubmit && sessionStatus !== "submitted" && (
+            <button
+              onClick={handleSubmit}
+              className="rounded-full bg-green-600 px-6 py-2.5 font-semibold text-white transition hover:bg-green-700"
             >
-              <header className="flex items-start justify-between">
+              Enviar encuesta final
+            </button>
+          )}
+        </div>
+
+        {/* Strategies Grid */}
+        <section className="grid gap-4">
+          {strategies.map((strategy) => (
+            <Link
+              key={strategy.id}
+              href={`/survey/${token}/strategies/${strategy.id}`}
+              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
-                      {summary.order}
+                      {strategy.order}
                     </span>
-                    <div>
-                      <h2 className="text-lg font-semibold text-slate-900">
-                        {summary.strategyTitle}
-                      </h2>
-                      {summary.strategyDescription && (
-                        <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                          {summary.strategyDescription}
-                        </p>
-                      )}
-                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600">
+                      {strategy.title}
+                    </h2>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{strategy.description}</p>
+                  <div className="mt-3 flex gap-2 text-xs text-slate-500">
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      {strategy.indicatorCount} indicadores disponibles
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end gap-2">
                   <span
                     className={`rounded-full px-4 py-1.5 text-xs font-semibold ${
-                      summary.status === "complete"
+                      strategy.completed
                         ? "bg-green-100 text-green-700"
-                        : summary.status === "incomplete"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-100 text-slate-600"
+                        : "bg-amber-100 text-amber-700"
                     }`}
                   >
-                    {summary.status === "complete"
-                      ? "Completo"
-                      : summary.status === "incomplete"
-                      ? "Incompleto"
-                      : "Sin responder"}
+                    {strategy.completed ? "Completada" : "Pendiente"}
                   </span>
-                  <Link
-                    href={`/survey/${token}/strategies/${summary.strategyId}`}
-                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    Editar
-                  </Link>
+                  <span className="text-xs text-blue-600 group-hover:underline">
+                    {strategy.completed ? "Revisar →" : "Completar →"}
+                  </span>
                 </div>
-              </header>
-
-              {summary.indicators.length > 0 ? (
-                <div className="mt-4">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        <th className="pb-2">Indicador</th>
-                        <th className="pb-2 text-right">Peso</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {summary.indicators.map((indicator: any) => (
-                        <tr
-                          key={indicator.indicatorId || indicator.id}
-                          className="border-b border-slate-100"
-                        >
-                          <td className="py-2 text-slate-700">
-                            {indicator.indicatorName || indicator.name}
-                          </td>
-                          <td className="py-2 text-right font-mono text-slate-900">
-                            {indicator.weight.toFixed(1)}%
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2 border-slate-300">
-                        <td className="py-2 font-semibold text-slate-900">
-                          TOTAL
-                        </td>
-                        <td
-                          className={`py-2 text-right font-mono text-lg font-bold ${
-                            summary.status === "complete"
-                              ? "text-green-600"
-                              : "text-amber-600"
-                          }`}
-                        >
-                          {summary.totalWeight.toFixed(1)}%
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              ) : (
-                <div className="mt-4 text-center text-sm text-slate-500">
-                  No has seleccionado indicadores para esta estrategia
-                </div>
-              )}
-            </article>
+              </div>
+            </Link>
           ))}
         </section>
 
-        {/* Footer Actions */}
-        {renderSummaryActions()}
-
+        {/* Help Card */}
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
+          <h3 className="font-semibold text-slate-900">💡 Sobre la encuesta</h3>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <li>• Cada estrategia requiere ponderar los indicadores más relevantes para su activación</li>
+            <li>• Los pesos indican la importancia relativa de cada indicador para tomar la decisión</li>
+            <li>• Puedes completar las estrategias en cualquier orden</li>
+            <li>• Los cambios se guardan automáticamente cada pocos segundos</li>
+            <li>• Asegúrate que los pesos sumen exactamente 100% antes de avanzar</li>
+          </ul>
+        </div>
         {/* Role Selection Modal */}
         {showRoleModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
               <h3 className="text-xl font-semibold text-slate-900">Selecciona tu rol profesional</h3>
               <p className="mt-2 text-sm text-slate-600">
-                Esta información nos ayuda a analizar las respuestas según perfiles de especialización
+                Antes de enviar, necesitamos conocer tu perfil profesional
               </p>
 
               <div className="mt-6 space-y-2">
@@ -484,3 +362,4 @@ export default function SurveySummaryPage({
     </div>
   );
 }
+
