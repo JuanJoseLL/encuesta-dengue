@@ -90,7 +90,7 @@ export default function SurveyLoginPage() {
             <button
               type="submit"
               disabled={!cedula.trim() || loading}
-              className="w-full rounded-full bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-full bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
             >
               {loading ? "Accediendo..." : "Acceder a la encuesta →"}
             </button>

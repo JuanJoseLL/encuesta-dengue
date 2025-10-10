@@ -69,6 +69,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
           title: item.strategyTitle,
           description: item.strategyDescription,
           order: item.strategyOrder,
+          completed: item.status === "complete",
         }));
         setStrategies(strategies);
 
@@ -182,22 +183,25 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
     // Limitar a 100 y redondear a múltiplos de 5
     const clampedValue = Math.min(100, Math.max(0, value));
     const roundedValue = Math.round(clampedValue / 5) * 5;
-    setWeights((prev) => {
-      const entries = Object.entries(prev);
-      const othersTotal = entries.reduce((sum, [id, weight]) => {
-        if (id === indicatorId) {
-          return sum;
-        }
-        return sum + weight;
-      }, 0);
-      const allowed = Math.max(0, 100 - othersTotal);
-      const nextValue = Math.min(roundedValue, allowed);
-      return {
+    
+    // Calcular el máximo permitido
+    const othersTotal = Object.entries(weights).reduce((sum, [id, weight]) => {
+      if (id === indicatorId) {
+        return sum;
+      }
+      return sum + weight;
+    }, 0);
+    const maxAllowed = Math.max(0, 100 - othersTotal);
+    
+    // Solo actualizar si el valor está dentro del límite
+    if (roundedValue <= maxAllowed) {
+      setWeights((prev) => ({
         ...prev,
-        [indicatorId]: nextValue,
-      };
-    });
-    setError("");
+        [indicatorId]: roundedValue,
+      }));
+      setError("");
+    }
+    // Si excede el límite, simplemente no hace nada (el slider no se mueve)
   };
 
   const handleAutoDistribute = () => {
@@ -242,6 +246,16 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
   const isValid = Math.abs(totalWeight - 100) < 0.1 && selectedIndicators.size > 0;
   const remaining = 100 - totalWeight;
+
+  // Calcular progreso: contar estrategias completadas (excluyendo la actual) + la actual si está válida
+  const currentCompletedCount = strategies.reduce((count, s) => {
+    if (s.id === strategyId) {
+      // Para la estrategia actual, usar el estado de validez actual
+      return count + (isValid ? 1 : 0);
+    }
+    // Para las demás, usar el estado guardado
+    return count + (s.completed ? 1 : 0);
+  }, 0);
 
   const currentIndex = strategies.findIndex((s) => s.id === strategyId);
   const hasNext = currentIndex >= 0 && currentIndex < strategies.length - 1;
@@ -309,8 +323,8 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
           </div>
 
           <ProgressBar
-            value={(currentIndex + 1) / strategies.length}
-            label={`Progreso: ${currentIndex + 1}/${strategies.length}`}
+            value={currentCompletedCount / strategies.length}
+            label={`Progreso: ${currentCompletedCount}/${strategies.length} completadas`}
           />
         </header>
 
@@ -416,13 +430,6 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                 {Array.from(selectedIndicators).map((indicatorId) => {
                   const indicator = availableIndicators.find((ind) => ind.id === indicatorId);
                   if (!indicator) return null;
-                  const otherWeightsTotal = Object.entries(weights).reduce((sum, [id, weight]) => {
-                    if (id === indicatorId) {
-                      return sum;
-                    }
-                    return sum + weight;
-                  }, 0);
-                  const maxForIndicator = Math.min(100, Math.max(0, 100 - otherWeightsTotal));
 
                   return (
                     <div key={indicatorId} className="space-y-1">
@@ -433,7 +440,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                         <input
                           type="number"
                           min="0"
-                          max={maxForIndicator}
+                          max="100"
                           step="5"
                           value={weights[indicatorId] || 0}
                           onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value) || 0)}
@@ -443,7 +450,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                       <input
                         type="range"
                         min="0"
-                        max={maxForIndicator}
+                        max="100"
                         step="5"
                         value={weights[indicatorId] || 0}
                         onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value))}
