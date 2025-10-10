@@ -50,7 +50,6 @@ model Indicator {
   name        String     @unique
   description String?
   domain      String?    // "epidemiological", "entomological", etc.
-  tags        Json?      // JSON array - native JSON type for PostgreSQL
   active      Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

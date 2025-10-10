@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
-import type { Indicator, StrategyDefinition } from "@/domain/models";
+import type { Indicator } from "@/domain/models";
 
 interface StrategyPageParams {
   token: string;
@@ -153,7 +153,10 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
   };
 
   const handleWeightChange = (indicatorId: string, value: number) => {
-    setWeights((prev) => ({ ...prev, [indicatorId]: value }));
+    // Limitar a 100 y redondear a múltiplos de 5
+    const clampedValue = Math.min(100, Math.max(0, value));
+    const roundedValue = Math.round(clampedValue / 5) * 5;
+    setWeights((prev) => ({ ...prev, [indicatorId]: roundedValue }));
   };
 
   const handleAutoDistribute = () => {
@@ -286,16 +289,11 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                     />
                     <div className="flex-1">
                       <div className="font-medium text-slate-900">{indicator.name}</div>
-                      <div className="mt-0.5 flex flex-wrap gap-1">
-                        {(indicator.tags || []).map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      {indicator.description && (
+                        <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                          {indicator.description}
+                        </p>
+                      )}
                     </div>
                   </label>
                 ))}
@@ -364,7 +362,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                           type="number"
                           min="0"
                           max="100"
-                          step="0.1"
+                          step="5"
                           value={weights[indicatorId] || 0}
                           onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value) || 0)}
                           className="w-16 rounded border border-slate-200 px-2 py-1 text-xs text-right"
@@ -374,7 +372,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                         type="range"
                         min="0"
                         max="100"
-                        step="0.1"
+                        step="5"
                         value={weights[indicatorId] || 0}
                         onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value))}
                         className="w-full"

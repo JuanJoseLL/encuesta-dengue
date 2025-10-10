@@ -39,15 +39,6 @@ export async function GET(
       orderBy: [{ domain: "asc" }, { name: "asc" }],
     });
 
-    // Tags are already native JSON with PostgreSQL
-    const indicatorsWithParsedTags = indicators.map((indicator: any) => ({
-      id: indicator.id,
-      name: indicator.name,
-      description: indicator.description,
-      domain: indicator.domain,
-      tags: indicator.tags || [],
-    }));
-
     return NextResponse.json(
       {
         survey: {
@@ -62,7 +53,7 @@ export async function GET(
           description: strategy.description,
           order: strategy.order,
         })),
-        indicators: indicatorsWithParsedTags,
+        indicators,
       },
       { status: 200 }
     );

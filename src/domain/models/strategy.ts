@@ -6,7 +6,6 @@ export interface StrategyDefinition {
   title: string;
   description?: string;
   order: number;
-  domainTags: string[];
   indicators: StrategyIndicator[];
 }
 

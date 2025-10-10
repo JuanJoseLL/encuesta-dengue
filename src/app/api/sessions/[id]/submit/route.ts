@@ -13,7 +13,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { acknowledgeIncomplete = false, notes } = body;
+    const { acknowledgeIncomplete = false, notes, role } = body;
 
     // Load session with all data
     const session = await prisma.responseSession.findUnique({
@@ -84,6 +84,14 @@ export async function POST(
       );
     }
 
+    // Update respondent role if provided
+    if (role) {
+      await prisma.respondent.update({
+        where: { id: session.respondentId },
+        data: { role },
+      });
+    }
+
     // Update session to submitted
     const updatedSession = await prisma.responseSession.update({
       where: { id },
@@ -96,8 +104,9 @@ export async function POST(
               notes,
               incompleteStrategies: incompleteStrategies.length,
               acknowledgedIncomplete: acknowledgeIncomplete,
+              role,
             }
-          : undefined,
+          : role ? { role } : undefined,
       },
     });
 

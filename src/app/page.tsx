@@ -9,12 +9,12 @@ export default function HomePage() {
             Encuesta de ponderación de indicadores
           </span>
           <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
-            Valida estrategias de mitigación del dengue sin fricciones
+            Ponderación de Indicadores para Estrategias de Mitigación del Dengue
           </h1>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-600">
-            Plataforma para expertos donde pueden revisar hasta 19 estrategias y asignar pesos a 69
-            indicadores posibles. Guarda el progreso automáticamente, permite reanudar más tarde y
-            ofrece un resumen final antes del envío.
+            Plataforma para expertos donde pueden revisar 19 estrategias de mitigación y ponderar
+            69 indicadores epidemiológicos. Guarda el progreso automáticamente y permite reanudar
+            cuando sea necesario.
           </p>
         </section>
 
@@ -22,19 +22,16 @@ export default function HomePage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">¿Eres participante?</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Accede con tu token único, confirma tu rol y comienza el wizard de estrategias. Podrás
-              copiar pesos de la estrategia anterior y autorrepartir el porcentaje restante.
+              Accede con tu número de cédula para comenzar o continuar la encuesta. Tu progreso se
+              guarda automáticamente y puedes retomar en cualquier momento.
             </p>
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-6">
               <Link
-                href="/survey/demo-token"
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+                href="/survey"
+                className="inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
-                Ingresar con token
+                Acceder a la encuesta →
               </Link>
-              <span className="text-xs text-slate-400">
-                Sustituye <code className="rounded bg-slate-100 px-1 py-0.5">demo-token</code> por tu token real.
-              </span>
             </div>
           </div>
 

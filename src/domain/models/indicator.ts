@@ -3,7 +3,6 @@ export interface Indicator {
   name: string;
   description?: string;
   domain?: string;
-  tags?: string[];
   active?: boolean;
 }
 
