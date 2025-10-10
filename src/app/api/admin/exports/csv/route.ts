@@ -43,12 +43,8 @@ export async function GET(request: NextRequest) {
       "respondent_id",
       "respondent_name",
       "respondent_role",
-      "respondent_organization",
-      "session_id",
-      "strategy_id",
       "strategy_title",
       "strategy_order",
-      "indicator_id",
       "indicator_name",
       "indicator_domain",
       "weight",
@@ -59,21 +55,17 @@ export async function GET(request: NextRequest) {
 
     const rows: string[][] = [];
 
-    sessions.forEach((session: any) => {
-      session.responses.forEach((response: any) => {
+    sessions.forEach((session) => {
+      session.responses.forEach((response) => {
         rows.push([
           session.respondentId,
-          session.respondent.name || "Anónimo",
-          session.respondent.role,
-          session.respondent.organization || "",
-          session.id,
-          response.strategyId,
-          response.strategy.title,
-          response.strategy.order.toString(),
-          response.indicatorId,
-          response.indicator.name,
-          response.indicator.domain || "",
-          response.weight.toString(),
+          session.respondent?.name || "Anónimo",
+          session.respondent?.role ?? "",
+          response.strategy?.title ?? "",
+          response.strategy?.order != null ? response.strategy.order.toString() : "",
+          response.indicator?.name ?? "",
+          response.indicator?.domain || "",
+          response.weight != null ? response.weight.toString() : "",
           session.startedAt.toISOString(),
           session.completedAt?.toISOString() || "",
           response.updatedAt.toISOString(),

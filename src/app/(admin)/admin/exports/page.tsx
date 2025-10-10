@@ -14,7 +14,7 @@ interface Survey {
 }
 
 export default function AdminExportsPage() {
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState<"csv" | "excel" | null>(null);
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,17 @@ export default function AdminExportsPage() {
         }
 
         const data = await response.json();
-        setSurvey(data);
+        if (!data?.survey) {
+          throw new Error("Malformed survey response");
+        }
+
+        setSurvey({
+          id: data.survey.id,
+          title: data.survey.title,
+          version: data.survey.version,
+          active: Boolean(data.survey.active),
+          totalStrategies: Array.isArray(data.strategies) ? data.strategies.length : 0,
+        });
       } catch (err) {
         console.error("Error loading survey:", err);
         setError("Error al cargar la información de la encuesta");
@@ -41,10 +51,11 @@ export default function AdminExportsPage() {
     loadSurvey();
   }, []);
 
-  const handleExportCSV = async () => {
-    setExporting(true);
+  const handleExport = async (format: "csv" | "excel") => {
+    setExporting(format);
     try {
-      const response = await fetch(`/api/admin/exports/csv?surveyId=${SURVEY_ID}`);
+      const endpoint = format === "csv" ? "csv" : "excel";
+      const response = await fetch(`/api/admin/exports/${endpoint}?surveyId=${SURVEY_ID}`);
 
       if (!response.ok) {
         throw new Error("Failed to export data");
@@ -56,7 +67,8 @@ export default function AdminExportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `encuesta-dengue-${new Date().toISOString().split("T")[0]}.csv`;
+      const extension = format === "csv" ? "csv" : "xlsx";
+      a.download = `encuesta-dengue-${new Date().toISOString().split("T")[0]}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -65,7 +77,7 @@ export default function AdminExportsPage() {
       alert("Error al exportar datos");
       console.error(error);
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   };
 
@@ -109,42 +121,43 @@ export default function AdminExportsPage() {
             </div>
 
             <button
-              onClick={handleExportCSV}
-              disabled={exporting}
+              onClick={() => handleExport("csv")}
+              disabled={exporting !== null}
               className="mt-6 w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {exporting ? "Generando..." : "Descargar CSV"}
+              {exporting === "csv" ? "Generando..." : "Descargar CSV"}
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm opacity-60">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
                 <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-3-3v6m8 2a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h7.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V17z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">Exportar a JSON</h2>
-                <p className="text-sm text-slate-600">Formato estructurado completo</p>
+                <h2 className="text-lg font-semibold text-slate-900">Exportar a Excel</h2>
+                <p className="text-sm text-slate-600">Reporte profesional en .xlsx listo para análisis</p>
               </div>
             </div>
 
             <div className="mt-6 space-y-2 text-sm text-slate-600">
-              <p>El archivo JSON incluye:</p>
+              <p>El archivo Excel incluye:</p>
               <ul className="ml-4 list-disc space-y-1">
-                <li>Metadata completa de la encuesta</li>
-                <li>Estructura jerárquica de respuestas</li>
-                <li>Información adicional de sesiones</li>
-                <li>Timestamps detallados</li>
+                <li>Detalle de participantes, roles y organizaciones</li>
+                <li>Estrategias e indicadores consolidados por sesión</li>
+                <li>Peso otorgado por indicador (0-100)</li>
+                <li>Fechas de inicio, finalización y actualización</li>
               </ul>
             </div>
 
             <button
-              disabled
-              className="mt-6 w-full rounded-lg border border-slate-200 bg-slate-50 px-6 py-3 font-semibold text-slate-400 cursor-not-allowed"
+              onClick={() => handleExport("excel")}
+              disabled={exporting !== null}
+              className="mt-6 w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Próximamente
+              {exporting === "excel" ? "Generando..." : "Descargar Excel"}
             </button>
           </div>
         </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
@@ -22,14 +22,17 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
   const [availableIndicators, setAvailableIndicators] = useState<Indicator[]>([]);
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
   const [weights, setWeights] = useState<Record<string, number>>({});
+  const [sessionStatus, setSessionStatus] = useState<string>("draft");
   const [searchQuery, setSearchQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState("");
+  const autosaveInitializedRef = useRef(false);
 
   // Cargar datos de la estrategia
   useEffect(() => {
     async function loadStrategy() {
+      autosaveInitializedRef.current = false;
       try {
         // Get session
         const sessionResponse = await fetch(apiRoutes.sessionGet(token));
@@ -39,6 +42,12 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
         const sessionData = await sessionResponse.json();
         const session = sessionData.session;
         setSessionId(session.id);
+        setSessionStatus(session.status);
+
+        if (session.status === "submitted") {
+          router.replace(`/survey/${token}/success`);
+          return;
+        }
 
         // Get indicators
         const indicatorsResponse = await fetch(apiRoutes.indicatorsGet({ active: true }));
@@ -96,15 +105,25 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
     }
 
     loadStrategy();
-  }, [token, strategyId]);
+  }, [router, strategyId, token]);
 
   // Autosave con debounce
   useEffect(() => {
-    if (!sessionId || Object.keys(weights).length === 0) return;
+    if (!sessionId || sessionStatus === "submitted") return;
+
+    if (!autosaveInitializedRef.current) {
+      autosaveInitializedRef.current = true;
+      return;
+    }
 
     const timeoutId = setTimeout(async () => {
       setSaving(true);
       try {
+        const payload = Object.entries(weights).map(([indicatorId, weight]) => ({
+          indicatorId,
+          weight,
+        }));
+
         const response = await fetch(apiRoutes.sessionDraft(sessionId), {
           method: "PATCH",
           headers: {
@@ -112,12 +131,17 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
           },
           body: JSON.stringify({
             strategyId,
-            weights: Object.entries(weights).map(([indicatorId, weight]) => ({
-              indicatorId,
-              weight,
-            })),
+            weights: payload,
+            currentStrategyId: strategyId,
           }),
         });
+
+        if (response.status === 403) {
+          setSessionStatus("submitted");
+          setError("Esta encuesta ya fue enviada y no se puede editar.");
+          router.replace(`/survey/${token}/summary`);
+          return;
+        }
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -126,6 +150,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
         }
 
         setLastSaved(new Date());
+        setError("");
       } catch (err) {
         console.error("Error saving:", err);
       } finally {
@@ -134,7 +159,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
     }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [weights, sessionId, strategyId]);
+  }, [weights, sessionId, strategyId, router, sessionStatus, token]);
 
   const handleToggleIndicator = (indicatorId: string) => {
     const newSelected = new Set(selectedIndicators);
@@ -150,28 +175,68 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
 
     setSelectedIndicators(newSelected);
     setWeights(newWeights);
+    setError("");
   };
 
   const handleWeightChange = (indicatorId: string, value: number) => {
     // Limitar a 100 y redondear a múltiplos de 5
     const clampedValue = Math.min(100, Math.max(0, value));
     const roundedValue = Math.round(clampedValue / 5) * 5;
-    setWeights((prev) => ({ ...prev, [indicatorId]: roundedValue }));
+    setWeights((prev) => {
+      const entries = Object.entries(prev);
+      const othersTotal = entries.reduce((sum, [id, weight]) => {
+        if (id === indicatorId) {
+          return sum;
+        }
+        return sum + weight;
+      }, 0);
+      const allowed = Math.max(0, 100 - othersTotal);
+      const nextValue = Math.min(roundedValue, allowed);
+      return {
+        ...prev,
+        [indicatorId]: nextValue,
+      };
+    });
+    setError("");
   };
 
   const handleAutoDistribute = () => {
     const selected = Array.from(selectedIndicators);
     if (selected.length === 0) return;
 
-    const evenWeight = Math.floor(100 / selected.length);
-    const remainder = 100 - evenWeight * selected.length;
+    const perItemBase = Math.floor((100 / selected.length) / 5) * 5;
+    const remainder = 100 - perItemBase * selected.length;
+    const increments = Math.max(0, Math.floor(remainder / 5));
 
     const newWeights: Record<string, number> = {};
     selected.forEach((id, index) => {
-      newWeights[id] = evenWeight + (index < remainder ? 1 : 0);
+      const extra = index < increments ? 5 : 0;
+      newWeights[id] = perItemBase + extra;
     });
 
+    // Ajuste fino si por redondeos no se completan 100
+    const assignedTotal = Object.values(newWeights).reduce((sum, w) => sum + w, 0);
+    let difference = 100 - assignedTotal;
+    if (difference !== 0) {
+      const step = difference > 0 ? 5 : -5;
+      const ordered = [...selected];
+      let idx = 0;
+      while (difference !== 0 && ordered.length > 0) {
+        const indicatorId = ordered[idx % ordered.length];
+        const nextValue = (newWeights[indicatorId] ?? 0) + step;
+        if (nextValue >= 0 && nextValue <= 100) {
+          newWeights[indicatorId] = nextValue;
+          difference -= step;
+        } else {
+          ordered.splice(idx % ordered.length, 1);
+          continue;
+        }
+        idx += 1;
+      }
+    }
+
     setWeights(newWeights);
+    setError("");
   };
 
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
@@ -351,6 +416,13 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                 {Array.from(selectedIndicators).map((indicatorId) => {
                   const indicator = availableIndicators.find((ind) => ind.id === indicatorId);
                   if (!indicator) return null;
+                  const otherWeightsTotal = Object.entries(weights).reduce((sum, [id, weight]) => {
+                    if (id === indicatorId) {
+                      return sum;
+                    }
+                    return sum + weight;
+                  }, 0);
+                  const maxForIndicator = Math.min(100, Math.max(0, 100 - otherWeightsTotal));
 
                   return (
                     <div key={indicatorId} className="space-y-1">
@@ -361,7 +433,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                         <input
                           type="number"
                           min="0"
-                          max="100"
+                          max={maxForIndicator}
                           step="5"
                           value={weights[indicatorId] || 0}
                           onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value) || 0)}
@@ -371,7 +443,7 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
                       <input
                         type="range"
                         min="0"
-                        max="100"
+                        max={maxForIndicator}
                         step="5"
                         value={weights[indicatorId] || 0}
                         onChange={(e) => handleWeightChange(indicatorId, parseFloat(e.target.value))}
@@ -418,4 +490,3 @@ export default function StrategyWizardPage({ params }: { params: Promise<Strateg
     </div>
   );
 }
-

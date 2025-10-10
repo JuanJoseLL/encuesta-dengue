@@ -193,11 +193,34 @@ export default function SurveySummaryPage({
     );
   }
 
+  const renderSummaryActions = () => (
+    <footer className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <Link
+        href={`/survey/${token}/strategies`}
+        className="rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
+      >
+        ← Continuar editando
+      </Link>
+
+      {sessionStatus !== "submitted" && (
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit || submitting}
+          className="rounded-full bg-green-600 px-8 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {submitting ? "Enviando..." : "Enviar encuesta final"}
+        </button>
+      )}
+    </footer>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Header */}
         <header className="space-y-4">
+          {renderSummaryActions()}
+
           <Link
             href={`/survey/${token}/strategies`}
             className="text-sm text-blue-600 hover:underline"
@@ -365,24 +388,7 @@ export default function SurveySummaryPage({
         </section>
 
         {/* Footer Actions */}
-        <footer className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <Link
-            href={`/survey/${token}/strategies`}
-            className="rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
-          >
-            ← Continuar editando
-          </Link>
-
-          {sessionStatus !== "submitted" && (
-            <button
-              onClick={handleSubmit}
-              disabled={!canSubmit || submitting}
-              className="rounded-full bg-green-600 px-8 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {submitting ? "Enviando..." : "Enviar encuesta final"}
-            </button>
-          )}
-        </footer>
+        {renderSummaryActions()}
 
         {/* Role Selection Modal */}
         {showRoleModal && (

@@ -522,8 +522,8 @@ async function main() {
     "epidemiologist",
     "entomologist",
     "biologist",
-    "health-authority",
-    "researcher",
+    "public-health",
+    "policy-maker",
     "other",
   ];
 
