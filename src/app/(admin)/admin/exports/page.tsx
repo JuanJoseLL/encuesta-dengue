@@ -9,7 +9,7 @@ interface Survey {
   id: string;
   title: string;
   version: string;
-  totalScenarios: number;
+  totalStrategies: number;
   active: boolean;
 }
 
@@ -102,7 +102,7 @@ export default function AdminExportsPage() {
               <p>El archivo CSV incluye:</p>
               <ul className="ml-4 list-disc space-y-1">
                 <li>ID de participante y rol</li>
-                <li>Escenario e indicador seleccionado</li>
+                <li>Estrategia e indicador seleccionado</li>
                 <li>Peso asignado (0-100)</li>
                 <li>Timestamp de respuesta</li>
               </ul>
@@ -171,8 +171,8 @@ export default function AdminExportsPage() {
                 <p className="mt-1 text-slate-900">{survey.version}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-700">Total de escenarios</p>
-                <p className="mt-1 text-slate-900">{survey.totalScenarios}</p>
+                <p className="text-sm font-medium text-slate-700">Total de estrategias</p>
+                <p className="mt-1 text-slate-900">{survey.totalStrategies}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-700">Estado</p>
@@ -193,14 +193,14 @@ export default function AdminExportsPage() {
             <div>
               <strong className="text-slate-900">Estructura del CSV:</strong>
               <pre className="mt-2 overflow-x-auto rounded-lg bg-white p-3 text-xs">
-respondent_id,role,scenario_id,indicator_id,weight,timestamp
+respondent_id,role,strategy_id,indicator_id,weight,timestamp
 resp-001,epidemiologist,SCN-001,IND-001,25.0,2025-01-16T12:00:00Z
               </pre>
             </div>
             <div>
               <strong className="text-slate-900">Análisis sugeridos:</strong>
               <ul className="mt-2 ml-4 list-disc space-y-1">
-                <li>Consenso entre roles profesionales por escenario</li>
+                <li>Consenso entre roles profesionales por estrategia</li>
                 <li>Indicadores más y menos valorados globalmente</li>
                 <li>Variabilidad de ponderaciones por indicador</li>
                 <li>Correlaciones entre indicadores según contexto epidemiológico</li>

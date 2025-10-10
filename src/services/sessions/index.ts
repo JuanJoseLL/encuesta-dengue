@@ -1,8 +1,6 @@
 import { ApiClient, defaultApiClient } from "@/lib/api/client";
 import { apiRoutes } from "@/lib/api/routes";
 import {
-  ScenarioProgress,
-  SessionDraftPayload,
   SessionSubmissionRequest,
   SessionSummaryResponse,
   SessionStatus,
@@ -16,17 +14,17 @@ export interface LoadSessionResponse {
     token: string;
     progress: number;
     status: SessionStatus;
-    currentScenarioId?: string;
+    currentStrategyId?: string;
     responses: Array<{
       id: string;
-      scenarioId: string;
+      strategyId: string;
       indicatorId: string;
       weight: number;
       indicator: {
         id: string;
         name: string;
       };
-      scenario: {
+      strategy: {
         id: string;
         title: string;
       };
@@ -34,7 +32,7 @@ export interface LoadSessionResponse {
     survey: {
       id: string;
       title: string;
-      scenarios: Array<{
+      strategies: Array<{
         id: string;
         title: string;
         description?: string;
@@ -65,14 +63,14 @@ export class SessionService {
 
   async saveDraft(
     sessionId: string,
-    scenarioId: string,
+    strategyId: string,
     weights: Array<{ indicatorId: string; weight: number }>,
-    currentScenarioId?: string
+    currentStrategyId?: string
   ): Promise<SaveDraftResponse> {
     return this.api.request<SaveDraftResponse>(apiRoutes.sessionDraft(sessionId), "PATCH", {
-      scenarioId,
+      strategyId,
       weights,
-      currentScenarioId,
+      currentStrategyId,
       autosave: true,
     });
   }

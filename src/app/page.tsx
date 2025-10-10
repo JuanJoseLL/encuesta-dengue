@@ -9,10 +9,10 @@ export default function HomePage() {
             Encuesta de ponderación de indicadores
           </span>
           <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
-            Valida escenarios epidemiológicos de dengue sin fricciones
+            Valida estrategias de mitigación del dengue sin fricciones
           </h1>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-600">
-            Plataforma para expertos donde pueden revisar hasta 19 escenarios y asignar pesos a 69
+            Plataforma para expertos donde pueden revisar hasta 19 estrategias y asignar pesos a 69
             indicadores posibles. Guarda el progreso automáticamente, permite reanudar más tarde y
             ofrece un resumen final antes del envío.
           </p>
@@ -22,8 +22,8 @@ export default function HomePage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">¿Eres participante?</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Accede con tu token único, confirma tu rol y comienza el wizard de escenarios. Podrás
-              copiar pesos del escenario previo y autorrepartir el porcentaje restante.
+              Accede con tu token único, confirma tu rol y comienza el wizard de estrategias. Podrás
+              copiar pesos de la estrategia anterior y autorrepartir el porcentaje restante.
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <Link
@@ -41,7 +41,7 @@ export default function HomePage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">¿Eres administrador?</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Supervisa el avance de las sesiones, gestiona escenarios e indicadores y exporta los
+              Supervisa el avance de las sesiones, gestiona estrategias e indicadores y exporta los
               resultados consolidados en CSV o JSON según las necesidades del equipo investigador.
             </p>
             <div className="mt-6 flex flex-col gap-3">

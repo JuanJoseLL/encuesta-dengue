@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 
 /**
  * GET /api/sessions/:id/summary
- * Returns a summary of all scenarios and their completion status
+ * Returns a summary of all strategies and their completion status
  */
 export async function GET(
   request: NextRequest,
@@ -19,7 +19,7 @@ export async function GET(
         responses: {
           include: {
             indicator: true,
-            scenario: true,
+            strategy: true,
           },
           orderBy: {
             weight: "desc",
@@ -27,7 +27,7 @@ export async function GET(
         },
         survey: {
           include: {
-            scenarios: {
+            strategies: {
               where: { active: true },
               orderBy: { order: "asc" },
             },
@@ -43,27 +43,27 @@ export async function GET(
       );
     }
 
-    // Group responses by scenario
-    const responsesByScenario = new Map<string, typeof session.responses>();
+    // Group responses by strategy
+    const responsesByStrategy = new Map<string, typeof session.responses>();
 
     for (const response of session.responses) {
-      const scenarioId = response.scenarioId;
-      const existing = responsesByScenario.get(scenarioId) || [];
-      responsesByScenario.set(scenarioId, [...existing, response]);
+      const strategyId = response.strategyId;
+      const existing = responsesByStrategy.get(strategyId) || [];
+      responsesByStrategy.set(strategyId, [...existing, response]);
     }
 
     // Build summary items
-    const items = session.survey.scenarios.map((scenario) => {
-      const scenarioResponses = responsesByScenario.get(scenario.id) || [];
+    const items = session.survey.strategies.map((strategy: any) => {
+      const strategyResponses = responsesByStrategy.get(strategy.id) || [];
 
-      const totalWeight = scenarioResponses.reduce(
-        (sum, r) => sum + r.weight,
+      const totalWeight = strategyResponses.reduce(
+        (sum: number, r: any) => sum + r.weight,
         0
       );
 
       let status: "complete" | "incomplete" | "not-applicable";
 
-      if (scenarioResponses.length === 0) {
+      if (strategyResponses.length === 0) {
         status = "not-applicable";
       } else if (Math.abs(totalWeight - 100) <= 0.01) {
         status = "complete";
@@ -72,14 +72,14 @@ export async function GET(
       }
 
       return {
-        scenarioId: scenario.id,
-        scenarioTitle: scenario.title,
-        scenarioDescription: scenario.description,
-        scenarioOrder: scenario.order,
+        strategyId: strategy.id,
+        strategyTitle: strategy.title,
+        strategyDescription: strategy.description,
+        strategyOrder: strategy.order,
         status,
         totalWeight: Math.round(totalWeight * 100) / 100,
-        indicatorCount: scenarioResponses.length,
-        indicators: scenarioResponses.map((r) => ({
+        indicatorCount: strategyResponses.length,
+        indicators: strategyResponses.map((r: any) => ({
           indicatorId: r.indicator.id,
           indicatorName: r.indicator.name,
           weight: r.weight,
@@ -89,22 +89,22 @@ export async function GET(
 
     // Calculate warnings
     const warnings = [];
-    const incompleteCount = items.filter((i) => i.status === "incomplete").length;
-    const notApplicableCount = items.filter((i) => i.status === "not-applicable").length;
-    const completeCount = items.filter((i) => i.status === "complete").length;
+    const incompleteCount = items.filter((i: any) => i.status === "incomplete").length;
+    const notApplicableCount = items.filter((i: any) => i.status === "not-applicable").length;
+    const completeCount = items.filter((i: any) => i.status === "complete").length;
 
     if (incompleteCount > 0) {
       warnings.push(
-        `${incompleteCount} scenario${incompleteCount > 1 ? "s" : ""} with weights that don't sum to 100%`
+        `${incompleteCount} strateg${incompleteCount > 1 ? "ies" : "y"} with weights that don't sum to 100%`
       );
     }
 
-    if (notApplicableCount === session.survey.scenarios.length) {
-      warnings.push("No scenarios have been completed");
+    if (notApplicableCount === session.survey.strategies.length) {
+      warnings.push("No strategies have been completed");
     }
 
-    if (completeCount === 0 && notApplicableCount < session.survey.scenarios.length) {
-      warnings.push("Please complete at least one scenario before submitting");
+    if (completeCount === 0 && notApplicableCount < session.survey.strategies.length) {
+      warnings.push("Please complete at least one strategy before submitting");
     }
 
     return NextResponse.json(
@@ -115,7 +115,7 @@ export async function GET(
         items,
         warnings,
         stats: {
-          total: session.survey.scenarios.length,
+          total: session.survey.strategies.length,
           complete: completeCount,
           incomplete: incompleteCount,
           notApplicable: notApplicableCount,

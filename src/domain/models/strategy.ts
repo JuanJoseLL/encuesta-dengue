@@ -1,24 +1,25 @@
 import { IndicatorWeightDraft } from "./response";
 
-export interface ScenarioDefinition {
+export interface StrategyDefinition {
   id: string;
   surveyId: string;
   title: string;
   description?: string;
   order: number;
   domainTags: string[];
-  indicators: ScenarioIndicator[];
+  indicators: StrategyIndicator[];
 }
 
-export interface ScenarioIndicator {
+export interface StrategyIndicator {
   indicatorId: string;
   required?: boolean;
   defaultWeight?: number;
 }
 
-export interface ScenarioProgress {
-  scenarioId: string;
+export interface StrategyProgress {
+  strategyId: string;
   status: "pending" | "in-progress" | "completed" | "not-applicable";
   indicatorWeights: IndicatorWeightDraft[];
   lastUpdatedAt: string;
 }
+

@@ -9,8 +9,8 @@ interface Session {
   respondentName: string;
   respondentRole: string;
   progress: number;
-  progressScenarios: number;
-  totalScenarios: number;
+  progressStrategies: number;
+  totalStrategies: number;
   status: string;
   lastActivity: string;
 }
@@ -106,11 +106,11 @@ export default function AdminSessionsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <ProgressBar
-                          value={session.progressScenarios / session.totalScenarios}
+                          value={session.progressStrategies / session.totalStrategies}
                           size="sm"
                         />
                         <span className="text-xs text-slate-600">
-                          {session.progressScenarios}/{session.totalScenarios}
+                          {session.progressStrategies}/{session.totalStrategies}
                         </span>
                       </div>
                     </td>

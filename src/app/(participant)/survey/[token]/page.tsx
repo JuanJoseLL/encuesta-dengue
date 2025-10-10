@@ -14,7 +14,7 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
   const [selectedRole, setSelectedRole] = useState<ParticipantRole | "">("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [surveyData, setSurveyData] = useState<{ title: string; totalScenarios: number } | null>(null);
+  const [surveyData, setSurveyData] = useState<{ title: string; totalStrategies: number } | null>(null);
 
   useEffect(() => {
     // Cargar datos de la encuesta
@@ -28,8 +28,8 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
 
         const data = await response.json();
         setSurveyData({
-          title: data.title,
-          totalScenarios: data.totalScenarios,
+          title: data.survey.title,
+          totalStrategies: data.strategies?.length || 19,
         });
       } catch (err) {
         setError("No se pudo cargar la encuesta");
@@ -62,8 +62,8 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
       // Guardar rol en localStorage
       localStorage.setItem(`session-${token}-role`, selectedRole);
 
-      // Redirigir a lista de escenarios
-      router.push(`/survey/${token}/scenarios`);
+      // Redirigir a lista de estrategias
+      router.push(`/survey/${token}/strategies`);
     } catch (err) {
       setError("Error al iniciar la sesión. Por favor intenta nuevamente.");
       console.error(err);
@@ -90,8 +90,8 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
           </div>
           <h1 className="text-3xl font-bold text-slate-900">{surveyData.title}</h1>
           <p className="text-slate-600">
-            Gracias por participar en esta investigación. Tu experiencia como experto/a es fundamental para validar
-            los indicadores epidemiológicos.
+            Gracias por participar en esta investigación. Tu experiencia como experto/a es fundamental para ponderar
+            los indicadores relevantes para cada estrategia de mitigación.
           </p>
         </div>
 
@@ -102,19 +102,19 @@ export default function SurveyWelcomePage({ params }: { params: Promise<{ token:
             <li className="flex gap-3">
               <span className="font-semibold text-blue-600">1.</span>
               <span>
-                Revisarás <strong>{surveyData.totalScenarios} escenarios epidemiológicos</strong> diferentes
+                Revisarás <strong>{surveyData.totalStrategies} estrategias de mitigación</strong> del dengue
               </span>
             </li>
             <li className="flex gap-3">
               <span className="font-semibold text-blue-600">2.</span>
               <span>
-                En cada escenario, seleccionarás los <strong>indicadores más relevantes</strong> y asignarás pesos
+                Para cada estrategia, ponderarás los <strong>indicadores más relevantes</strong> para su activación
               </span>
             </li>
             <li className="flex gap-3">
               <span className="font-semibold text-blue-600">3.</span>
               <span>
-                Los pesos deben sumar exactamente <strong>100%</strong> por escenario
+                Los pesos deben sumar exactamente <strong>100%</strong> por estrategia
               </span>
             </li>
             <li className="flex gap-3">

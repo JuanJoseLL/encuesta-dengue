@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         responses: {
           include: {
             indicator: true,
-            scenario: true,
+            strategy: true,
           },
         },
         logs: {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         },
         survey: {
           include: {
-            scenarios: {
+            strategies: {
               where: { active: true },
               orderBy: { order: "asc" },
             },
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
           logs: {
             create: {
               event: "resume",
-              payload: JSON.stringify({ message: "Session created" }),
+              payload: { message: "Session created" },
             },
           },
         },
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
           responses: {
             include: {
               indicator: true,
-              scenario: true,
+              strategy: true,
             },
           },
           logs: {
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
           },
           survey: {
             include: {
-              scenarios: {
+              strategies: {
                 where: { active: true },
                 orderBy: { order: "asc" },
               },
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
         data: {
           sessionId: session.id,
           event: "resume",
-          payload: JSON.stringify({ timestamp: new Date().toISOString() }),
+          payload: { timestamp: new Date().toISOString() },
         },
       });
     }

@@ -27,11 +27,11 @@ export async function GET(request: NextRequest) {
         respondent: true,
         responses: {
           include: {
-            scenario: true,
+            strategy: true,
             indicator: true,
           },
           orderBy: [
-            { scenarioId: "asc" },
+            { strategyId: "asc" },
             { indicatorId: "asc" },
           ],
         },
@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
       "respondent_role",
       "respondent_organization",
       "session_id",
-      "scenario_id",
-      "scenario_title",
-      "scenario_order",
+      "strategy_id",
+      "strategy_title",
+      "strategy_order",
       "indicator_id",
       "indicator_name",
       "indicator_domain",
@@ -59,17 +59,17 @@ export async function GET(request: NextRequest) {
 
     const rows: string[][] = [];
 
-    sessions.forEach((session) => {
-      session.responses.forEach((response) => {
+    sessions.forEach((session: any) => {
+      session.responses.forEach((response: any) => {
         rows.push([
           session.respondentId,
           session.respondent.name || "Anónimo",
           session.respondent.role,
           session.respondent.organization || "",
           session.id,
-          response.scenarioId,
-          response.scenario.title,
-          response.scenario.order.toString(),
+          response.strategyId,
+          response.strategy.title,
+          response.strategy.order.toString(),
           response.indicatorId,
           response.indicator.name,
           response.indicator.domain || "",
@@ -84,8 +84,8 @@ export async function GET(request: NextRequest) {
     // Convert to CSV string
     const csvContent = [
       headers.join(","),
-      ...rows.map((row) =>
-        row.map((cell) => {
+      ...rows.map((row: any) =>
+        row.map((cell: any) => {
           // Escape cells containing commas or quotes
           if (cell.includes(",") || cell.includes('"') || cell.includes("\n")) {
             return `"${cell.replace(/"/g, '""')}"`;

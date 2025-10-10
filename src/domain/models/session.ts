@@ -1,4 +1,4 @@
-import { ScenarioProgress } from "./scenario";
+import { StrategyProgress } from "./strategy";
 import { SessionStatus } from "../constants/statuses";
 
 export interface ResponseSession {
@@ -11,7 +11,7 @@ export interface ResponseSession {
   startedAt: string;
   updatedAt: string;
   completedAt?: string;
-  currentScenarioId?: string;
+  currentStrategyId?: string;
   logs?: SessionLog[];
   metadata?: Record<string, unknown>;
 }
@@ -19,14 +19,14 @@ export interface ResponseSession {
 export interface SessionLog {
   id: string;
   sessionId: string;
-  event: "autosave" | "scenario-enter" | "scenario-exit" | "submit" | "resume";
-  scenarioId?: string;
+  event: "autosave" | "strategy-enter" | "strategy-exit" | "submit" | "resume";
+  strategyId?: string;
   payload?: Record<string, unknown>;
   timestamp: string;
 }
 
 export interface SessionDraftPayload {
   sessionId: string;
-  scenarioProgress: ScenarioProgress;
+  strategyProgress: StrategyProgress;
   autosave: boolean;
 }

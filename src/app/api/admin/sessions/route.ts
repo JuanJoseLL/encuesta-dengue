@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         respondent: true,
         survey: {
           include: {
-            scenarios: {
+            strategies: {
               where: { active: true },
             },
           },
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         responses: {
           include: {
             indicator: true,
-            scenario: true,
+            strategy: true,
           },
         },
         logs: {
@@ -50,20 +50,20 @@ export async function GET(request: NextRequest) {
     });
 
     const sessionsWithStats = sessions.map((session) => {
-      const totalScenarios = session.survey.scenarios.length;
+      const totalStrategies = session.survey.strategies.length;
 
-      // Group responses by scenario and calculate totals
-      const scenarioWeights = new Map<string, number>();
+      // Group responses by strategy and calculate totals
+      const strategyWeights = new Map<string, number>();
       session.responses.forEach((response) => {
-        const current = scenarioWeights.get(response.scenarioId) || 0;
-        scenarioWeights.set(response.scenarioId, current + response.weight);
+        const current = strategyWeights.get(response.strategyId) || 0;
+        strategyWeights.set(response.strategyId, current + response.weight);
       });
 
-      // Count completed scenarios (sum = 100)
-      let completedScenarios = 0;
-      scenarioWeights.forEach((total) => {
+      // Count completed strategies (sum = 100)
+      let completedStrategies = 0;
+      strategyWeights.forEach((total) => {
         if (Math.abs(total - 100) <= 0.01) {
-          completedScenarios++;
+          completedStrategies++;
         }
       });
 
@@ -80,8 +80,8 @@ export async function GET(request: NextRequest) {
         respondentRole: session.respondent.role,
         respondentOrganization: session.respondent.organization,
         progress: session.progress,
-        progressScenarios: completedScenarios,
-        totalScenarios,
+        progressStrategies: completedStrategies,
+        totalStrategies,
         status: session.status,
         startedAt: session.startedAt,
         updatedAt: session.updatedAt,

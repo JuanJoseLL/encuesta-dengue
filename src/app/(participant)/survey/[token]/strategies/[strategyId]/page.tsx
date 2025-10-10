@@ -5,20 +5,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
-import type { Indicator, ScenarioDefinition } from "@/domain/models";
+import type { Indicator, StrategyDefinition } from "@/domain/models";
 
-interface ScenarioPageParams {
+interface StrategyPageParams {
   token: string;
-  scenarioId: string;
+  strategyId: string;
 }
 
-export default function ScenarioWizardPage({ params }: { params: Promise<ScenarioPageParams> }) {
+export default function StrategyWizardPage({ params }: { params: Promise<StrategyPageParams> }) {
   const router = useRouter();
-  const { token, scenarioId } = use(params);
+  const { token, strategyId } = use(params);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [scenario, setScenario] = useState<ScenarioDefinition | null>(null);
-  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [strategy, setStrategy] = useState<any>(null);
+  const [strategies, setStrategies] = useState<any[]>([]);
   const [availableIndicators, setAvailableIndicators] = useState<Indicator[]>([]);
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
   const [weights, setWeights] = useState<Record<string, number>>({});
@@ -27,16 +27,17 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState("");
 
-  // Cargar datos del escenario
+  // Cargar datos de la estrategia
   useEffect(() => {
-    async function loadScenario() {
+    async function loadStrategy() {
       try {
         // Get session
         const sessionResponse = await fetch(apiRoutes.sessionGet(token));
         if (!sessionResponse.ok) {
           throw new Error("Failed to load session");
         }
-        const session = await sessionResponse.json();
+        const sessionData = await sessionResponse.json();
+        const session = sessionData.session;
         setSessionId(session.id);
 
         // Get indicators
@@ -46,43 +47,56 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
         }
         const indicatorsData = await indicatorsResponse.json();
 
-        // Get session summary with scenarios and responses
+        // Get session summary with strategies and responses
         const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
         if (!summaryResponse.ok) {
           throw new Error("Failed to load summary");
         }
         const summary = await summaryResponse.json();
 
-        setScenarios(summary.scenarios);
+        // Map items to strategies format
+        const strategies = (summary.items || []).map((item: any) => ({
+          id: item.strategyId,
+          title: item.strategyTitle,
+          description: item.strategyDescription,
+          order: item.strategyOrder,
+        }));
+        setStrategies(strategies);
 
-        // Find current scenario
-        const currentScenario = summary.scenarios.find((s: any) => s.id === scenarioId);
-        if (!currentScenario) {
-          setError("Escenario no encontrado");
+        // Find current strategy
+        const currentItem = summary.items.find((item: any) => item.strategyId === strategyId);
+        if (!currentItem) {
+          setError("Estrategia no encontrada");
           return;
         }
 
-        setScenario(currentScenario);
+        const currentStrategy = {
+          id: currentItem.strategyId,
+          title: currentItem.strategyTitle,
+          description: currentItem.strategyDescription,
+          order: currentItem.strategyOrder,
+        };
+        setStrategy(currentStrategy);
 
-        // Get indicators for this scenario
-        const scenarioIndicatorIds = currentScenario.indicatorIds || [];
-        const indicators = indicatorsData.indicators.filter((ind: Indicator) =>
-          scenarioIndicatorIds.includes(ind.id)
-        );
-        setAvailableIndicators(indicators);
+        // For now, use all indicators (we can filter later if needed)
+        setAvailableIndicators(indicatorsData.indicators);
 
-        // Load saved weights
-        const savedWeights = currentScenario.weights || {};
+        // Load saved weights from the indicators in the response
+        const savedWeights: Record<string, number> = {};
+        (currentItem.indicators || []).forEach((ind: any) => {
+          savedWeights[ind.indicatorId] = ind.weight;
+        });
+        
         setWeights(savedWeights);
         setSelectedIndicators(new Set(Object.keys(savedWeights)));
       } catch (err) {
-        console.error("Error loading scenario:", err);
-        setError("Error al cargar el escenario");
+        console.error("Error loading strategy:", err);
+        setError("Error al cargar la estrategia");
       }
     }
 
-    loadScenario();
-  }, [token, scenarioId]);
+    loadStrategy();
+  }, [token, strategyId]);
 
   // Autosave con debounce
   useEffect(() => {
@@ -92,17 +106,22 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
       setSaving(true);
       try {
         const response = await fetch(apiRoutes.sessionDraft(sessionId), {
-          method: "POST",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            scenarioId,
-            weights,
+            strategyId,
+            weights: Object.entries(weights).map(([indicatorId, weight]) => ({
+              indicatorId,
+              weight,
+            })),
           }),
         });
 
         if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error saving draft:", errorData);
           throw new Error("Failed to save draft");
         }
 
@@ -115,7 +134,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
     }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [weights, sessionId, scenarioId]);
+  }, [weights, sessionId, strategyId]);
 
   const handleToggleIndicator = (indicatorId: string) => {
     const newSelected = new Set(selectedIndicators);
@@ -156,8 +175,8 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
   const isValid = Math.abs(totalWeight - 100) < 0.1 && selectedIndicators.size > 0;
   const remaining = 100 - totalWeight;
 
-  const currentIndex = scenarios.findIndex((s) => s.id === scenarioId);
-  const hasNext = currentIndex >= 0 && currentIndex < scenarios.length - 1;
+  const currentIndex = strategies.findIndex((s) => s.id === strategyId);
+  const hasNext = currentIndex >= 0 && currentIndex < strategies.length - 1;
   const hasPrev = currentIndex > 0;
 
   const handleNext = () => {
@@ -166,7 +185,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
       return;
     }
     if (hasNext) {
-      router.push(`/survey/${token}/scenarios/${scenarios[currentIndex + 1].id}`);
+      router.push(`/survey/${token}/strategies/${strategies[currentIndex + 1].id}`);
     } else {
       router.push(`/survey/${token}/summary`);
     }
@@ -174,7 +193,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
 
   const handlePrev = () => {
     if (hasPrev) {
-      router.push(`/survey/${token}/scenarios/${scenarios[currentIndex - 1].id}`);
+      router.push(`/survey/${token}/strategies/${strategies[currentIndex - 1].id}`);
     }
   };
 
@@ -182,10 +201,10 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
     ind.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!scenario) {
+  if (!strategy) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-slate-600">Cargando escenario...</div>
+        <div className="text-slate-600">Cargando estrategia...</div>
       </div>
     );
   }
@@ -198,14 +217,14 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link
-                href={`/survey/${token}/scenarios`}
+                href={`/survey/${token}/strategies`}
                 className="text-sm text-blue-600 hover:underline"
               >
                 ← Volver a lista
               </Link>
               <span className="text-slate-300">|</span>
               <span className="text-sm text-slate-600">
-                Escenario {currentIndex + 1} de {scenarios.length}
+                Estrategia {currentIndex + 1} de {strategies.length}
               </span>
             </div>
             <div className="text-xs text-slate-500">
@@ -214,13 +233,16 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">{scenario.title}</h1>
-            <p className="mt-2 text-slate-600">{scenario.description}</p>
+            <h1 className="text-3xl font-bold text-slate-900">{strategy.title}</h1>
+            <p className="mt-2 text-slate-600">{strategy.description}</p>
+            <p className="mt-1 text-sm text-blue-600">
+              💡 Selecciona y pondera los indicadores más relevantes para decidir activar esta estrategia
+            </p>
           </div>
 
           <ProgressBar
-            value={(currentIndex + 1) / scenarios.length}
-            label={`Progreso: ${currentIndex + 1}/${scenarios.length}`}
+            value={(currentIndex + 1) / strategies.length}
+            label={`Progreso: ${currentIndex + 1}/${strategies.length}`}
           />
         </header>
 
@@ -233,7 +255,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
                 Selecciona indicadores relevantes
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Marca los indicadores más importantes para este escenario
+                Marca los indicadores más importantes para esta estrategia de mitigación
               </p>
 
               {/* Search */}
@@ -265,7 +287,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
                     <div className="flex-1">
                       <div className="font-medium text-slate-900">{indicator.name}</div>
                       <div className="mt-0.5 flex flex-wrap gap-1">
-                        {indicator.domainTags.map((tag) => (
+                        {(indicator.tags || []).map((tag: string) => (
                           <span
                             key={tag}
                             className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
@@ -312,7 +334,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
                   />
                 </div>
                 <div className="mt-2 text-xs text-slate-600">
-                  {remaining > 0 ? `Faltan ${remaining.toFixed(1)}%` : remaining < 0 ? `Excedido por ${Math.abs(remaining).toFixed(1)}%` : "Suma correcta"}
+                  {remaining > 0 ? `Faltan ${remaining.toFixed(1)}%` : remaining < 0 ? `Excedido por ${Math.abs(remaining).toFixed(1)}%` : "Suma correcta ✓"}
                 </div>
               </div>
 
@@ -383,7 +405,7 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
 
           <div className="text-center">
             {error && <div className="text-sm text-red-600">{error}</div>}
-            {isValid && <div className="text-sm text-green-600">Escenario completo</div>}
+            {isValid && <div className="text-sm text-green-600">✓ Estrategia completa</div>}
           </div>
 
           <button
@@ -398,3 +420,4 @@ export default function ScenarioWizardPage({ params }: { params: Promise<Scenari
     </div>
   );
 }
+

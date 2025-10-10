@@ -2,8 +2,9 @@ export interface Indicator {
   id: string;
   name: string;
   description?: string;
-  domainTags: string[];
-  active: boolean;
+  domain?: string;
+  tags?: string[];
+  active?: boolean;
 }
 
 export interface IndicatorCategory {

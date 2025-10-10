@@ -1,10 +1,10 @@
 import { ApiClient, defaultApiClient } from "@/lib/api/client";
 import { apiRoutes } from "@/lib/api/routes";
-import { ScenarioDefinition, SurveyMetadata, Indicator } from "@/domain/models";
+import { StrategyDefinition, SurveyMetadata, Indicator } from "@/domain/models";
 
 export interface SurveyDefinitionResponse {
   survey: SurveyMetadata;
-  scenarios: ScenarioDefinition[];
+  strategies: StrategyDefinition[];
   indicators: Indicator[];
 }
 

@@ -1,5 +1,5 @@
 export * from "./survey";
-export * from "./scenario";
+export * from "./strategy";
 export * from "./indicator";
 export * from "./respondent";
 export * from "./session";

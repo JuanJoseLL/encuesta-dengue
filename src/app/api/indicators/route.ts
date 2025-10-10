@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
       orderBy: [{ domain: "asc" }, { name: "asc" }],
     });
 
-    // Parse tags from JSON string to array
-    const indicatorsWithParsedTags = indicators.map((indicator) => ({
+    // Tags are already native JSON with PostgreSQL
+    const indicatorsWithParsedTags = indicators.map((indicator: any) => ({
       ...indicator,
-      tags: indicator.tags ? JSON.parse(indicator.tags) : [],
+      tags: indicator.tags || [],
     }));
 
     return NextResponse.json(

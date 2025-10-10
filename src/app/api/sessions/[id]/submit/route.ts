@@ -21,12 +21,12 @@ export async function POST(
       include: {
         responses: {
           include: {
-            scenario: true,
+            strategy: true,
           },
         },
         survey: {
           include: {
-            scenarios: {
+            strategies: {
               where: { active: true },
               orderBy: { order: "asc" },
             },
@@ -50,34 +50,34 @@ export async function POST(
     }
 
     // Validate completeness
-    const scenarioWeights = new Map<string, number>();
+    const strategyWeights = new Map<string, number>();
 
     for (const response of session.responses) {
-      const current = scenarioWeights.get(response.scenarioId) || 0;
-      scenarioWeights.set(response.scenarioId, current + response.weight);
+      const current = strategyWeights.get(response.strategyId) || 0;
+      strategyWeights.set(response.strategyId, current + response.weight);
     }
 
-    const incompleteScenarios = [];
+    const incompleteStrategies = [];
 
-    for (const scenario of session.survey.scenarios) {
-      const totalWeight = scenarioWeights.get(scenario.id) || 0;
+    for (const strategy of session.survey.strategies) {
+      const totalWeight = strategyWeights.get(strategy.id) || 0;
 
-      // Check if scenario is complete (sum = 100) or has no responses
+      // Check if strategy is complete (sum = 100) or has no responses
       if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.01) {
-        incompleteScenarios.push({
-          id: scenario.id,
-          title: scenario.title,
+        incompleteStrategies.push({
+          id: strategy.id,
+          title: strategy.title,
           totalWeight,
         });
       }
     }
 
     // If incomplete and user hasn't acknowledged, return error
-    if (incompleteScenarios.length > 0 && !acknowledgeIncomplete) {
+    if (incompleteStrategies.length > 0 && !acknowledgeIncomplete) {
       return NextResponse.json(
         {
-          error: "Some scenarios are incomplete",
-          incompleteScenarios,
+          error: "Some strategies are incomplete",
+          incompleteStrategies,
           requiresAcknowledgment: true,
         },
         { status: 400 }
@@ -92,11 +92,11 @@ export async function POST(
         completedAt: new Date(),
         progress: 1.0,
         metadata: notes
-          ? JSON.stringify({
+          ? {
               notes,
-              incompleteScenarios: incompleteScenarios.length,
+              incompleteStrategies: incompleteStrategies.length,
               acknowledgedIncomplete: acknowledgeIncomplete,
-            })
+            }
           : undefined,
       },
     });
@@ -106,13 +106,13 @@ export async function POST(
       data: {
         sessionId: id,
         event: "submit",
-        payload: JSON.stringify({
+        payload: {
           timestamp: new Date().toISOString(),
-          totalScenarios: session.survey.scenarios.length,
-          completedScenarios: session.survey.scenarios.length - incompleteScenarios.length,
-          incompleteScenarios: incompleteScenarios.length,
+          totalStrategies: session.survey.strategies.length,
+          completedStrategies: session.survey.strategies.length - incompleteStrategies.length,
+          incompleteStrategies: incompleteStrategies.length,
           acknowledgedIncomplete: acknowledgeIncomplete,
-        }),
+        },
       },
     });
 
@@ -130,7 +130,7 @@ export async function POST(
       {
         session: updatedSession,
         message: "Survey submitted successfully",
-        incompleteScenarios,
+        incompleteStrategies,
       },
       { status: 200 }
     );

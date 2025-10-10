@@ -13,7 +13,9 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { scenarioId, weights, currentScenarioId, autosave = true } = body;
+    const { strategyId, weights, currentStrategyId, autosave = true } = body;
+    
+    console.log("Draft save request:", { sessionId: id, strategyId, weightsCount: weights?.length });
 
     // Validate session exists and is not submitted
     const session = await prisma.responseSession.findUnique({
@@ -21,7 +23,7 @@ export async function PATCH(
       include: {
         survey: {
           include: {
-            scenarios: {
+            strategies: {
               where: { active: true },
             },
           },
@@ -43,31 +45,13 @@ export async function PATCH(
       );
     }
 
-    // Validate scenario belongs to survey
-    const scenario = session.survey.scenarios.find((s) => s.id === scenarioId);
-    if (!scenario) {
+    // Validate strategy belongs to survey
+    const strategy = session.survey.strategies.find((s: any) => s.id === strategyId);
+    if (!strategy) {
       return NextResponse.json(
-        { error: "Invalid scenario for this survey" },
+        { error: "Invalid strategy for this survey" },
         { status: 400 }
       );
-    }
-
-    // Validate weights sum to 100 (with small tolerance for floating point)
-    if (weights && weights.length > 0) {
-      const totalWeight = weights.reduce(
-        (sum: number, w: { weight: number }) => sum + w.weight,
-        0
-      );
-
-      if (Math.abs(totalWeight - 100) > 0.01 && totalWeight !== 0) {
-        return NextResponse.json(
-          {
-            error: "Weights must sum to 100",
-            totalWeight,
-          },
-          { status: 400 }
-        );
-      }
     }
 
     // Upsert responses (create or update)
@@ -75,9 +59,9 @@ export async function PATCH(
       for (const { indicatorId, weight } of weights) {
         await prisma.response.upsert({
           where: {
-            sessionId_scenarioId_indicatorId: {
+            sessionId_strategyId_indicatorId: {
               sessionId: id,
-              scenarioId,
+              strategyId,
               indicatorId,
             },
           },
@@ -86,7 +70,7 @@ export async function PATCH(
           },
           create: {
             sessionId: id,
-            scenarioId,
+            strategyId,
             indicatorId,
             weight,
           },
@@ -98,25 +82,25 @@ export async function PATCH(
       await prisma.response.deleteMany({
         where: {
           sessionId: id,
-          scenarioId,
+          strategyId,
           indicatorId: {
             notIn: indicatorIds,
           },
         },
       });
     } else {
-      // If no weights, delete all responses for this scenario
+      // If no weights, delete all responses for this strategy
       await prisma.response.deleteMany({
         where: {
           sessionId: id,
-          scenarioId,
+          strategyId,
         },
       });
     }
 
-    // Calculate progress (completed scenarios / total scenarios)
-    const completedScenarios = await prisma.response.groupBy({
-      by: ["scenarioId"],
+    // Calculate progress (completed strategies / total strategies)
+    const completedStrategies = await prisma.response.groupBy({
+      by: ["strategyId"],
       where: {
         sessionId: id,
       },
@@ -133,14 +117,14 @@ export async function PATCH(
       },
     });
 
-    const progress = completedScenarios.length / session.survey.scenarios.length;
+    const progress = completedStrategies.length / session.survey.strategies.length;
 
     // Update session
     const updatedSession = await prisma.responseSession.update({
       where: { id },
       data: {
         progress,
-        currentScenarioId: currentScenarioId || scenario.id,
+        currentStrategyId: currentStrategyId || strategy.id,
         updatedAt: new Date(),
       },
     });
@@ -149,13 +133,13 @@ export async function PATCH(
     await prisma.sessionLog.create({
       data: {
         sessionId: id,
-        event: autosave ? "autosave" : "scenario-exit",
-        scenarioId,
-        payload: JSON.stringify({
+        event: autosave ? "autosave" : "strategy-exit",
+        strategyId,
+        payload: {
           weightsCount: weights?.length || 0,
           progress,
           timestamp: new Date().toISOString(),
-        }),
+        },
       },
     });
 
@@ -170,7 +154,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error saving draft:", error);
     return NextResponse.json(
-      { error: "Failed to save progress" },
+      { error: "Failed to save progress", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 
 /**
  * GET /api/surveys/:id
- * Returns complete survey definition with scenarios and indicators
+ * Returns complete survey definition with strategies and indicators
  */
 export async function GET(
   request: NextRequest,
@@ -15,7 +15,7 @@ export async function GET(
     const survey = await prisma.survey.findUnique({
       where: { id },
       include: {
-        scenarios: {
+        strategies: {
           where: { active: true },
           orderBy: { order: "asc" },
         },
@@ -39,13 +39,13 @@ export async function GET(
       orderBy: [{ domain: "asc" }, { name: "asc" }],
     });
 
-    // Parse tags from JSON string to array
-    const indicatorsWithParsedTags = indicators.map((indicator) => ({
+    // Tags are already native JSON with PostgreSQL
+    const indicatorsWithParsedTags = indicators.map((indicator: any) => ({
       id: indicator.id,
       name: indicator.name,
       description: indicator.description,
       domain: indicator.domain,
-      tags: indicator.tags ? JSON.parse(indicator.tags) : [],
+      tags: indicator.tags || [],
     }));
 
     return NextResponse.json(
@@ -56,11 +56,11 @@ export async function GET(
           version: survey.version,
           active: survey.active,
         },
-        scenarios: survey.scenarios.map((scenario) => ({
-          id: scenario.id,
-          title: scenario.title,
-          description: scenario.description,
-          order: scenario.order,
+        strategies: survey.strategies.map((strategy: any) => ({
+          id: strategy.id,
+          title: strategy.title,
+          description: strategy.description,
+          order: strategy.order,
         })),
         indicators: indicatorsWithParsedTags,
       },

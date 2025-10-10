@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       include: {
         survey: {
           include: {
-            scenarios: { where: { active: true } },
+            strategies: { where: { active: true } },
           },
         },
         responses: true,
@@ -35,25 +35,25 @@ export async function GET(request: NextRequest) {
         inProgressSessions: 0,
         completionRate: 0,
         averageProgress: 0,
-        averageCompletedScenarios: 0,
-        totalScenarios: 0,
+        averageCompletedStrategies: 0,
+        totalStrategies: 0,
         totalIndicators: await prisma.indicator.count({ where: { active: true } }),
       });
     }
 
-    const completedSessions = sessions.filter((s) => s.status === "submitted").length;
-    const inProgressSessions = sessions.filter((s) => s.status === "draft").length;
+    const completedSessions = sessions.filter((s: any) => s.status === "submitted").length;
+    const inProgressSessions = sessions.filter((s: any) => s.status === "draft").length;
     const completionRate = (completedSessions / sessions.length) * 100;
 
     // Calculate average progress across all sessions
-    const totalProgress = sessions.reduce((sum, s) => sum + s.progress, 0);
+    const totalProgress = sessions.reduce((sum: any, s: any) => sum + s.progress, 0);
     const averageProgress = totalProgress / sessions.length;
 
-    // Get total scenarios from first session's survey
-    const totalScenarios = sessions[0]?.survey.scenarios.length || 0;
+    // Get total strategies from first session's survey
+    const totalStrategies = sessions[0]?.survey.strategies.length || 0;
 
-    // Calculate average scenarios completed
-    const averageCompletedScenarios = averageProgress * totalScenarios;
+    // Calculate average strategies completed
+    const averageCompletedStrategies = averageProgress * totalStrategies;
 
     // Get total indicators
     const totalIndicators = await prisma.indicator.count({ where: { active: true } });
@@ -87,8 +87,8 @@ export async function GET(request: NextRequest) {
         inProgressSessions,
         completionRate: Math.round(completionRate * 10) / 10,
         averageProgress: Math.round(averageProgress * 1000) / 1000,
-        averageCompletedScenarios: Math.round(averageCompletedScenarios * 10) / 10,
-        totalScenarios,
+        averageCompletedStrategies: Math.round(averageCompletedStrategies * 10) / 10,
+        totalStrategies,
         totalIndicators,
         recentActivity: {
           newSessions: recentSessions,

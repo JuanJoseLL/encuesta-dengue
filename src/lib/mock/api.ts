@@ -3,8 +3,8 @@
  * Simula delays realistas y estructura de respuestas
  */
 
-import { MOCK_SURVEY, MOCK_SCENARIOS, MOCK_INDICATORS, MOCK_SESSIONS } from "./data";
-import type { SurveyMetadata, ScenarioDefinition, Indicator } from "@/domain/models";
+import { MOCK_SURVEY, MOCK_STRATEGIES, MOCK_INDICATORS, MOCK_SESSIONS } from "./data";
+import type { SurveyMetadata, StrategyDefinition, Indicator } from "@/domain/models";
 
 const SIMULATED_DELAY = 300; // ms
 
@@ -14,7 +14,7 @@ function delay(ms: number = SIMULATED_DELAY): Promise<void> {
 
 export interface SurveyDefinitionResponse {
   survey: SurveyMetadata;
-  scenarios: ScenarioDefinition[];
+  strategies: StrategyDefinition[];
   indicators: Indicator[];
 }
 
@@ -23,7 +23,7 @@ export interface SessionResponse {
   surveyId: string;
   role: string;
   progress: number;
-  scenarioProgress: Record<
+  strategyProgress: Record<
     string,
     {
       status: "pending" | "in-progress" | "completed" | "not-applicable";
@@ -46,7 +46,7 @@ export const mockApi = {
     }
     return {
       survey: MOCK_SURVEY,
-      scenarios: MOCK_SCENARIOS,
+      strategies: MOCK_STRATEGIES,
       indicators: MOCK_INDICATORS,
     };
   },
@@ -66,7 +66,7 @@ export const mockApi = {
       surveyId: MOCK_SURVEY.id,
       role: "", // Usuario debe seleccionar
       progress: 0,
-      scenarioProgress: {},
+      strategyProgress: {},
     };
   },
 
@@ -76,13 +76,13 @@ export const mockApi = {
    */
   async saveDraft(
     sessionId: string,
-    scenarioId: string,
+    strategyId: string,
     weights: Record<string, number>
   ): Promise<{ success: boolean }> {
     await delay(150);
 
     // Simular guardado en localStorage para persistencia
-    const key = `session-${sessionId}-${scenarioId}`;
+    const key = `session-${sessionId}-${strategyId}`;
     localStorage.setItem(key, JSON.stringify({ weights, updatedAt: new Date().toISOString() }));
 
     return { success: true };
@@ -109,34 +109,34 @@ export const mockApi = {
     await delay();
 
     // Recuperar datos de localStorage
-    const scenarioProgress: SessionResponse["scenarioProgress"] = {};
+    const strategyProgress: SessionResponse["strategyProgress"] = {};
 
-    MOCK_SCENARIOS.forEach((scenario) => {
-      const key = `session-${sessionId}-${scenario.id}`;
+    MOCK_STRATEGIES.forEach((strategy: any) => {
+      const key = `session-${sessionId}-${strategy.id}`;
       const stored = localStorage.getItem(key);
 
       if (stored) {
         const { weights } = JSON.parse(stored);
-        scenarioProgress[scenario.id] = {
+        strategyProgress[strategy.id] = {
           status: "completed",
           weights,
         };
       } else {
-        scenarioProgress[scenario.id] = {
+        strategyProgress[strategy.id] = {
           status: "pending",
           weights: {},
         };
       }
     });
 
-    const completed = Object.values(scenarioProgress).filter((p) => p.status === "completed").length;
+    const completed = Object.values(strategyProgress).filter((p) => p.status === "completed").length;
 
     return {
       sessionId,
       surveyId: MOCK_SURVEY.id,
       role: localStorage.getItem(`session-${sessionId}-role`) || "",
       progress: completed,
-      scenarioProgress,
+      strategyProgress,
     };
   },
 
@@ -155,14 +155,14 @@ export const mockApi = {
     await delay(800);
 
     // Generar CSV mock
-    const headers = "respondent_id,role,scenario_id,indicator_id,weight,timestamp\n";
+    const headers = "respondent_id,role,strategy_id,indicator_id,weight,timestamp\n";
     const rows: string[] = [];
 
     MOCK_SESSIONS.forEach((session) => {
-      MOCK_SCENARIOS.forEach((scenario) => {
-        scenario.indicators.slice(0, 5).forEach((ind, idx) => {
+      MOCK_STRATEGIES.forEach((strategy: any) => {
+        strategy.indicators.slice(0, 5).forEach((ind: any, idx: number) => {
           rows.push(
-            `${session.respondentId},${session.role},${scenario.id},${ind.indicatorId},${15 + idx * 5},2025-01-16T12:00:00Z`
+            `${session.respondentId},${session.role},${strategy.id},${ind.indicatorId},${15 + idx * 5},2025-01-16T12:00:00Z`
           );
         });
       });

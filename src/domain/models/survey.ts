@@ -4,7 +4,7 @@ export interface SurveyMetadata {
   version: string;
   description?: string;
   active: boolean;
-  totalScenarios: number;
+  totalStrategies: number;
   createdAt?: string;
   updatedAt?: string;
 }

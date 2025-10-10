@@ -8,8 +8,8 @@ interface Session {
   respondentName: string;
   respondentRole: string;
   progress: number;
-  progressScenarios: number;
-  totalScenarios: number;
+  progressStrategies: number;
+  totalStrategies: number;
   status: string;
   lastActivity: string;
 }
@@ -19,8 +19,8 @@ interface Stats {
   completedSessions: number;
   inProgressSessions: number;
   completionRate: number;
-  averageCompletedScenarios: number;
-  totalScenarios: number;
+  averageCompletedStrategies: number;
+  totalStrategies: number;
 }
 
 const SURVEY_ID = "survey-dengue-2025";
@@ -126,9 +126,9 @@ export default function AdminDashboardPage() {
               Progreso Promedio
             </p>
             <p className="mt-2 text-3xl font-bold text-amber-600">
-              {stats.averageCompletedScenarios.toFixed(1)}
+              {stats.averageCompletedStrategies.toFixed(1)}
             </p>
-            <p className="mt-1 text-xs text-slate-600">de {stats.totalScenarios} escenarios</p>
+            <p className="mt-1 text-xs text-slate-600">de {stats.totalStrategies} estrategias</p>
           </div>
         </section>
 
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
                 Encuesta de Validación de Indicadores Epidemiológicos - Dengue 2025
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Recolección de ponderaciones de indicadores para escenarios epidemiológicos
+                Recolección de ponderaciones de indicadores para estrategias de mitigación del dengue
               </p>
               <div className="mt-4 flex gap-3 text-xs text-slate-500">
                 <span className="rounded-full bg-green-100 px-3 py-1 font-medium text-green-700">
@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
                 </span>
                 <span>Versión 1.0</span>
                 <span>•</span>
-                <span>{stats.totalScenarios} escenarios</span>
+                <span>{stats.totalStrategies} estrategias</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -215,12 +215,12 @@ export default function AdminDashboardPage() {
                             <div
                               className="h-full bg-blue-600"
                               style={{
-                                width: `${(session.progressScenarios / session.totalScenarios) * 100}%`,
+                                width: `${(session.progressStrategies / session.totalStrategies) * 100}%`,
                               }}
                             />
                           </div>
                           <span className="text-xs text-slate-600">
-                            {session.progressScenarios}/{session.totalScenarios}
+                            {session.progressStrategies}/{session.totalStrategies}
                           </span>
                         </div>
                       </td>

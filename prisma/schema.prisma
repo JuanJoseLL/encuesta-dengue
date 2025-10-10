@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,13 +22,13 @@ model Survey {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  scenarios   Scenario[]
+  strategies  Strategy[]
   sessions    ResponseSession[]
 
   @@index([active])
 }
 
-model Scenario {
+model Strategy {
   id          String     @id @default(cuid())
   surveyId    String
   title       String
@@ -50,7 +50,7 @@ model Indicator {
   name        String     @unique
   description String?
   domain      String?    // "epidemiological", "entomological", etc.
-  tags        String?    // JSON array stored as string for SQLite
+  tags        Json?      // JSON array - native JSON type for PostgreSQL
   active      Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -107,8 +107,8 @@ model ResponseSession {
   startedAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   completedAt       DateTime?
-  currentScenarioId String?
-  metadata          String?      // JSON stored as string for SQLite
+  currentStrategyId String?
+  metadata          Json?        // JSON - native JSON type for PostgreSQL
 
   survey            Survey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   respondent        Respondent   @relation(fields: [respondentId], references: [id], onDelete: Cascade)
@@ -124,26 +124,26 @@ model ResponseSession {
 model Response {
   id          String          @id @default(cuid())
   sessionId   String
-  scenarioId  String
+  strategyId  String
   indicatorId String
   weight      Float           @default(0)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
   session     ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  scenario    Scenario        @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  strategy    Strategy        @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   indicator   Indicator       @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
 
-  @@unique([sessionId, scenarioId, indicatorId])
-  @@index([sessionId, scenarioId])
+  @@unique([sessionId, strategyId, indicatorId])
+  @@index([sessionId, strategyId])
 }
 
 model SessionLog {
   id         String          @id @default(cuid())
   sessionId  String
-  event      String          // "autosave" | "scenario-enter" | "scenario-exit" | "submit" | "resume"
-  scenarioId String?
-  payload    String?         // JSON stored as string for SQLite
+  event      String          // "autosave" | "strategy-enter" | "strategy-exit" | "submit" | "resume"
+  strategyId String?
+  payload    Json?           // JSON - native JSON type for PostgreSQL
   timestamp  DateTime        @default(now())
 
   session    ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
