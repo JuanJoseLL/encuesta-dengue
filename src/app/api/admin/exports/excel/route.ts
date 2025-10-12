@@ -47,8 +47,9 @@ export async function GET(request: NextRequest) {
     worksheet.columns = [
       { header: "Respondent ID", key: "respondent_id", width: 18 },
       { header: "Nombre", key: "respondent_name", width: 24 },
+      { header: "Email", key: "respondent_email", width: 30 },
       { header: "Rol", key: "respondent_role", width: 18 },
-      { header: "Estrategia", key: "strategy_title", width: 32 },
+      { header: "Estrategia", key: "strategy_metodo", width: 32 },
       { header: "Orden Estrategia", key: "strategy_order", width: 18 },
       { header: "Indicador", key: "indicator_name", width: 32 },
       { header: "Dominio", key: "indicator_domain", width: 22 },
@@ -69,8 +70,9 @@ export async function GET(request: NextRequest) {
         worksheet.addRow({
           respondent_id: session.respondentId,
           respondent_name: session.respondent?.name || "Anónimo",
+          respondent_email: session.respondent?.email || "",
           respondent_role: session.respondent?.role ?? "",
-          strategy_title: response.strategy.title,
+          strategy_metodo: response.strategy.metodo,
           strategy_order: response.strategy.order ?? null,
           indicator_name: response.indicator.name,
           indicator_domain: response.indicator.domain || "",

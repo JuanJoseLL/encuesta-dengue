@@ -5,12 +5,17 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
-import { PARTICIPANT_ROLES, PARTICIPANT_ROLE_LABELS } from "@/domain/constants/roles";
+import {
+  PARTICIPANT_ROLES,
+  PARTICIPANT_ROLE_LABELS,
+} from "@/domain/constants/roles";
 
 interface StrategySummary {
   strategyId: string;
-  strategyTitle: string;
+  strategyMetodo: string;
   strategyDescription?: string;
+  strategyObjetivo?: string;
+  strategyCodigo?: string;
   order: number;
   status: "complete" | "incomplete" | "empty";
   totalWeight: number;
@@ -30,6 +35,7 @@ export default function SurveySummaryPage({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [canSubmit, setCanSubmit] = useState(false);
+  const [respondentRole, setRespondentRole] = useState<string | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -47,6 +53,12 @@ export default function SurveySummaryPage({
         const session = sessionData.session;
         setSessionId(session.id);
         setSessionStatus(session.status);
+
+        // Cargar el rol del respondente si existe
+        if (session.respondent?.role) {
+          setRespondentRole(session.respondent.role);
+          setSelectedRole(session.respondent.role);
+        }
 
         // Get session summary with strategies
         const summaryResponse = await fetch(
@@ -68,8 +80,10 @@ export default function SurveySummaryPage({
 
           return {
             strategyId: item.strategyId,
-            strategyTitle: item.strategyTitle,
+            strategyMetodo: item.strategyMetodo,
             strategyDescription: item.strategyDescription,
+            strategyObjetivo: item.strategyObjetivo,
+            strategyCodigo: item.strategyCodigo,
             order: item.strategyOrder,
             status,
             totalWeight: item.totalWeight,
@@ -96,7 +110,14 @@ export default function SurveySummaryPage({
 
   const handleSubmit = async () => {
     if (!canSubmit || !sessionId) return;
-    setShowRoleModal(true);
+
+    // Si el respondente ya tiene un rol, ir directamente a confirmación
+    if (respondentRole) {
+      setShowConfirmModal(true);
+    } else {
+      // Si no tiene rol, pedir que lo seleccione
+      setShowRoleModal(true);
+    }
   };
 
   const handleRoleSelected = () => {
@@ -122,7 +143,7 @@ export default function SurveySummaryPage({
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error al enviar:", errorData);
-        
+
         // Si ya fue enviada, actualizar estado y cerrar modal
         if (errorData.error === "Session already submitted") {
           setSessionStatus("submitted");
@@ -130,12 +151,20 @@ export default function SurveySummaryPage({
           setShowRoleModal(false);
           return;
         }
-        
+
         // Mostrar mensaje específico del error
-        if (errorData.incompleteStrategies && errorData.incompleteStrategies.length > 0) {
-          alert(`Hay ${errorData.incompleteStrategies.length} estrategia(s) incompleta(s). Por favor completa todas las estrategias con pesos que sumen 100%.`);
+        if (
+          errorData.incompleteStrategies &&
+          errorData.incompleteStrategies.length > 0
+        ) {
+          alert(
+            `Hay ${errorData.incompleteStrategies.length} estrategia(s) incompleta(s). Por favor completa todas las estrategias con pesos que sumen 100%.`
+          );
         } else {
-          alert(errorData.error || "Error al enviar la encuesta. Por favor intenta nuevamente.");
+          alert(
+            errorData.error ||
+              "Error al enviar la encuesta. Por favor intenta nuevamente."
+          );
         }
         return;
       }
@@ -171,22 +200,66 @@ export default function SurveySummaryPage({
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
         <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border-2 border-green-200 bg-white p-8 text-center shadow-lg">
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="rounded-2xl border-2 border-green-200 bg-white p-8 shadow-lg">
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Encuesta ya enviada</h1>
-            <p className="mt-3 text-slate-600">
-              Ya has completado y enviado esta encuesta. Gracias por tu participación.
-            </p>
-            <Link
-              href="/"
-              className="mt-6 inline-block rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-            >
-              Volver al inicio
-            </Link>
+
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-slate-900">
+                Encuesta Enviada
+              </h1>
+              <p className="mt-3 text-slate-700">
+                Ha completado y enviado satisfactoriamente la encuesta.
+              </p>
+              <p className="mt-2 text-slate-700">
+                Agradecemos su participación y el tiempo dedicado a este
+                ejercicio.
+              </p>
+            </div>
+
+            <div className="text-left space-y-4 mb-6">
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Su contribución es fundamental para fortalecer el proceso de
+                análisis y priorización de estrategias de mitigación del Dengue,
+                y para el desarrollo de un modelo de inteligencia artificial
+                basado en conocimiento experto.
+              </p>
+
+              <div className="border-t border-slate-200 pt-4">
+                <h2 className="text-base font-semibold text-slate-900 mb-2">
+                  Resultados y Análisis de la Encuesta
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Los resultados y análisis de la Encuesta de Ponderación de
+                  Indicadores por Expertos serán socializados próximamente. Le
+                  estaremos enviando una invitación formal para participar en la
+                  presentación de resultados y en el espacio de construcción de
+                  consensos entre los diferentes grupos de expertos.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Link
+                href="/"
+                className="inline-block rounded-full bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+              >
+                Volver al inicio
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -230,11 +303,12 @@ export default function SurveySummaryPage({
 
           <div>
             <h1 className="text-3xl font-bold text-slate-900">
-              Resumen de tu ponderación
+              Resumen de Ponderación
             </h1>
             <p className="mt-2 text-slate-600">
-              Revisa tus respuestas antes de enviar. Puedes editar cualquier
-              estrategia haciendo clic en "Editar".
+              Revise cuidadosamente sus respuestas antes de enviar la encuesta.
+              Puede editar cualquier estrategia seleccionando la opción{" "}
+              <b>Editar ponderación</b>
             </p>
           </div>
 
@@ -266,8 +340,9 @@ export default function SurveySummaryPage({
 
           {!canSubmit && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
-              <strong>Atención:</strong> Debes completar todos las estrategias
-              (pesos sumando 100%) antes de enviar la encuesta.
+              <strong>Atención:</strong> Antes de enviar, asegúrese de que todas
+              las estrategias estén diligenciadas y que los pesos asignados
+              sumen exactamente el 100% en cada una.
             </div>
           )}
 
@@ -294,21 +369,32 @@ export default function SurveySummaryPage({
             >
               <header className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-2">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
                       {summary.order}
                     </span>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-lg font-semibold text-slate-900">
-                        {summary.strategyTitle}
+                        {summary.strategyMetodo}
                       </h2>
-                      {summary.strategyDescription && (
-                        <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                          {summary.strategyDescription}
-                        </p>
+                      {summary.strategyCodigo && (
+                        <span className="inline-block mt-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                          {summary.strategyCodigo}
+                        </span>
                       )}
                     </div>
                   </div>
+
+                  {summary.strategyObjetivo && (
+                    <div className="ml-11">
+                      <span className="text-xs font-semibold text-slate-700">
+                        Objetivo:{" "}
+                      </span>
+                      <span className="text-xs text-slate-600">
+                        {summary.strategyObjetivo}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -318,20 +404,20 @@ export default function SurveySummaryPage({
                         ? "bg-green-100 text-green-700"
                         : summary.status === "incomplete"
                         ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-100 text-slate-600"
+                        : "bg-red-100 text-red-700"
                     }`}
                   >
                     {summary.status === "complete"
-                      ? "Completo"
+                      ? "Ponderación completa"
                       : summary.status === "incomplete"
-                      ? "Incompleto"
-                      : "Sin responder"}
+                      ? "Pendiente incompleta"
+                      : "Pendiente de ponderación"}
                   </span>
                   <Link
                     href={`/survey/${token}/strategies/${summary.strategyId}`}
                     className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
-                    Editar
+                    Editar ponderación
                   </Link>
                 </div>
               </header>
@@ -380,7 +466,7 @@ export default function SurveySummaryPage({
                 </div>
               ) : (
                 <div className="mt-4 text-center text-sm text-slate-500">
-                  No has seleccionado indicadores para esta estrategia
+                  No ha seleccionado indicadores para esta estrategia
                 </div>
               )}
             </article>
@@ -394,9 +480,12 @@ export default function SurveySummaryPage({
         {showRoleModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
-              <h3 className="text-xl font-semibold text-slate-900">Selecciona tu rol profesional</h3>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Selecciona tu rol profesional
+              </h3>
               <p className="mt-2 text-sm text-slate-600">
-                Esta información nos ayuda a analizar las respuestas según perfiles de especialización
+                Esta información nos ayuda a analizar las respuestas según
+                perfiles de especialización
               </p>
 
               <div className="mt-6 space-y-2">
@@ -417,7 +506,9 @@ export default function SurveySummaryPage({
                       onChange={(e) => setSelectedRole(e.target.value)}
                       className="h-4 w-4 text-blue-600"
                     />
-                    <span className="font-medium text-slate-900">{PARTICIPANT_ROLE_LABELS[role]}</span>
+                    <span className="font-medium text-slate-900">
+                      {PARTICIPANT_ROLE_LABELS[role]}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -442,32 +533,40 @@ export default function SurveySummaryPage({
         )}
 
         {/* Confirmation Modal */}
+        {/* Confirmation Modal */}
         {showConfirmModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
               <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-8 h-8 text-amber-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 text-center">¿Confirmar envío?</h3>
+              <h3 className="text-xl font-semibold text-slate-900 text-center">
+                ¿Confirmar envío?
+              </h3>
               <p className="mt-3 text-sm text-slate-600 text-center">
-                ¿Estás seguro/a de enviar tu encuesta? Una vez enviada <strong>no podrás modificarla</strong>.
-              </p>
-              <p className="mt-2 text-sm text-blue-600 text-center">
-                Rol seleccionado: <strong>{selectedRole ? PARTICIPANT_ROLE_LABELS[selectedRole as keyof typeof PARTICIPANT_ROLE_LABELS] : ""}</strong>
+                ¿Estás seguro/a de enviar tu encuesta? Una vez enviada{" "}
+                <strong>no podrás modificarla</strong>.
               </p>
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => {
-                    setShowConfirmModal(false);
-                    setShowRoleModal(true);
-                  }}
+                  onClick={() => setShowConfirmModal(false)}
                   disabled={submitting}
                   className="flex-1 rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Volver
+                  Cancelar
                 </button>
                 <button
                   onClick={confirmSubmit}

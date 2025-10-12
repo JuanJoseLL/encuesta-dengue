@@ -29,17 +29,20 @@ model Survey {
 }
 
 model Strategy {
-  id          String     @id @default(cuid())
-  surveyId    String
-  title       String
-  description String?
-  order       Int
-  active      Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id                     String     @id @default(cuid())
+  surveyId               String
+  metodo                 String     // Método de la estrategia (antes title)
+  description            String?    // Descripción adicional (opcional)
+  objetivo               String?    // Objetivo de la estrategia
+  codigo                 String?    // Código/categoría de la estrategia
+  order                  Int
+  active                 Boolean    @default(true)
+  associatedIndicators   Json?      // Array de IDs de indicadores asociados
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
-  survey      Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  responses   Response[]
+  survey                 Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  responses              Response[]
 
   @@unique([surveyId, order])
   @@index([active])
@@ -66,10 +69,9 @@ model Indicator {
 
 model Respondent {
   id           String            @id @default(cuid())
-  name         String?
-  email        String?
-  role         String            // "epidemiologist", "entomologist", etc.
-  organization String?
+  name         String
+  email        String            @unique
+  role         String?           // "epidemiologist", "entomologist", etc. - se establece en el primer ingreso
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
@@ -77,6 +79,7 @@ model Respondent {
   invites      RespondentInvite[]
 
   @@index([role])
+  @@index([email])
 }
 
 model RespondentInvite {

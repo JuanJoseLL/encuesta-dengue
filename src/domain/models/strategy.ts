@@ -3,8 +3,10 @@ import { IndicatorWeightDraft } from "./response";
 export interface StrategyDefinition {
   id: string;
   surveyId: string;
-  title: string;
+  metodo: string;
   description?: string;
+  objetivo?: string;
+  codigo?: string;
   order: number;
   indicators: StrategyIndicator[];
 }

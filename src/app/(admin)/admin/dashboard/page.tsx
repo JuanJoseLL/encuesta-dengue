@@ -252,11 +252,11 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Quick Actions */}
-        <section className="grid gap-4 sm:grid-cols-2">
+        <section className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
             <h3 className="font-semibold text-slate-900">Analizar Resultados</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Exporta datos consolidados en formato CSV para análisis estadístico
+              Exporta datos consolidados en formato CSV o Excel
             </p>
             <Link
               href="/admin/exports"
@@ -267,7 +267,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
-            <h3 className="font-semibold text-slate-900">Gestionar Participantes</h3>
+            <h3 className="font-semibold text-slate-900">Ver Sesiones</h3>
             <p className="mt-2 text-sm text-slate-600">
               Revisa el estado de todas las sesiones y supervisa el progreso
             </p>
@@ -276,6 +276,19 @@ export default function AdminDashboardPage() {
               className="mt-4 inline-block rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
             >
               Ver sesiones
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-6">
+            <h3 className="font-semibold text-slate-900">Agregar Participantes</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Crea nuevos participantes y genera tokens de acceso
+            </p>
+            <Link
+              href="/admin/respondents"
+              className="mt-4 inline-block rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+            >
+              Gestionar participantes
             </Link>
           </div>
         </section>

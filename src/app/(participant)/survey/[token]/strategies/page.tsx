@@ -5,18 +5,28 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
-import { PARTICIPANT_ROLES, PARTICIPANT_ROLE_LABELS } from "@/domain/constants/roles";
+import {
+  PARTICIPANT_ROLES,
+  PARTICIPANT_ROLE_LABELS,
+} from "@/domain/constants/roles";
 
 interface StrategyStatus {
   id: string;
-  title: string;
-  description: string;
+  metodo: string;
+  description?: string;
+  objetivo?: string;
+  codigo?: string;
   order: number;
   completed: boolean;
+  status: "complete" | "incomplete" | "empty";
   indicatorCount: number;
 }
 
-export default function StrategyOverviewPage({ params }: { params: Promise<{ token: string }> }) {
+export default function StrategyOverviewPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
   const router = useRouter();
   const { token } = use(params);
   const [strategies, setStrategies] = useState<StrategyStatus[]>([]);
@@ -24,6 +34,7 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
   const [progress, setProgress] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<string>("draft");
+  const [respondentRole, setRespondentRole] = useState<string | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
@@ -42,8 +53,16 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
         setSessionId(session.id);
         setSessionStatus(session.status);
 
+        // Cargar el rol del respondente si existe
+        if (session.respondent?.role) {
+          setRespondentRole(session.respondent.role);
+          setSelectedRole(session.respondent.role);
+        }
+
         // Get session summary with strategies
-        const summaryResponse = await fetch(apiRoutes.sessionSummary(session.id));
+        const summaryResponse = await fetch(
+          apiRoutes.sessionSummary(session.id)
+        );
         if (!summaryResponse.ok) {
           throw new Error("Failed to load summary");
         }
@@ -52,13 +71,22 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
         // Map strategies with their status
         const strategiesWithStatus = (summary.items || []).map((item: any) => {
           const completed = item.status === "complete";
-          
+          const status: "complete" | "incomplete" | "empty" =
+            item.status === "complete"
+              ? "complete"
+              : item.status === "not-applicable"
+              ? "empty"
+              : "incomplete";
+
           return {
             id: item.strategyId,
-            title: item.strategyTitle,
-            description: item.strategyDescription || "",
+            metodo: item.strategyMetodo,
+            description: item.strategyDescription,
+            objetivo: item.strategyObjetivo,
+            codigo: item.strategyCodigo,
             order: item.strategyOrder,
             completed,
+            status,
             indicatorCount: item.indicatorCount || 0,
           };
         });
@@ -66,7 +94,9 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
         setStrategies(strategiesWithStatus);
 
         // Calculate global progress
-        const completedCount = strategiesWithStatus.filter((s: StrategyStatus) => s.completed).length;
+        const completedCount = strategiesWithStatus.filter(
+          (s: StrategyStatus) => s.completed
+        ).length;
         setProgress(completedCount / strategiesWithStatus.length);
       } catch (error) {
         console.error("Error loading progress:", error);
@@ -87,11 +117,19 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
   }
 
   const completedCount = strategies.filter((s) => s.completed).length;
-  const canSubmit = completedCount === strategies.length && strategies.length > 0;
+  const canSubmit =
+    completedCount === strategies.length && strategies.length > 0;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
-    setShowRoleModal(true);
+
+    // Si el respondente ya tiene un rol, ir directamente a confirmación
+    if (respondentRole) {
+      setShowConfirmModal(true);
+    } else {
+      // Si no tiene rol, pedir que lo seleccione
+      setShowRoleModal(true);
+    }
   };
 
   const handleRoleSelected = () => {
@@ -117,7 +155,7 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error al enviar:", errorData);
-        
+
         // Si ya fue enviada, actualizar estado y cerrar modal
         if (errorData.error === "Session already submitted") {
           setSessionStatus("submitted");
@@ -125,12 +163,20 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
           setShowRoleModal(false);
           return;
         }
-        
+
         // Mostrar mensaje específico del error
-        if (errorData.incompleteStrategies && errorData.incompleteStrategies.length > 0) {
-          alert(`Hay ${errorData.incompleteStrategies.length} estrategia(s) incompleta(s). Por favor completa todas las estrategias con pesos que sumen 100%.`);
+        if (
+          errorData.incompleteStrategies &&
+          errorData.incompleteStrategies.length > 0
+        ) {
+          alert(
+            `Hay ${errorData.incompleteStrategies.length} estrategia(s) incompleta(s). Por favor completa todas las estrategias con pesos que sumen 100%.`
+          );
         } else {
-          alert(errorData.error || "Error al enviar la encuesta. Por favor intenta nuevamente.");
+          alert(
+            errorData.error ||
+              "Error al enviar la encuesta. Por favor intenta nuevamente."
+          );
         }
         return;
       }
@@ -150,22 +196,66 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
         <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border-2 border-green-200 bg-white p-8 text-center shadow-lg">
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="rounded-2xl border-2 border-green-200 bg-white p-8 shadow-lg">
+            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Encuesta ya enviada</h1>
-            <p className="mt-3 text-slate-600">
-              Ya has completado y enviado esta encuesta. Gracias por tu participación.
-            </p>
-            <Link
-              href="/"
-              className="mt-6 inline-block rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
-            >
-              Volver al inicio
-            </Link>
+
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-slate-900">
+                Encuesta Enviada
+              </h1>
+              <p className="mt-3 text-slate-700">
+                Ha completado y enviado satisfactoriamente la encuesta.
+              </p>
+              <p className="mt-2 text-slate-700">
+                Agradecemos su participación y el tiempo dedicado a este
+                ejercicio.
+              </p>
+            </div>
+
+            <div className="text-left space-y-4 mb-6">
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Su contribución es fundamental para fortalecer el proceso de
+                análisis y priorización de estrategias de mitigación del Dengue,
+                y para el desarrollo de un modelo de inteligencia artificial
+                basado en conocimiento experto.
+              </p>
+
+              <div className="border-t border-slate-200 pt-4">
+                <h2 className="text-base font-semibold text-slate-900 mb-2">
+                  Resultados y Análisis de la Encuesta
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Los resultados y análisis de la Encuesta de Ponderación de
+                  Indicadores por Expertos serán socializados próximamente. Le
+                  estaremos enviando una invitación formal para participar en la
+                  presentación de resultados y en el espacio de construcción de
+                  consensos entre los diferentes grupos de expertos.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Link
+                href="/"
+                className="inline-block rounded-full bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+              >
+                Volver al inicio
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -179,9 +269,13 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
         <header className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Estrategias de mitigación</h1>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Estrategias de mitigación
+              </h1>
               <p className="mt-2 text-slate-600">
-                Pondera los indicadores más relevantes para cada estrategia. Tu progreso se guarda automáticamente.
+                Pondere los indicadores más relevantes para cada estrategia de
+                mitigación del Dengue. Su progreso se guardará automáticamente,
+                por lo que podrá continuar en cualquier momento.
               </p>
             </div>
             <div className="text-right">
@@ -191,7 +285,10 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
               <div className="text-sm text-slate-600">completadas</div>
             </div>
           </div>
-          <ProgressBar value={progress} label={`Progreso global: ${Math.round(progress * 100)}%`} />
+          <ProgressBar
+            value={progress}
+            label={`Progreso global: ${Math.round(progress * 100)}%`}
+          />
         </header>
 
         {/* Actions */}
@@ -222,15 +319,33 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-3">
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
                       {strategy.order}
                     </span>
-                    <h2 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600">
-                      {strategy.title}
-                    </h2>
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600">
+                        {strategy.metodo}
+                      </h2>
+                      {strategy.codigo && (
+                        <span className="inline-block mt-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                          {strategy.codigo}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{strategy.description}</p>
+
+                  {strategy.objetivo && (
+                    <div className="mb-2">
+                      <span className="text-xs font-semibold text-slate-700">
+                        Objetivo:{" "}
+                      </span>
+                      <span className="text-sm text-slate-600">
+                        {strategy.objetivo}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="mt-3 flex gap-2 text-xs text-slate-500">
                     <span className="rounded-full bg-slate-100 px-3 py-1">
                       {strategy.indicatorCount} indicadores disponibles
@@ -241,15 +356,21 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
                 <div className="flex flex-col items-end gap-2">
                   <span
                     className={`rounded-full px-4 py-1.5 text-xs font-semibold ${
-                      strategy.completed
+                      strategy.status === "complete"
                         ? "bg-green-100 text-green-700"
-                        : "bg-amber-100 text-amber-700"
+                        : strategy.status === "incomplete"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {strategy.completed ? "Completada" : "Pendiente"}
+                    {strategy.status === "complete"
+                      ? "Ponderación completa"
+                      : strategy.status === "incomplete"
+                      ? "Pendiente incompleta"
+                      : "Pendiente de ponderación"}
                   </span>
                   <span className="text-xs text-blue-600 group-hover:underline">
-                    {strategy.completed ? "Revisar →" : "Completar →"}
+                    {strategy.completed ? "Editar →" : "Completar →"}
                   </span>
                 </div>
               </div>
@@ -261,18 +382,30 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
           <h3 className="font-semibold text-slate-900">💡 Sobre la encuesta</h3>
           <ul className="mt-3 space-y-2 text-sm text-slate-600">
-            <li>• Cada estrategia requiere ponderar los indicadores más relevantes para su activación</li>
-            <li>• Los pesos indican la importancia relativa de cada indicador para tomar la decisión</li>
+            <li>
+              • Cada estrategia requiere ponderar los indicadores más relevantes
+              para su activación
+            </li>
+            <li>
+              • Los pesos indican la importancia relativa de cada indicador para
+              tomar la decisión
+            </li>
             <li>• Puedes completar las estrategias en cualquier orden</li>
-            <li>• Los cambios se guardan automáticamente cada pocos segundos</li>
-            <li>• Asegúrate que los pesos sumen exactamente 100% antes de avanzar</li>
+            <li>
+              • Los cambios se guardan automáticamente cada pocos segundos
+            </li>
+            <li>
+              • Asegúrate que los pesos sumen exactamente 100% antes de avanzar
+            </li>
           </ul>
         </div>
         {/* Role Selection Modal */}
         {showRoleModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
-              <h3 className="text-xl font-semibold text-slate-900">Selecciona tu rol profesional</h3>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Selecciona tu rol profesional
+              </h3>
               <p className="mt-2 text-sm text-slate-600">
                 Antes de enviar, necesitamos conocer tu perfil profesional
               </p>
@@ -295,7 +428,9 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
                       onChange={(e) => setSelectedRole(e.target.value)}
                       className="h-4 w-4 text-blue-600"
                     />
-                    <span className="font-medium text-slate-900">{PARTICIPANT_ROLE_LABELS[role]}</span>
+                    <span className="font-medium text-slate-900">
+                      {PARTICIPANT_ROLE_LABELS[role]}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -324,28 +459,35 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
               <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-8 h-8 text-amber-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 text-center">¿Confirmar envío?</h3>
+              <h3 className="text-xl font-semibold text-slate-900 text-center">
+                ¿Confirmar envío?
+              </h3>
               <p className="mt-3 text-sm text-slate-600 text-center">
-                ¿Estás seguro/a de enviar tu encuesta? Una vez enviada <strong>no podrás modificarla</strong>.
-              </p>
-              <p className="mt-2 text-sm text-blue-600 text-center">
-                Rol seleccionado: <strong>{selectedRole ? PARTICIPANT_ROLE_LABELS[selectedRole as keyof typeof PARTICIPANT_ROLE_LABELS] : ""}</strong>
+                ¿Estás seguro/a de enviar tu encuesta? Una vez enviada{" "}
+                <strong>no podrás modificarla</strong>.
               </p>
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={() => {
-                    setShowConfirmModal(false);
-                    setShowRoleModal(true);
-                  }}
+                  onClick={() => setShowConfirmModal(false)}
                   disabled={submitting}
                   className="flex-1 rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  Volver
+                  Cancelar
                 </button>
                 <button
                   onClick={confirmSubmit}
@@ -362,4 +504,3 @@ export default function StrategyOverviewPage({ params }: { params: Promise<{ tok
     </div>
   );
 }
-

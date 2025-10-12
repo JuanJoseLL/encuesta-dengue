@@ -1,29 +1,63 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 pb-16 pt-24">
         <section className="space-y-6 text-center">
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/Logo Dengue-IA color negativo.png"
+              alt="Dengue IA Logo"
+              width={300}
+              height={120}
+              priority
+              className="h-auto w-auto max-w-xs"
+            />
+          </div>
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-            Encuesta de ponderación de indicadores
+            Encuesta de ponderación de indicadores por expertos
           </span>
           <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
             Ponderación de Indicadores para Estrategias de Mitigación del Dengue
           </h1>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-600">
-            Plataforma para expertos donde pueden revisar 19 estrategias de mitigación y ponderar
-            69 indicadores epidemiológicos. Guarda el progreso automáticamente y permite reanudar
-            cuando sea necesario.
-          </p>
+          <div className="mx-auto max-w-3xl space-y-4 text-base leading-relaxed text-slate-600">
+            <p>
+              <strong>Estimado(a) experto(a):</strong>
+            </p>
+            <p>
+              Su participación es fundamental para el desarrollo de un modelo de inteligencia artificial orientado a apoyar la toma de decisiones en la mitigación y control del Dengue en el municipio de Santiago de Cali, Colombia.
+            </p>
+            <p>
+              En esta encuesta se presentan diversas estrategias de intervención junto con indicadores asociados. Se solicita que:
+            </p>
+            <ul className="text-left space-y-2 mx-auto max-w-2xl">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">•</span>
+                <span>Revise cuidadosamente cada estrategia.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">•</span>
+                <span>Asigne un porcentaje de relevancia a los indicadores que considere más determinantes para su aplicación, de modo que la suma total alcance el 100%.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">•</span>
+                <span>Si lo considera pertinente, proponga indicadores adicionales que, a su juicio, deberían incluirse para una evaluación más precisa de la estrategia.</span>
+              </li>
+            </ul>
+            <p className="mt-4">
+              La información recopilada será utilizada exclusivamente con fines analíticos y contribuirá al diseño de un modelo de inteligencia artificial basado en evidencia y conocimiento experto.
+            </p>
+          </div>
         </section>
 
         <section className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">¿Eres participante?</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Accede con tu número de cédula para comenzar o continuar la encuesta. Tu progreso se
-              guarda automáticamente y puedes retomar en cualquier momento.
+              Accede con tu nombre completo y correo electrónico para comenzar o continuar la encuesta. 
+              Tu progreso se guarda automáticamente y puedes retomar en cualquier momento.
             </p>
             <div className="mt-6">
               <Link
@@ -39,7 +73,7 @@ export default function HomePage() {
             <h2 className="text-lg font-semibold text-slate-900">¿Eres administrador?</h2>
             <p className="mt-2 text-sm text-slate-600">
               Supervisa el avance de las sesiones, gestiona estrategias e indicadores y exporta los
-              resultados consolidados en CSV o JSON según las necesidades del equipo investigador.
+              resultados consolidados en CSV o XLSX según las necesidades del equipo investigador.
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <Link

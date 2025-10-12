@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     const headers = [
       "respondent_id",
       "respondent_name",
+      "respondent_email",
       "respondent_role",
       "strategy_title",
       "strategy_order",
@@ -60,8 +61,8 @@ export async function GET(request: NextRequest) {
         rows.push([
           session.respondentId,
           session.respondent?.name || "Anónimo",
+          session.respondent?.email || "",
           session.respondent?.role ?? "",
-          response.strategy?.title ?? "",
           response.strategy?.order != null ? response.strategy.order.toString() : "",
           response.indicator?.name ?? "",
           response.indicator?.domain || "",

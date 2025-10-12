@@ -73,9 +73,12 @@ export async function GET(
 
       return {
         strategyId: strategy.id,
-        strategyTitle: strategy.title,
+        strategyMetodo: strategy.metodo,
         strategyDescription: strategy.description,
+        strategyObjetivo: strategy.objetivo,
+        strategyCodigo: strategy.codigo,
         strategyOrder: strategy.order,
+        strategyAssociatedIndicators: strategy.associatedIndicators || [],
         status,
         totalWeight: Math.round(totalWeight * 100) / 100,
         indicatorCount: strategyResponses.length,

@@ -8,6 +8,7 @@ export function useTokenValidation(token: string) {
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState("");
+  const [respondentName, setRespondentName] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +30,10 @@ export function useTokenValidation(token: string) {
         
         if (sessionData.session) {
           setIsValid(true);
+          // Extraer el nombre del respondente
+          if (sessionData.session.respondent?.name) {
+            setRespondentName(sessionData.session.respondent.name);
+          }
         } else {
           throw new Error("Sesión no encontrada");
         }
@@ -48,5 +53,5 @@ export function useTokenValidation(token: string) {
     validateToken();
   }, [token, router]);
 
-  return { isValidating, isValid, error };
+  return { isValidating, isValid, error, respondentName };
 }

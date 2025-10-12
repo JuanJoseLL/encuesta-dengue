@@ -14,10 +14,13 @@ CREATE TABLE "Survey" (
 CREATE TABLE "Strategy" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
+    "metodo" TEXT NOT NULL,
     "description" TEXT,
+    "objetivo" TEXT,
+    "codigo" TEXT,
     "order" INTEGER NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
+    "associatedIndicators" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -40,10 +43,9 @@ CREATE TABLE "Indicator" (
 -- CreateTable
 CREATE TABLE "Respondent" (
     "id" TEXT NOT NULL,
-    "name" TEXT,
-    "email" TEXT,
-    "role" TEXT NOT NULL,
-    "organization" TEXT,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "role" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -125,7 +127,13 @@ CREATE INDEX "Indicator_active_idx" ON "Indicator"("active");
 CREATE INDEX "Indicator_domain_idx" ON "Indicator"("domain");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Respondent_email_key" ON "Respondent"("email");
+
+-- CreateIndex
 CREATE INDEX "Respondent_role_idx" ON "Respondent"("role");
+
+-- CreateIndex
+CREATE INDEX "Respondent_email_idx" ON "Respondent"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RespondentInvite_token_key" ON "RespondentInvite"("token");

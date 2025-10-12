@@ -49,8 +49,10 @@ export async function GET(
         },
         strategies: survey.strategies.map((strategy: any) => ({
           id: strategy.id,
-          title: strategy.title,
+          metodo: strategy.metodo,
           description: strategy.description,
+          objetivo: strategy.objetivo,
+          codigo: strategy.codigo,
           order: strategy.order,
         })),
         indicators,
