@@ -78,7 +78,6 @@ export async function GET(request: NextRequest) {
         respondentName: session.respondent.name || "Anónimo",
         respondentEmail: session.respondent.email,
         respondentRole: session.respondent.role,
-        respondentOrganization: session.respondent.organization,
         progress: session.progress,
         progressStrategies: completedStrategies,
         totalStrategies,

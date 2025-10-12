@@ -66,7 +66,7 @@ export async function POST(
       if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.01) {
         incompleteStrategies.push({
           id: strategy.id,
-          title: strategy.title,
+          title: strategy.metodo,
           totalWeight,
         });
       }

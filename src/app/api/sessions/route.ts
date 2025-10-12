@@ -81,8 +81,12 @@ export async function GET(request: NextRequest) {
       }
 
       if (!respondent) {
+        // Create respondent with temporary data that will be updated later
+        const tempEmail = `participant-${invite.id}@temp.local`;
         respondent = await prisma.respondent.create({
           data: {
+            name: "Participante",
+            email: tempEmail,
             role: "participant", // Will be updated on first access
           },
         });
