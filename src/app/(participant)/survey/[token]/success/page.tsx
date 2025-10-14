@@ -1,4 +1,15 @@
-export default function SuccessPage() {
+"use client";
+
+import { use } from "react";
+import Link from "next/link";
+
+export default function SuccessPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = use(params);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-green-50 via-white to-slate-50 px-6">
       <div className="mx-auto max-w-2xl space-y-8 text-center">
@@ -39,8 +50,31 @@ export default function SuccessPage() {
           </ul>
         </div>
 
+        <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-6">
+          <h3 className="text-base font-semibold text-blue-900 mb-2">
+            ¿Necesita editar sus respuestas?
+          </h3>
+          <p className="text-sm text-blue-700 mb-4">
+            Puede revisar y modificar sus ponderaciones en cualquier momento. Los cambios se guardarán automáticamente.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Link
+              href={`/survey/${token}/summary`}
+              className="inline-flex items-center rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 transition"
+            >
+              Ver y editar respuestas
+            </Link>
+            <Link
+              href={`/survey/${token}/strategies`}
+              className="inline-flex items-center rounded-full border-2 border-blue-600 px-6 py-3 font-semibold text-blue-600 hover:bg-blue-50 transition"
+            >
+              Ir a estrategias
+            </Link>
+          </div>
+        </div>
+
         <div className="text-sm text-slate-500">
-          Puedes cerrar esta ventana. Si tienes preguntas, contacta al equipo de investigación.
+          Si ha terminado, puede cerrar esta ventana. Si tiene preguntas, contacte al equipo de investigación.
         </div>
       </div>
     </div>

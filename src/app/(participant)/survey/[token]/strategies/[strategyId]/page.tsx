@@ -72,10 +72,8 @@ export default function StrategyWizardPage({
         setSessionId(session.id);
         setSessionStatus(session.status);
 
-        if (session.status === "submitted") {
-          router.replace(`/survey/${token}/success`);
-          return;
-        }
+        // Permitir acceso a estrategias incluso si ya fue enviada
+        // El experto puede seguir editando
 
         // Get indicators
         const indicatorsResponse = await fetch(
@@ -159,7 +157,9 @@ export default function StrategyWizardPage({
 
   // Función para guardar cambios
   const saveChanges = useCallback(async () => {
-    if (!sessionId || sessionStatus === "submitted") return;
+    if (!sessionId) return;
+
+    // Permitir guardar incluso si ya fue enviada
 
     setSaving(true);
     setHasUnsavedChanges(false);
@@ -184,13 +184,6 @@ export default function StrategyWizardPage({
         }),
       });
 
-      if (response.status === 403) {
-        setSessionStatus("submitted");
-        setError("Esta encuesta ya fue enviada y no se puede editar.");
-        router.replace(`/survey/${token}/summary`);
-        return;
-      }
-
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error saving draft:", errorData);
@@ -210,7 +203,7 @@ export default function StrategyWizardPage({
   // Autosave con debounce
   useEffect(() => {
     // No hacer autosave durante la carga inicial
-    if (isInitialLoad || !sessionId || sessionStatus === "submitted") return;
+    if (isInitialLoad || !sessionId) return;
 
     if (!autosaveInitializedRef.current) {
       autosaveInitializedRef.current = true;
@@ -531,6 +524,33 @@ export default function StrategyWizardPage({
             label={`Progreso: ${currentCompletedCount}/${strategies.length} completadas`}
           />
         </header>
+
+        {/* Banner informativo si ya fue enviada */}
+        {sessionStatus === "submitted" && (
+          <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-green-900">
+                  ✓ Encuesta enviada
+                </h3>
+                <p className="mt-1 text-sm text-green-700">
+                  Sus respuestas han sido registradas. Puede seguir editando sus ponderaciones si lo considera necesario. Los cambios se guardarán automáticamente.
+                </p>
+              </div>
+              <Link
+                href={`/survey/${token}/summary`}
+                className="flex-shrink-0 text-sm font-medium text-green-700 hover:text-green-800 underline"
+              >
+                Ver resumen
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">

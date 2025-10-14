@@ -191,76 +191,7 @@ export default function StrategyOverviewPage({
     }
   };
 
-  // Si la sesión ya fue enviada, mostrar mensaje
-  if (sessionStatus === "submitted") {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
-        <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border-2 border-green-200 bg-white p-8 shadow-lg">
-            <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-slate-900">
-                Encuesta Enviada
-              </h1>
-              <p className="mt-3 text-slate-700">
-                Ha completado y enviado satisfactoriamente la encuesta.
-              </p>
-              <p className="mt-2 text-slate-700">
-                Agradecemos su participación y el tiempo dedicado a este
-                ejercicio.
-              </p>
-            </div>
-
-            <div className="text-left space-y-4 mb-6">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Su contribución es fundamental para fortalecer el proceso de
-                análisis y priorización de estrategias de mitigación del Dengue,
-                y para el desarrollo de un modelo de inteligencia artificial
-                basado en conocimiento experto.
-              </p>
-
-              <div className="border-t border-slate-200 pt-4">
-                <h2 className="text-base font-semibold text-slate-900 mb-2">
-                  Resultados y Análisis de la Encuesta
-                </h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Los resultados y análisis de la Encuesta de Ponderación de
-                  Indicadores por Expertos serán socializados próximamente. Le
-                  estaremos enviando una invitación formal para participar en la
-                  presentación de resultados y en el espacio de construcción de
-                  consensos entre los diferentes grupos de expertos.
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Link
-                href="/"
-                className="inline-block rounded-full bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
-              >
-                Volver al inicio
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // No bloquear la vista si está submitted, permitir ver y editar las estrategias
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
@@ -290,6 +221,33 @@ export default function StrategyOverviewPage({
             label={`Progreso global: ${Math.round(progress * 100)}%`}
           />
         </header>
+
+        {/* Banner informativo si ya fue enviada */}
+        {sessionStatus === "submitted" && (
+          <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-green-900">
+                  ✓ Encuesta enviada
+                </h3>
+                <p className="mt-1 text-sm text-green-700">
+                  Sus respuestas han sido registradas. Puede seguir editando sus ponderaciones si lo considera necesario. Los cambios se guardarán automáticamente.
+                </p>
+              </div>
+              <Link
+                href={`/survey/${token}/summary`}
+                className="flex-shrink-0 text-sm font-medium text-green-700 hover:text-green-800 underline"
+              >
+                Ver resumen
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -458,9 +416,9 @@ export default function StrategyOverviewPage({
         {showConfirmModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
-              <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
                 <svg
-                  className="w-8 h-8 text-amber-600"
+                  className="w-8 h-8 text-blue-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -469,16 +427,16 @@ export default function StrategyOverviewPage({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-slate-900 text-center">
-                ¿Confirmar envío?
+                ¿Confirmar que completó la encuesta?
               </h3>
               <p className="mt-3 text-sm text-slate-600 text-center">
-                ¿Estás seguro/a de enviar tu encuesta? Una vez enviada{" "}
-                <strong>no podrás modificarla</strong>.
+                Confirme que ha terminado de ponderar todas las estrategias.
+                Podrá seguir editando sus respuestas después si lo necesita.
               </p>
 
               <div className="mt-6 flex gap-3">

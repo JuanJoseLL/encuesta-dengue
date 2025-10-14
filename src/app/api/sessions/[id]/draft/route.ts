@@ -38,12 +38,8 @@ export async function PATCH(
       );
     }
 
-    if (session.status === "submitted") {
-      return NextResponse.json(
-        { error: "Cannot modify submitted session" },
-        { status: 403 }
-      );
-    }
+    // Permitir edición incluso si la encuesta ya fue enviada
+    // El experto puede seguir modificando sus respuestas
 
     // Validate strategy belongs to survey
     const strategy = session.survey.strategies.find((s: any) => s.id === strategyId);

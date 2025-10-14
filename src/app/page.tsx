@@ -82,7 +82,6 @@ export default function HomePage() {
               >
                 Ir al panel administrativo
               </Link>
-              <span className="text-xs text-slate-400">Acceso protegido pendiente de integración.</span>
             </div>
           </div>
         </section>

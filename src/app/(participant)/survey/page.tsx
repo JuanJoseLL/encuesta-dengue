@@ -240,6 +240,9 @@ export default function SurveyLoginPage() {
                     Al participar en esta encuesta, declaro que he sido informado(a) sobre el propósito del estudio, el cual busca analizar y ponderar indicadores para la definición de estrategias de mitigación del Dengue, en el marco del proyecto [nombre del proyecto].
                   </p>
                   <p>
+                    <strong>Uso de los datos recopilados:</strong> Los datos recopilados serán utilizados para determinar los criterios de decisión de un modelo prescriptivo y para el desarrollo de estrategias de recomendación que contribuyan a la toma de decisiones informadas en la mitigación del Dengue.
+                  </p>
+                  <p>
                     Autorizo de manera libre, expresa e informada el uso de los datos personales y de las respuestas suministradas exclusivamente para fines académicos, científicos y de análisis institucional relacionados con este estudio.
                   </p>
                   <p>

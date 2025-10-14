@@ -42,12 +42,9 @@ export async function POST(
       );
     }
 
-    if (session.status === "submitted") {
-      return NextResponse.json(
-        { error: "Session already submitted" },
-        { status: 400 }
-      );
-    }
+    // Si ya fue enviada, actualizar la fecha de completado sin error
+    // Esto permite que el experto "re-envíe" después de editar
+    const isResubmission = session.status === "submitted";
 
     // Validate completeness
     const strategyWeights = new Map<string, number>();
@@ -138,8 +135,11 @@ export async function POST(
     return NextResponse.json(
       {
         session: updatedSession,
-        message: "Survey submitted successfully",
+        message: isResubmission
+          ? "Survey re-submitted successfully. You can continue editing if needed."
+          : "Survey submitted successfully. You can continue editing if needed.",
         incompleteStrategies,
+        isResubmission,
       },
       { status: 200 }
     );
