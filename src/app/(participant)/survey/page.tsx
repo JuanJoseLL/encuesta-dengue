@@ -282,38 +282,40 @@ export default function SurveyLoginPage() {
         )}
 
         {/* Info Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Sobre la encuesta</h3>
-          <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li className="flex gap-3">
-              <span className="font-semibold text-blue-600">•</span>
-              <span>
-                Deberá ponderar <strong>19 estrategias de mitigación</strong> del Dengue.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold text-blue-600">•</span>
-              <span>
-                Para cada estrategia, seleccione los indicadores más relevantes y asigne un peso porcentual a cada uno.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold text-blue-600">•</span>
-              <span>
-                Los pesos se asignan en <strong>intervalos de 5%</strong> y deben sumar <strong>100%</strong> por estrategia.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-semibold text-blue-600">•</span>
-              <span>
-                El sistema <strong>guarda automáticamente</strong> su progreso, permitiendo continuar en diferentes sesiones.
-              </span>
-            </li>
-          </ul>
-          <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-            <strong>Tiempo estimado de diligenciamiento:</strong> 25 a 35 minutos.
+        {!needsRole && !respondent && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900">Sobre la encuesta</h3>
+            <ul className="mt-4 space-y-3 text-sm text-slate-600">
+              <li className="flex gap-3">
+                <span className="font-semibold text-blue-600">•</span>
+                <span>
+                  Deberá ponderar <strong>19 estrategias de mitigación</strong> del Dengue.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-semibold text-blue-600">•</span>
+                <span>
+                  Para cada estrategia, seleccione los indicadores más relevantes y asigne un peso porcentual a cada uno.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-semibold text-blue-600">•</span>
+                <span>
+                  Los pesos se asignan en <strong>intervalos de 5%</strong> y deben sumar <strong>100%</strong> por estrategia.
+                </span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-semibold text-blue-600">•</span>
+                <span>
+                  El sistema <strong>guarda automáticamente</strong> su progreso, permitiendo continuar en diferentes sesiones.
+                </span>
+              </li>
+            </ul>
+            <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
+              <strong>Tiempo estimado de diligenciamiento:</strong> 25 a 35 minutos.
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Help */}
         <div className="text-center text-sm text-slate-500">

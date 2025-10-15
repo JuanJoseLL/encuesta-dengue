@@ -2,6 +2,7 @@
 
 import { use, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTokenValidation } from "@/hooks";
 
 export default function SurveyTokenLayout({
@@ -12,6 +13,7 @@ export default function SurveyTokenLayout({
   children: ReactNode;
 }) {
   const { token } = use(params);
+  const pathname = usePathname();
   const { isValidating, isValid, error, respondentName } = useTokenValidation(token);
 
   // Mostrar loading mientras valida
@@ -70,13 +72,21 @@ export default function SurveyTokenLayout({
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/survey/${token}/strategies`}
-            className="rounded-full px-3 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+              pathname.includes('/strategies')
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-500 hover:bg-slate-100'
+            }`}
           >
             Estrategias
           </Link>
           <Link
             href={`/survey/${token}/summary`}
-            className="rounded-full px-3 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+              pathname.includes('/summary')
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-500 hover:bg-slate-100'
+            }`}
           >
             Resumen global
           </Link>

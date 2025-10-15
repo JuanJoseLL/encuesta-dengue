@@ -44,6 +44,7 @@ export default function StrategyWizardPage({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [previousWeights, setPreviousWeights] = useState<Record<string, number> | null>(null);
   const autosaveInitializedRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadedStrategyIdRef = useRef<string | null>(null);
@@ -278,9 +279,12 @@ export default function StrategyWizardPage({
 
   const handleAutoDistribute = () => {
     userMadeChangesRef.current = true; // Marcar que el usuario hizo cambios
-    
+
     const selected = Array.from(selectedIndicators);
     if (selected.length === 0) return;
+
+    // Guardar los pesos actuales antes de redistribuir
+    setPreviousWeights({ ...weights });
 
     const perItemBase = Math.floor(100 / selected.length / 5) * 5;
     const remainder = 100 - perItemBase * selected.length;
@@ -318,6 +322,14 @@ export default function StrategyWizardPage({
 
     setWeights(newWeights);
     setError("");
+  };
+
+  const handleUndo = () => {
+    if (previousWeights) {
+      setWeights(previousWeights);
+      setPreviousWeights(null);
+      setError("");
+    }
   };
 
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
@@ -474,7 +486,7 @@ export default function StrategyWizardPage({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="sticky top-0 z-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -760,18 +772,56 @@ export default function StrategyWizardPage({
                 </div>
               </div>
 
-              {/* Auto Distribute Button */}
+              {/* Auto Distribute & Undo Buttons */}
               {selectedIndicators.size > 0 && (
-                <button
-                  onClick={handleAutoDistribute}
-                  className="mt-4 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:cursor-pointer"
-                >
-                  Autorrepartir equitativamente
-                </button>
+                <div className="mt-4 flex gap-2">
+                  <div className="relative flex-1 group">
+                    <button
+                      onClick={handleAutoDistribute}
+                      className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-sm font-semibold text-white shadow-md hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:cursor-pointer transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                      title="Distribuir pesos automáticamente"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Repartir equitativamente
+                    </button>
+                    {/* Tooltip */}
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-20 w-64 animate-fadeIn">
+                      <div className="bg-slate-900/70 backdrop-blur-md text-white text-xs rounded-lg p-3 shadow-xl border border-slate-700/30">
+                        <p className="font-semibold mb-1">Distribución automática</p>
+                        <p className="text-slate-300">Asigna automáticamente los pesos de manera equitativa entre todos los indicadores seleccionados, garantizando que la suma total sea exactamente 100%.</p>
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-900/70"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {previousWeights && (
+                    <div className="relative group">
+                      <button
+                        onClick={handleUndo}
+                        className="rounded-lg bg-amber-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-amber-700 hover:shadow-lg hover:cursor-pointer transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+                        title="Deshacer distribución"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                      </button>
+                      {/* Tooltip */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-20 w-56 animate-fadeIn">
+                        <div className="bg-slate-900/70 backdrop-blur-md text-white text-xs rounded-lg p-3 shadow-xl border border-slate-700/30">
+                          <p className="font-semibold mb-1">Deshacer cambios</p>
+                          <p className="text-slate-300">Restaura la distribución de pesos anterior antes de aplicar la distribución equitativa.</p>
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-900/70"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Weight Sliders */}
-              <div className="mt-4 max-h-[400px] space-y-3 overflow-y-auto">
+              <div className="mt-4 max-h-[600px] space-y-3 overflow-y-auto">
                 {Array.from(selectedIndicators).map((indicatorId) => {
                   const indicator = availableIndicators.find(
                     (ind) => ind.id === indicatorId
@@ -781,9 +831,21 @@ export default function StrategyWizardPage({
                   return (
                     <div key={indicatorId} className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-medium text-slate-700">
-                          {indicator.name}
-                        </label>
+                        <div className="relative group/label z-[100]">
+                          <label className="text-xs font-medium text-slate-700 cursor-help">
+                            {indicator.name}
+                          </label>
+                          {/* Tooltip con descripción - siempre hacia abajo */}
+                          {indicator.description && (
+                            <div className="absolute left-0 top-full mt-2 hidden group-hover/label:block w-72 animate-fadeIn" style={{ zIndex: 9999 }}>
+                              <div className="bg-slate-900/70 backdrop-blur-md text-white text-xs rounded-lg p-3 shadow-xl border border-slate-700/30">
+                                <p className="font-semibold mb-1 text-blue-300">{indicator.name}</p>
+                                <p className="text-slate-200 leading-relaxed">{indicator.description}</p>
+                                <div className="absolute left-4 bottom-full w-0 h-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-slate-900/70"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <input
                           type="number"
                           min="0"
