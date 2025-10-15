@@ -487,47 +487,53 @@ export default function StrategyWizardPage({
           </div>
 
           <div className="sticky top-0 z-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
-                    {strategy.order}
-                  </span>
-                  <h1 className="text-2xl font-bold text-slate-900">
-                    {strategy.metodo}
-                  </h1>
-                </div>
-
-                {strategy.description && (
-                  <p className="ml-11 text-sm text-slate-600 mb-3">
-                    {strategy.description}
-                  </p>
-                )}
-
-                {strategy.objetivo && (
-                  <div className="ml-11">
-                    <span className="text-xs font-semibold text-slate-700">
-                      Objetivo:{" "}
-                    </span>
-                    <span className="text-sm text-slate-600">
-                      {strategy.objetivo}
-                    </span>
-                  </div>
-                )}
+            {/* Header: Title and Code */}
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                  {strategy.order}
+                </span>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  {strategy.metodo}
+                </h1>
               </div>
 
               {strategy.codigo && (
-                <span className="inline-block text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg whitespace-nowrap">
+                <span className="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md whitespace-nowrap">
                   {strategy.codigo}
                 </span>
               )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <p className="text-sm text-slate-600 font-medium">
-                💡 Selecciona y pondera los indicadores más relevantes para
-                decidir activar esta estrategia
+            {/* Description */}
+            {strategy.description && (
+              <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+                {strategy.description}
               </p>
+            )}
+
+            {/* Objective */}
+            {strategy.objetivo && (
+              <div className="mb-4">
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                  Objetivo:{" "}
+                </span>
+                <span className="text-sm text-slate-600">
+                  {strategy.objetivo}
+                </span>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="pt-4 border-t border-slate-200">
+              <div className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Elija los indicadores que considera más útiles para activar esta estrategia. Luego, asigne un peso porcentual a cada uno, según su nivel de importancia. (Los pesos deben sumar 100% y se asignan en múltiplos de 5).
+                </p>
+              </div>
             </div>
           </div>
 
@@ -583,11 +589,6 @@ export default function StrategyWizardPage({
                   <h2 className="text-lg font-semibold text-slate-900">
                     Indicadores asociados a esta estrategia
                   </h2>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Seleccione y pondere los indicadores más relevantes que, según su
-                    criterio, deben considerarse para decidir la activación de esta
-                    estrategia de mitigación del Dengue.
-                  </p>
                 </div>
                 <button className="ml-4 text-2xl text-slate-400 hover:text-slate-600 transition">
                   {showAssociatedIndicators ? "−" : "+"}
@@ -727,11 +728,7 @@ export default function StrategyWizardPage({
               <h2 className="text-lg font-semibold text-slate-900">
                 Asignación de pesos ponderados
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Asigne un peso porcentual (%) a cada indicador seleccionado. Los
-                pesos se asignarán en intervalos de 5% y la suma total de los
-                pesos asignados debe ser igual a 100%.
-              </p>
+            
 
               {/* Total Progress */}
               <div className="mt-4 rounded-lg bg-slate-50 p-4">
@@ -861,32 +858,44 @@ export default function StrategyWizardPage({
                           className="w-16 rounded border border-slate-200 px-2 py-1 text-xs text-right"
                         />
                       </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="5"
-                        value={weights[indicatorId] || 0}
-                        onChange={(e) =>
-                          handleWeightChange(
-                            indicatorId,
-                            parseFloat(e.target.value)
-                          )
-                        }
-                        onInput={(e) =>
-                          handleWeightChange(
-                            indicatorId,
-                            parseFloat((e.target as HTMLInputElement).value)
-                          )
-                        }
-                        onClick={(e) =>
-                          handleWeightChange(
-                            indicatorId,
-                            parseFloat((e.target as HTMLInputElement).value)
-                          )
-                        }
-                        className="w-full cursor-pointer"
-                      />
+                      {/* Slider con escala visual */}
+                      <div className="relative">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={weights[indicatorId] || 0}
+                          onChange={(e) =>
+                            handleWeightChange(
+                              indicatorId,
+                              parseFloat(e.target.value)
+                            )
+                          }
+                          onInput={(e) =>
+                            handleWeightChange(
+                              indicatorId,
+                              parseFloat((e.target as HTMLInputElement).value)
+                            )
+                          }
+                          onClick={(e) =>
+                            handleWeightChange(
+                              indicatorId,
+                              parseFloat((e.target as HTMLInputElement).value)
+                            )
+                          }
+                          className="w-full cursor-pointer"
+                        />
+                        {/* Marcas de escala */}
+                        <div className="flex justify-between px-0.5 mt-1">
+                          {[0, 25, 50, 75, 100].map((mark) => (
+                            <div key={mark} className="flex flex-col items-center">
+                              <div className="w-px h-1.5 bg-slate-300"></div>
+                              <span className="text-[10px] text-slate-400 mt-0.5">{mark}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -894,7 +903,7 @@ export default function StrategyWizardPage({
 
               {selectedIndicators.size === 0 && (
                 <div className="mt-4 text-center text-sm text-slate-500">
-                  Selecciona al menos un indicador para asignar pesos
+                  Primero seleccione al menos un indicador en la lista izquierda para comenzar la asignación.
                 </div>
               )}
             </div>

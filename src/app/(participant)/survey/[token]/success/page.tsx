@@ -20,34 +20,37 @@ export default function SuccessPage({
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-slate-900">¡Encuesta enviada con éxito!</h1>
-          <p className="text-lg text-slate-600">
-            Muchas gracias por tu participación. Tus respuestas son fundamentales para esta investigación.
+          <h1 className="text-4xl font-bold text-slate-900">Encuesta enviada con éxito</h1>
+          <p className="text-lg text-slate-600 leading-relaxed">
+            Gracias por ser parte activa de esta iniciativa de salud pública. Tu participación como experto(a) es fundamental para construir un modelo prescriptivo sólido, basado en evidencia local, que contribuirá a mejorar la toma de decisiones frente a brotes de dengue en Santiago de Cali.
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">¿Qué sigue?</h2>
-          <ul className="mt-4 space-y-3 text-left text-sm text-slate-600">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">¿Qué sigue ahora?</h2>
+          <ul className="space-y-3 text-left text-sm text-slate-600">
             <li className="flex gap-3">
-              <span className="text-green-600">•</span>
+              <span className="text-green-600 flex-shrink-0">•</span>
               <span>
-                Tus respuestas han sido registradas de forma segura y anónima
+                Tus aportes han sido registrados de forma segura, anónima y serán analizados junto a los de otros participantes.
               </span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600">•</span>
+              <span className="text-green-600 flex-shrink-0">•</span>
               <span>
-                El equipo de investigación analizará los datos consolidados de todos los participantes
+                El equipo técnico consolidará las ponderaciones para afinar el sistema de recomendación del modelo.
               </span>
             </li>
             <li className="flex gap-3">
-              <span className="text-green-600">•</span>
+              <span className="text-green-600 flex-shrink-0">•</span>
               <span>
-                Los resultados contribuirán a mejorar los sistemas de vigilancia epidemiológica
+                Los resultados apoyarán el fortalecimiento de los sistemas de vigilancia epidemiológica y las respuestas intersectoriales frente al dengue.
               </span>
             </li>
           </ul>
+          <p className="mt-6 text-sm text-slate-700 italic border-t border-slate-200 pt-4">
+            Tu experiencia transforma datos en decisiones. Gracias por ser parte de esta construcción colectiva hacia una Cali más saludable y resiliente.
+          </p>
         </div>
 
         <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-6">

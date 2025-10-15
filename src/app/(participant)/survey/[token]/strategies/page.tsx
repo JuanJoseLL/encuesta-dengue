@@ -201,12 +201,14 @@ export default function StrategyOverviewPage({
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">
-                Estrategias de mitigación
+                Estrategias de mitigación del Dengue
               </h1>
               <p className="mt-2 text-slate-600">
-                Pondere los indicadores más relevantes para cada estrategia de
-                mitigación del Dengue. Su progreso se guardará automáticamente,
-                por lo que podrá continuar en cualquier momento.
+                Seleccione los indicadores más importantes para cada estrategia de respuesta al dengue y asígnele un peso porcentual a cada uno. Recuerde que los pesos deben sumar 100%. 
+                
+              </p>
+              <p className="mt-1 text-sm italic text-slate-500">
+                Su progreso se guardará automáticamente, por lo que podrá continuar en cualquier momento.
               </p>
             </div>
             <div className="text-right">

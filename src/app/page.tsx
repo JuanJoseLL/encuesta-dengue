@@ -20,14 +20,14 @@ export default function HomePage() {
             Encuesta de ponderación de indicadores por expertos
           </span>
           <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
-            Ponderación de Indicadores para Estrategias de Mitigación del Dengue
+            Ponderación de indicadores para priorizar estrategias de respuesta al dengue en Cali
           </h1>
           <div className="mx-auto max-w-3xl space-y-4 text-base leading-relaxed text-slate-600">
             <p>
               <strong>Estimado(a) experto(a):</strong>
             </p>
             <p>
-              Su participación es fundamental para el desarrollo de un modelo de inteligencia artificial orientado a apoyar la toma de decisiones en la mitigación y control del Dengue en el municipio de Santiago de Cali, Colombia.
+              Su participación nos ayudará a construir un sistema inteligente de apoyo a decisiones basado en evidencia real y contextualizada en Cali.
             </p>
             <p>
               En esta encuesta se presentan diversas estrategias de intervención junto con indicadores asociados. Se solicita que:

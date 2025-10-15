@@ -128,10 +128,10 @@ export default function SurveyLoginPage() {
             />
           </div>
           <h1 className="text-4xl font-bold text-slate-900">
-            Ponderación de indicadores para estrategias de mitigación del Dengue
+            Ponderación de indicadores para priorizar estrategias de respuesta al dengue en Cali
           </h1>
           <p className="text-lg text-slate-600">
-            Gracias por participar en este proceso de investigación. Su experiencia como experto(a) es fundamental para el desarrollo de un modelo basado en evidencia que contribuya a la mitigación del Dengue en el municipio de Santiago de Cali.
+            Su participación nos ayudará a construir un sistema inteligente de apoyo a decisiones basado en evidencia real y contextualizada en Cali.   
           </p>
         </div>
 
@@ -237,16 +237,32 @@ export default function SurveyLoginPage() {
                 </h4>
                 <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
                   <p>
-                    Al participar en esta encuesta, declaro que he sido informado(a) sobre el propósito del estudio, el cual busca analizar y ponderar indicadores para la definición de estrategias de mitigación del Dengue, en el marco del proyecto [nombre del proyecto].
+                    <strong>Consentimiento informado y tratamiento de datos personales</strong>
                   </p>
                   <p>
-                    <strong>Uso de los datos recopilados:</strong> Los datos recopilados serán utilizados para determinar los criterios de decisión de un modelo prescriptivo y para el desarrollo de estrategias de recomendación que contribuyan a la toma de decisiones informadas en la mitigación del Dengue.
+                    Al participar en esta encuesta, declaro que he sido informado(a) sobre el propósito del estudio: Analizar y ponderar indicadores que permitan definir estrategias efectivas para mitigar el dengue, como parte del proyecto DengueIA.
                   </p>
                   <p>
-                    Autorizo de manera libre, expresa e informada el uso de los datos personales y de las respuestas suministradas exclusivamente para fines académicos, científicos y de análisis institucional relacionados con este estudio.
+                    <strong>Sobre el uso de los datos:</strong> Los datos que usted suministre se usarán únicamente para:
+                  </p>
+                  <ul className="list-inside list-disc pl-4 text-xs text-slate-700">
+                    <li>Definir criterios de decisión en un modelo prescriptivo.</li>
+                    <li>Desarrollar estrategias de recomendación basadas en evidencia.</li>
+                    <li>Fines académicos, científicos y de análisis institucional.</li>
+                  </ul>
+                  <p>
+                    Autorizo de manera libre, expresa e informada el uso de mis datos personales y mis respuestas, exclusivamente para los fines anteriormente descritos.
                   </p>
                   <p>
-                    Entiendo que mi participación es voluntaria, que puedo retirarme en cualquier momento sin repercusiones, y que la información recolectada será tratada de forma confidencial, anónima y conforme a la normativa vigente en materia de protección de datos personales (Ley 1581 de 2012 de Colombia y demás disposiciones internacionales aplicables).
+                    Entiendo que:
+                  </p>
+                  <ul className="list-inside list-disc pl-4 text-xs text-slate-700">
+                    <li>Mi participación es completamente voluntaria.</li>
+                    <li>Puedo retirarme en cualquier momento sin repercusiones.</li>
+                    <li>La información será tratada de forma confidencial, anónima y conforme a la Ley 1581 de 2012 (Colombia) y otras normativas internacionales de protección de datos.</li>
+                  </ul>
+                  <p>
+                    Declaro haber leído y aceptado este consentimiento informado.
                   </p>
                 </div>
                 <div className="mt-4 flex items-start gap-3">
@@ -284,35 +300,32 @@ export default function SurveyLoginPage() {
         {/* Info Card */}
         {!needsRole && !respondent && (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">Sobre la encuesta</h3>
-            <ul className="mt-4 space-y-3 text-sm text-slate-600">
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600">•</span>
-                <span>
-                  Deberá ponderar <strong>19 estrategias de mitigación</strong> del Dengue.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600">•</span>
-                <span>
-                  Para cada estrategia, seleccione los indicadores más relevantes y asigne un peso porcentual a cada uno.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600">•</span>
-                <span>
-                  Los pesos se asignan en <strong>intervalos de 5%</strong> y deben sumar <strong>100%</strong> por estrategia.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600">•</span>
-                <span>
-                  El sistema <strong>guarda automáticamente</strong> su progreso, permitiendo continuar en diferentes sesiones.
-                </span>
-              </li>
-            </ul>
-            <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-              <strong>Tiempo estimado de diligenciamiento:</strong> 25 a 35 minutos.
+            <h3 className="text-lg font-semibold text-slate-900">¿En qué consiste esta encuesta?</h3>
+            <div className="mt-4 text-sm text-slate-600">
+              <ul className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="font-semibold text-blue-600">•</span>
+                  <span>Usted evaluará <strong>19 estrategias</strong> de mitigación del dengue.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-semibold text-blue-600">•</span>
+                  <div>
+                    <span>Para cada estrategia, deberá:</span>
+                    <ol className="mt-2 ml-6 list-decimal space-y-1 text-sm text-slate-600">
+                      <li>Seleccionar los indicadores más relevantes.</li>
+                      <li>Asignar un peso porcentual a cada uno (en múltiplos de 5%).</li>
+                      <li>Asegurarse de que la suma de los pesos por estrategia sea del 100%.</li>
+                    </ol>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-semibold text-blue-600">•</span>
+                  <span className="italic">El sistema guarda automáticamente su progreso. Puede continuar en diferentes sesiones.</span>
+                </li>
+              </ul>
+              <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
+                <strong>Tiempo estimado:</strong> 25 a 35 minutos
+              </div>
             </div>
           </div>
         )}
