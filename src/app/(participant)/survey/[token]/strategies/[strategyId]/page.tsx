@@ -333,8 +333,17 @@ export default function StrategyWizardPage({
   };
 
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+
+  // Verificar si hay indicadores con peso 0
+  const indicatorsWithZeroWeight = Array.from(selectedIndicators).filter(
+    (indicatorId) => (weights[indicatorId] || 0) === 0
+  );
+  const hasIndicatorsWithoutWeight = indicatorsWithZeroWeight.length > 0;
+
   const isValid =
-    Math.abs(totalWeight - 100) < 0.1 && selectedIndicators.size > 0;
+    Math.abs(totalWeight - 100) < 0.1 &&
+    selectedIndicators.size > 0 &&
+    !hasIndicatorsWithoutWeight;
   const remaining = 100 - totalWeight;
 
   // Calcular progreso: contar estrategias completadas (excluyendo la actual) + la actual si está válida
@@ -352,6 +361,19 @@ export default function StrategyWizardPage({
   const hasPrev = currentIndex > 0;
 
   const handleNext = async () => {
+    if (hasIndicatorsWithoutWeight) {
+      const indicatorNames = indicatorsWithZeroWeight
+        .map((id) => {
+          const ind = availableIndicators.find((i) => i.id === id);
+          return ind ? ind.name : id;
+        })
+        .join(", ");
+      setError(
+        `Por favor, asigne un porcentaje a todos los indicadores seleccionados: ${indicatorNames}`
+      );
+      return;
+    }
+
     if (!isValid) {
       setError("Los pesos deben sumar exactamente 100% antes de continuar");
       return;
@@ -817,6 +839,23 @@ export default function StrategyWizardPage({
                 </div>
               )}
 
+              {/* Warning for indicators without weight */}
+              {hasIndicatorsWithoutWeight && (
+                <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-800">
+                      Algunos indicadores no tienen porcentaje asignado
+                    </p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      Por favor, asigne un porcentaje a todos los indicadores seleccionados antes de continuar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Weight Sliders */}
               <div className="mt-4 max-h-[600px] space-y-3 overflow-y-auto">
                 {Array.from(selectedIndicators).map((indicatorId) => {
@@ -825,8 +864,15 @@ export default function StrategyWizardPage({
                   );
                   if (!indicator) return null;
 
+                  const hasZeroWeight = (weights[indicatorId] || 0) === 0;
+
                   return (
-                    <div key={indicatorId} className="space-y-1">
+                    <div
+                      key={indicatorId}
+                      className={`space-y-1 rounded-lg p-3 transition-all ${
+                        hasZeroWeight ? "bg-amber-50 border-2 border-amber-300" : ""
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="relative group/label z-[100]">
                           <label className="text-xs font-medium text-slate-700 cursor-help">
