@@ -86,6 +86,7 @@ export async function GET(
           indicatorId: r.indicator.id,
           indicatorName: r.indicator.name,
           weight: r.weight,
+          threshold: r.threshold,
         })),
       };
     });

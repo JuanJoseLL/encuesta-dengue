@@ -52,7 +52,11 @@ export async function PATCH(
 
     // Upsert responses (create or update)
     if (weights && weights.length > 0) {
-      for (const { indicatorId, weight } of weights) {
+      for (const {
+        indicatorId,
+        weight,
+        threshold = null,
+      } of weights) {
         await prisma.response.upsert({
           where: {
             sessionId_strategyId_indicatorId: {
@@ -63,12 +67,14 @@ export async function PATCH(
           },
           update: {
             weight,
+            threshold,
           },
           create: {
             sessionId: id,
             strategyId,
             indicatorId,
             weight,
+            threshold,
           },
         });
       }

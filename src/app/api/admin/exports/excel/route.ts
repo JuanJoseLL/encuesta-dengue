@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       { header: "Indicador", key: "indicator_name", width: 32 },
       { header: "Dominio", key: "indicator_domain", width: 22 },
       { header: "Peso", key: "weight", width: 10 },
+      { header: "Umbral", key: "threshold", width: 16 },
       { header: "Inicio Sesión", key: "session_started_at", width: 22 },
       { header: "Fin Sesión", key: "session_completed_at", width: 22 },
       { header: "Actualizado", key: "response_updated_at", width: 22 },
@@ -67,6 +68,10 @@ export async function GET(request: NextRequest) {
 
     sessions.forEach((session) => {
       session.responses.forEach((response) => {
+        const { threshold } = response as typeof response & {
+          threshold?: number | null;
+        };
+
         worksheet.addRow({
           respondent_id: session.respondentId,
           respondent_name: session.respondent?.name || "Anónimo",
@@ -77,6 +82,7 @@ export async function GET(request: NextRequest) {
           indicator_name: response.indicator.name,
           indicator_domain: response.indicator.domain || "",
           weight: response.weight ?? null,
+          threshold: threshold ?? null,
           session_started_at: session.startedAt.toISOString(),
           session_completed_at: session.completedAt?.toISOString() ?? "",
           response_updated_at: response.updatedAt.toISOString(),

@@ -402,6 +402,7 @@ export default function SurveySummaryPage({
                       <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                         <th className="pb-2">Indicador</th>
                         <th className="pb-2 text-right">Peso</th>
+                        <th className="pb-2 text-right">Umbral</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -415,6 +416,13 @@ export default function SurveySummaryPage({
                           </td>
                           <td className="py-2 text-right font-mono text-slate-900">
                             {indicator.weight.toFixed(1)}%
+                          </td>
+                          <td className="py-2 text-right font-mono text-slate-700">
+                            {indicator.threshold != null
+                              ? indicator.threshold.toLocaleString("es-CO", {
+                                  maximumFractionDigits: 2,
+                                })
+                              : "—"}
                           </td>
                         </tr>
                       ))}
@@ -432,6 +440,9 @@ export default function SurveySummaryPage({
                           }`}
                         >
                           {summary.totalWeight.toFixed(1)}%
+                        </td>
+                        <td className="py-2 text-right text-xs text-slate-400">
+                          —
                         </td>
                       </tr>
                     </tfoot>

@@ -20,6 +20,7 @@ export interface LoadSessionResponse {
       strategyId: string;
       indicatorId: string;
       weight: number;
+      threshold?: number | null;
       indicator: {
         id: string;
         name: string;
@@ -64,7 +65,11 @@ export class SessionService {
   async saveDraft(
     sessionId: string,
     strategyId: string,
-    weights: Array<{ indicatorId: string; weight: number }>,
+    weights: Array<{
+      indicatorId: string;
+      weight: number;
+      threshold?: number | null;
+    }>,
     currentStrategyId?: string
   ): Promise<SaveDraftResponse> {
     return this.api.request<SaveDraftResponse>(apiRoutes.sessionDraft(sessionId), "PATCH", {

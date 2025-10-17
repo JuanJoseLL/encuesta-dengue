@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       "indicator_name",
       "indicator_domain",
       "weight",
+      "threshold",
       "session_started_at",
       "session_completed_at",
       "response_updated_at",
@@ -58,15 +59,21 @@ export async function GET(request: NextRequest) {
 
     sessions.forEach((session) => {
       session.responses.forEach((response) => {
+        const { threshold } = response as typeof response & {
+          threshold?: number | null;
+        };
+
         rows.push([
           session.respondentId,
           session.respondent?.name || "Anónimo",
           session.respondent?.email || "",
           session.respondent?.role ?? "",
+          response.strategy?.metodo ?? "",
           response.strategy?.order != null ? response.strategy.order.toString() : "",
           response.indicator?.name ?? "",
           response.indicator?.domain || "",
           response.weight != null ? response.weight.toString() : "",
+          threshold != null ? threshold.toString() : "",
           session.startedAt.toISOString(),
           session.completedAt?.toISOString() || "",
           response.updatedAt.toISOString(),

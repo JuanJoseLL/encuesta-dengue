@@ -2,6 +2,7 @@ export interface IndicatorWeightDraft {
   indicatorId: string;
   weight: number;
   justification?: string;
+  threshold?: number | null;
 }
 
 export interface StrategyResponsePayload {
