@@ -1,6 +1,7 @@
 export type IndicatorAllocation = {
   weight: number;
   threshold: number | null;
+  thresholdRaw?: string; // Raw input value for threshold
 };
 
 export const createEmptyAllocation = (): IndicatorAllocation => ({
@@ -17,6 +18,7 @@ export const cloneAllocationState = (
       {
         weight: data.weight,
         threshold: data.threshold,
+        thresholdRaw: data.thresholdRaw,
       },
     ])
   );

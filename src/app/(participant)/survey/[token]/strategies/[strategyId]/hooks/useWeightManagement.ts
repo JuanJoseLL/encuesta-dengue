@@ -79,24 +79,24 @@ export function useWeightManagement() {
       const trimmedValue = rawValue.trim();
       const parsedValue = trimmedValue === "" ? null : Number.parseFloat(trimmedValue);
 
-      if (trimmedValue !== "" && !Number.isFinite(parsedValue)) {
-        return;
-      }
-
       setWeights((prev) => {
-        const isInvalidThreshold = parsedValue !== null && parsedValue <= 0;
+        const current = prev[indicatorId] ?? createEmptyAllocation();
+        
+        // Always allow updating the raw value for better UX while typing
+        const updatedAllocation: IndicatorAllocation = {
+          ...current,
+          thresholdRaw: rawValue,
+          threshold: (trimmedValue === "" || !Number.isFinite(parsedValue)) ? null : parsedValue,
+        };
+
+        // Validate only if we have a valid number
+        const isInvalidThreshold = updatedAllocation.threshold !== null && updatedAllocation.threshold <= 0;
 
         if (isInvalidThreshold) {
           setError(THRESHOLD_ERROR_MESSAGE);
         } else if (error === THRESHOLD_ERROR_MESSAGE) {
           setError("");
         }
-
-        const current = prev[indicatorId] ?? createEmptyAllocation();
-        const updatedAllocation: IndicatorAllocation = {
-          ...current,
-          threshold: parsedValue,
-        };
 
         return {
           ...prev,

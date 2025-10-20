@@ -139,10 +139,11 @@ export default function StrategyWizardPage({
         if (!userMadeChangesRef.current) {
           const savedWeights: Record<string, any> = {};
           (currentItem.indicators || []).forEach((ind: any) => {
+            const threshold = typeof ind.threshold === "number" ? ind.threshold : null;
             savedWeights[ind.indicatorId] = {
               weight: ind.weight ?? 0,
-              threshold:
-                typeof ind.threshold === "number" ? ind.threshold : null,
+              threshold: threshold,
+              thresholdRaw: threshold !== null ? String(threshold) : undefined,
             };
           });
 

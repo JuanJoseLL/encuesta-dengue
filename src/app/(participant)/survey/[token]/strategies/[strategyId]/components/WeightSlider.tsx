@@ -20,7 +20,8 @@ export function WeightSlider({
   showWeightWarning,
 }: WeightSliderProps) {
   const hasZeroWeight = (allocation.weight ?? 0) === 0;
-  const thresholdValue = allocation.threshold ?? "";
+  // Use raw value if available, otherwise use the parsed threshold or empty string
+  const thresholdValue = allocation.thresholdRaw ?? (allocation.threshold !== null ? String(allocation.threshold) : "");
   const thresholdInvalid =
     allocation.threshold != null && allocation.threshold <= 0;
 
@@ -111,9 +112,7 @@ export function WeightSlider({
           {[0, 25, 50, 75, 100].map((mark) => (
             <div key={mark} className="flex flex-col items-center">
               <div className="h-1.5 w-px bg-slate-300"></div>
-              <span className="mt-0.5 text-[10px] text-slate-400">
-                {mark}%
-              </span>
+              <span className="mt-0.5 text-[10px] text-slate-400">{mark}%</span>
             </div>
           ))}
         </div>
@@ -125,32 +124,20 @@ export function WeightSlider({
             Umbral (opcional)
           </label>
           <input
-            type="number"
-            step="any"
-            inputMode="decimal"
+            type="text"
             value={thresholdValue}
-            onChange={(e) =>
-              onThresholdChange(indicator.id, e.target.value)
-            }
+            onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
             placeholder="Ej. 25"
-            className={`w-full rounded border px-2 py-1 text-xs ${
-              thresholdInvalid
-                ? "border-red-300 focus:border-red-400 focus:ring-red-200"
-                : "border-slate-200 focus:border-blue-500 focus:ring-blue-200"
-            }`}
+            className={
+              "w-full rounded border px-2 py-1 text-xs border-slate-200 focus:border-blue-500 focus:ring-blue-200"
+            }
           />
         </div>
       </div>
-      {thresholdInvalid ? (
-        <p className="text-[11px] font-medium text-red-600">
-          El umbral debe ser un valor mayor a 0%.
-        </p>
-      ) : (
-        <p className="text-[11px] text-slate-500">
-          Define un valor de referencia para este indicador en las unidades que
-          manejes habitualmente. Déjalo en blanco si no aplica.
-        </p>
-      )}
+      <p className="text-[11px] text-slate-500">
+        Define un valor de referencia para este indicador en las unidades que
+        manejes habitualmente. Déjalo en blanco si no aplica.
+      </p>
     </div>
   );
 }
