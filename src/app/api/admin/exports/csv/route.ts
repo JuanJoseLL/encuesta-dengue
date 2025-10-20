@@ -59,10 +59,6 @@ export async function GET(request: NextRequest) {
 
     sessions.forEach((session) => {
       session.responses.forEach((response) => {
-        const { threshold } = response as typeof response & {
-          threshold?: number | null;
-        };
-
         rows.push([
           session.respondentId,
           session.respondent?.name || "Anónimo",
@@ -73,7 +69,7 @@ export async function GET(request: NextRequest) {
           response.indicator?.name ?? "",
           response.indicator?.domain || "",
           response.weight != null ? response.weight.toString() : "",
-          threshold != null ? threshold.toString() : "",
+          response.threshold ?? "",
           session.startedAt.toISOString(),
           session.completedAt?.toISOString() || "",
           response.updatedAt.toISOString(),

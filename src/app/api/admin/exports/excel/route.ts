@@ -71,10 +71,6 @@ export async function GET(request: NextRequest) {
       const statusLabel = session.status === "submitted" ? "Completada" : "En Progreso";
 
       session.responses.forEach((response) => {
-        const { threshold } = response as typeof response & {
-          threshold?: number | null;
-        };
-
         const row = worksheet.addRow({
           session_status: statusLabel,
           respondent_id: session.respondentId,
@@ -86,7 +82,7 @@ export async function GET(request: NextRequest) {
           indicator_name: response.indicator.name,
           indicator_domain: response.indicator.domain || "",
           weight: response.weight ?? null,
-          threshold: threshold ?? null,
+          threshold: response.threshold ?? "",
           session_started_at: session.startedAt.toISOString(),
           session_completed_at: session.completedAt?.toISOString() ?? "",
           response_updated_at: response.updatedAt.toISOString(),

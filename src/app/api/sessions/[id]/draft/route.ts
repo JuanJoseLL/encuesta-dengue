@@ -57,6 +57,7 @@ export async function PATCH(
         weight,
         threshold = null,
       } of weights) {
+        console.log("Saving response:", { indicatorId, weight, threshold, thresholdType: typeof threshold });
         await prisma.response.upsert({
           where: {
             sessionId_strategyId_indicatorId: {

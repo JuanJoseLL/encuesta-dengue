@@ -10,7 +10,6 @@ import { StrategyHeader } from "./components/StrategyHeader";
 import { IndicatorSelector } from "./components/IndicatorSelector";
 import { WeightPanel } from "./components/WeightPanel";
 import { useWeightManagement } from "./hooks/useWeightManagement";
-import { THRESHOLD_ERROR_MESSAGE } from "./types";
 
 interface StrategyPageParams {
   token: string;
@@ -139,11 +138,9 @@ export default function StrategyWizardPage({
         if (!userMadeChangesRef.current) {
           const savedWeights: Record<string, any> = {};
           (currentItem.indicators || []).forEach((ind: any) => {
-            const threshold = typeof ind.threshold === "number" ? ind.threshold : null;
             savedWeights[ind.indicatorId] = {
               weight: ind.weight ?? 0,
-              threshold: threshold,
-              thresholdRaw: threshold !== null ? String(threshold) : undefined,
+              threshold: ind.threshold ?? null,
             };
           });
 
@@ -175,12 +172,11 @@ export default function StrategyWizardPage({
         ([indicatorId, allocation]) => ({
           indicatorId,
           weight: allocation.weight ?? 0,
-          threshold:
-            allocation.threshold !== null
-              ? Number(allocation.threshold)
-              : null,
+          threshold: allocation.threshold ?? null,
         })
       );
+
+      console.log("Sending payload to API:", payload);
 
       const response = await fetch(apiRoutes.sessionDraft(sessionId), {
         method: "PATCH",
@@ -276,11 +272,7 @@ export default function StrategyWizardPage({
     }
 
     if (!isValid) {
-      if (hasInvalidThresholds) {
-        setError(THRESHOLD_ERROR_MESSAGE);
-      } else {
-        setError("Los pesos deben sumar exactamente 100% antes de continuar");
-      }
+      setError("Los pesos deben sumar exactamente 100% antes de continuar");
       return;
     }
 

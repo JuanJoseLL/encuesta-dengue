@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import type { IndicatorAllocation } from "../types";
-import { createEmptyAllocation, cloneAllocationState, THRESHOLD_ERROR_MESSAGE } from "../types";
+import { createEmptyAllocation, cloneAllocationState } from "../types";
 
 export function useWeightManagement() {
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
@@ -73,30 +73,20 @@ export function useWeightManagement() {
   }, []);
 
   const handleThresholdChange = useCallback(
-    (indicatorId: string, rawValue: string) => {
+    (indicatorId: string, value: string) => {
       userMadeChangesRef.current = true;
 
-      const trimmedValue = rawValue.trim();
-      const parsedValue = trimmedValue === "" ? null : Number.parseFloat(trimmedValue);
+      const trimmedValue = value.trim();
 
       setWeights((prev) => {
         const current = prev[indicatorId] ?? createEmptyAllocation();
-        
-        // Always allow updating the raw value for better UX while typing
+
         const updatedAllocation: IndicatorAllocation = {
           ...current,
-          thresholdRaw: rawValue,
-          threshold: (trimmedValue === "" || !Number.isFinite(parsedValue)) ? null : parsedValue,
+          threshold: trimmedValue === "" ? null : trimmedValue,
         };
 
-        // Validate only if we have a valid number
-        const isInvalidThreshold = updatedAllocation.threshold !== null && updatedAllocation.threshold <= 0;
-
-        if (isInvalidThreshold) {
-          setError(THRESHOLD_ERROR_MESSAGE);
-        } else if (error === THRESHOLD_ERROR_MESSAGE) {
-          setError("");
-        }
+        // No validation - accept any text value
 
         return {
           ...prev,
@@ -182,16 +172,7 @@ export function useWeightManagement() {
   );
   const hasIndicatorsWithoutWeight = indicatorsWithZeroWeight.length > 0;
 
-  const hasInvalidThresholds = Array.from(selectedIndicators).some(
-    (indicatorId) => {
-      const allocation = weights[indicatorId];
-      if (!allocation) {
-        return false;
-      }
-      const { threshold } = allocation;
-      return threshold != null && threshold <= 0;
-    }
-  );
+  const hasInvalidThresholds = false; // No validation - accept any text
 
   const isValid =
     Math.abs(totalWeight - 100) < 0.1 &&

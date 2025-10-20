@@ -9,9 +9,6 @@ interface WeightSliderProps {
   showWeightWarning: boolean;
 }
 
-const THRESHOLD_ERROR_MESSAGE =
-  "Verifica que el umbral sea un valor válido mayor a 0%.";
-
 export function WeightSlider({
   indicator,
   allocation,
@@ -20,10 +17,8 @@ export function WeightSlider({
   showWeightWarning,
 }: WeightSliderProps) {
   const hasZeroWeight = (allocation.weight ?? 0) === 0;
-  // Use raw value if available, otherwise use the parsed threshold or empty string
-  const thresholdValue = allocation.thresholdRaw ?? (allocation.threshold !== null ? String(allocation.threshold) : "");
-  const thresholdInvalid =
-    allocation.threshold != null && allocation.threshold <= 0;
+  const thresholdValue = allocation.threshold ?? "";
+  const thresholdInvalid = false; // No validation - accept any text
 
   const shouldHighlightZeroWeight = hasZeroWeight && showWeightWarning;
 

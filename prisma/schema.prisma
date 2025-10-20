@@ -129,7 +129,7 @@ model Response {
   strategyId  String
   indicatorId String
   weight      Float           @default(0)
-  threshold   Float?
+  threshold   String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
