@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     const sessions = await prisma.responseSession.findMany({
       where: {
         surveyId,
-        status: "submitted",
       },
       include: {
         respondent: true,
@@ -45,6 +44,7 @@ export async function GET(request: NextRequest) {
     const worksheet = workbook.addWorksheet("Respuestas");
 
     worksheet.columns = [
+      { header: "Estado", key: "session_status", width: 16 },
       { header: "Respondent ID", key: "respondent_id", width: 18 },
       { header: "Nombre", key: "respondent_name", width: 24 },
       { header: "Email", key: "respondent_email", width: 30 },
@@ -67,12 +67,16 @@ export async function GET(request: NextRequest) {
     };
 
     sessions.forEach((session) => {
+      const isInProgress = session.status === "in_progress";
+      const statusLabel = session.status === "submitted" ? "Completada" : "En Progreso";
+
       session.responses.forEach((response) => {
         const { threshold } = response as typeof response & {
           threshold?: number | null;
         };
 
-        worksheet.addRow({
+        const row = worksheet.addRow({
+          session_status: statusLabel,
           respondent_id: session.respondentId,
           respondent_name: session.respondent?.name || "Anónimo",
           respondent_email: session.respondent?.email || "",
@@ -87,6 +91,17 @@ export async function GET(request: NextRequest) {
           session_completed_at: session.completedAt?.toISOString() ?? "",
           response_updated_at: response.updatedAt.toISOString(),
         });
+
+        // Aplicar color de fondo amarillo claro para sesiones en progreso
+        if (isInProgress) {
+          row.eachCell((cell) => {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFFFF9E6" }, // Amarillo claro
+            };
+          });
+        }
       });
     });
 
