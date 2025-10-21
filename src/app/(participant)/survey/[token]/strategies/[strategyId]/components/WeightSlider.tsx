@@ -116,7 +116,7 @@ export function WeightSlider({
       <div className="pt-2 text-xs text-slate-600">
         <div className="flex flex-col gap-1">
           <label className="font-medium text-slate-500">
-            Umbral (opcional)
+            Umbral
           </label>
           <input
             type="text"
@@ -131,7 +131,7 @@ export function WeightSlider({
       </div>
       <p className="text-[11px] text-slate-500">
         Define un valor de referencia para este indicador en las unidades que
-        manejes habitualmente. Déjalo en blanco si no aplica.
+        manejes habitualmente. Escriba "No aplica" si no deseas establecer un umbral.
       </p>
     </div>
   );
