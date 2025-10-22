@@ -170,7 +170,14 @@ export function useWeightManagement() {
   );
   const hasIndicatorsWithoutWeight = indicatorsWithZeroWeight.length > 0;
 
-  const hasInvalidThresholds = false; // No validation - accept any text
+  // Check for missing thresholds - all selected indicators must have a threshold
+  const indicatorsWithoutThreshold = Array.from(selectedIndicators).filter(
+    (indicatorId) => {
+      const threshold = weights[indicatorId]?.threshold;
+      return !threshold || threshold.trim() === '';
+    }
+  );
+  const hasInvalidThresholds = indicatorsWithoutThreshold.length > 0;
 
   const isValid =
     Math.abs(totalWeight - 100) < 0.1 &&
@@ -197,6 +204,7 @@ export function useWeightManagement() {
     totalWeight,
     indicatorsWithZeroWeight,
     hasIndicatorsWithoutWeight,
+    indicatorsWithoutThreshold,
     hasInvalidThresholds,
     isValid,
   };

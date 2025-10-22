@@ -63,6 +63,7 @@ export default function StrategyWizardPage({
     totalWeight,
     indicatorsWithZeroWeight,
     hasIndicatorsWithoutWeight,
+    indicatorsWithoutThreshold,
     hasInvalidThresholds,
     isValid,
   } = useWeightManagement();
@@ -176,8 +177,6 @@ export default function StrategyWizardPage({
         })
       );
 
-      console.log("Sending payload to API:", payload);
-
       const response = await fetch(apiRoutes.sessionDraft(sessionId), {
         method: "PATCH",
         headers: {
@@ -267,6 +266,19 @@ export default function StrategyWizardPage({
         .join(", ");
       setError(
         `Por favor, asigne un porcentaje a todos los indicadores seleccionados: ${indicatorNames}`
+      );
+      return;
+    }
+
+    if (hasInvalidThresholds) {
+      const indicatorNames = indicatorsWithoutThreshold
+        .map((id) => {
+          const ind = availableIndicators.find((i) => i.id === id);
+          return ind ? ind.name : id;
+        })
+        .join(", ");
+      setError(
+        `Por favor, defina un umbral para todos los indicadores seleccionados: ${indicatorNames}`
       );
       return;
     }
@@ -510,6 +522,24 @@ export default function StrategyWizardPage({
                   />
                 </svg>
                 Asigne porcentaje a todos los indicadores seleccionados
+              </div>
+            )}
+            {!error && !isNavigating && !hasIndicatorsWithoutWeight && hasInvalidThresholds && (
+              <div className="text-sm text-amber-600 flex items-center gap-2 justify-center">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                Defina un umbral para todos los indicadores seleccionados
               </div>
             )}
             {isNavigating && (
