@@ -60,7 +60,10 @@ export default function SecondIterationStrategyPage({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showWeightWarning, setShowWeightWarning] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [reviewedProgress, setReviewedProgress] = useState(0);
+  const [isStrategyReviewed, setIsStrategyReviewed] = useState(false);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadedStrategyIdRef = useRef<string | null>(null);
@@ -73,6 +76,7 @@ export default function SecondIterationStrategyPage({
 
     async function loadData() {
       setIsInitialLoad(true);
+      setIsDataLoading(true);
 
       try {
         // Cargar sesión
@@ -179,10 +183,25 @@ export default function SecondIterationStrategyPage({
         setOriginalResponses(JSON.parse(JSON.stringify(responsesMap))); // Copia profunda
         loadedStrategyIdRef.current = strategyId;
         setIsInitialLoad(false);
+        setIsDataLoading(false);
+
+        // Cargar progreso real de estrategias revisadas
+        try {
+          const progressResponse = await fetch(
+            `/api/second-iteration/progress?sessionId=${session.id}`
+          );
+          if (progressResponse.ok) {
+            const progressData = await progressResponse.json();
+            setReviewedProgress(progressData.progress);
+          }
+        } catch (error) {
+          console.error("Error loading progress:", error);
+        }
       } catch (err) {
         console.error("Error loading data:", err);
         setError("Error al cargar los datos");
         setIsInitialLoad(false);
+        setIsDataLoading(false);
       }
     }
 
@@ -218,6 +237,19 @@ export default function SecondIterationStrategyPage({
 
       setLastSaved(new Date());
       setError("");
+
+      // Actualizar progreso después de guardar
+      try {
+        const progressResponse = await fetch(
+          `/api/second-iteration/progress?sessionId=${sessionId}`
+        );
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json();
+          setReviewedProgress(progressData.progress);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
     } catch (err) {
       console.error("Error saving:", err);
       setError("Error al guardar los cambios");
@@ -321,8 +353,35 @@ export default function SecondIterationStrategyPage({
     return isUnmodified && hasWeight;
   });
 
-  // El botón siguiente se habilita solo cuando la suma es 100%
-  const isValid = Math.abs(totalWeight - 100) < 0.1;
+  // Indicadores sin umbral (solo los que tienen peso > 0)
+  const indicatorsWithoutThreshold = Object.values(userResponses).filter((r) => {
+    const hasWeight = r.weight > 0;
+    const hasThreshold = r.threshold && r.threshold.trim() !== '';
+    return hasWeight && !hasThreshold;
+  });
+
+  // Indicadores con umbrales modificados (comparar con original)
+  const indicatorsWithModifiedThresholds = Object.values(userResponses).filter((r) => {
+    const original = originalResponses[r.indicatorId];
+    if (!original) return false;
+    
+    const originalThreshold = original.threshold || '';
+    const currentThreshold = r.threshold || '';
+    return originalThreshold !== currentThreshold;
+  });
+
+  // Indicadores nuevos sin umbral (obligatorio para indicadores que no consideró originalmente)
+  const newIndicatorsWithoutThreshold = Object.values(userResponses).filter((r) => {
+    const isNew = !r.isOriginal;
+    const hasWeight = r.weight > 0;
+    const hasThreshold = r.threshold && r.threshold.trim() !== '';
+    return isNew && hasWeight && !hasThreshold;
+  });
+
+  // Validaciones separadas
+  const isWeightValid = Math.abs(totalWeight - 100) < 0.1;
+  const hasRequiredThresholds = newIndicatorsWithoutThreshold.length === 0;
+  const isValid = isWeightValid && hasRequiredThresholds;
 
   // Navegación
   const currentIndex = strategies.findIndex((s) => s.id === strategyId);
@@ -330,23 +389,39 @@ export default function SecondIterationStrategyPage({
   const hasPrev = currentIndex > 0;
 
   const handleNext = async () => {
-    if (!isValid) {
+    if (!isWeightValid) {
       setError("Los pesos deben sumar exactamente 100% antes de continuar");
       return;
     }
 
-    // Verificar si hay indicadores sin modificar o en cero
-    const hasUnmodified = unmodifiedIndicators.length > 0;
-    const hasZeros = indicatorsWithZeroWeight.length > 0;
-
-    // Si hay indicadores sin modificar o en cero, mostrar modal de confirmación
-    if (hasUnmodified || hasZeros) {
-      setShowConfirmModal(true);
+    if (!hasRequiredThresholds) {
+      const indicatorNames = newIndicatorsWithoutThreshold.map((r) => {
+        const indicator = allIndicators.find((ind) => ind.id === r.indicatorId);
+        return indicator?.name || r.indicatorId;
+      }).join(", ");
+      setError(`Debe definir umbrales para los siguientes indicadores: ${indicatorNames}`);
       return;
     }
 
-    // Si no hay advertencias, continuar directamente
-    await proceedToNext();
+    // Verificar si hay modificaciones
+    const hasModifications = Object.values(userResponses).some((r) => {
+      const original = originalResponses[r.indicatorId];
+      if (!original) return false;
+      
+      const weightChanged = Math.abs(original.weight - r.weight) > 0.01;
+      const thresholdChanged = (original.threshold || "") !== (r.threshold || "");
+      
+      return weightChanged || thresholdChanged;
+    });
+
+    // Si no hay modificaciones y la estrategia ya está revisada, continuar directamente
+    if (!hasModifications && isStrategyReviewed) {
+      await proceedToNext();
+      return;
+    }
+
+    // En todos los demás casos, mostrar modal de confirmación
+    setShowConfirmModal(true);
   };
 
   const proceedToNext = async () => {
@@ -361,6 +436,9 @@ export default function SecondIterationStrategyPage({
         await saveChanges();
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
+
+      // Marcar la estrategia como revisada cuando se confirma
+      setIsStrategyReviewed(true);
 
       loadedStrategyIdRef.current = null;
 
@@ -409,6 +487,72 @@ export default function SecondIterationStrategyPage({
     );
   }
 
+  // Skeleton para cuando los datos están cargando
+  if (isDataLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
+        <div className="mx-auto max-w-5xl space-y-6">
+          {/* Header skeleton */}
+          <header className="space-y-4">
+            <div className="h-8 bg-slate-200 rounded animate-pulse w-1/3"></div>
+            <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2"></div>
+            <div className="h-2 bg-slate-200 rounded animate-pulse w-full"></div>
+          </header>
+
+          {/* Info banner skeleton */}
+          <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+            <div className="h-6 bg-slate-200 rounded animate-pulse w-1/4 mb-2"></div>
+            <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4"></div>
+          </div>
+
+          {/* Cards skeleton */}
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="h-5 bg-slate-200 rounded animate-pulse w-1/3 mb-2"></div>
+                      <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2"></div>
+                    </div>
+                    <div className="h-6 w-16 bg-slate-200 rounded animate-pulse"></div>
+                  </div>
+                  
+                  <div className="rounded-md bg-slate-50 p-3 space-y-2">
+                    <div className="h-3 bg-slate-200 rounded animate-pulse w-1/4"></div>
+                    <div className="h-3 bg-slate-200 rounded animate-pulse w-1/3"></div>
+                    <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2"></div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="h-3 bg-slate-200 rounded animate-pulse w-1/2"></div>
+                      <div className="h-6 w-16 bg-slate-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="h-2 bg-slate-200 rounded animate-pulse w-full"></div>
+                  </div>
+
+                  <div className="pt-2">
+                    <div className="h-3 bg-slate-200 rounded animate-pulse w-1/4 mb-1"></div>
+                    <div className="h-8 bg-slate-200 rounded animate-pulse w-full"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Loading spinner */}
+          <div className="flex justify-center py-8">
+            <div className="flex items-center gap-2 text-slate-600">
+              <div className="h-4 w-4 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div>
+              <span>Cargando datos de la estrategia...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -424,8 +568,8 @@ export default function SecondIterationStrategyPage({
           />
 
           <ProgressBar
-            value={currentIndex / strategies.length}
-            label={`Estrategia ${currentIndex + 1} de ${strategies.length}`}
+            value={reviewedProgress}
+            label={`Progreso: ${Math.round(reviewedProgress * 100)}%`}
           />
         </header>
 
@@ -453,9 +597,10 @@ export default function SecondIterationStrategyPage({
               </h3>
               <p className="mt-1 text-sm text-blue-700">
                 A continuación se muestran todos los indicadores seleccionados
-                por al menos un experto. Puede ver las ponderaciones de cada
-                persona y el promedio del grupo. Ajuste sus respuestas según
-                considere o mantenga su postura original.
+                por al menos un experto, en la iteración anterior. Puede ver en una lista las ponderaciones de cada
+                experto para este indicador y el promedio del grupo. Ajuste sus pesos y umbrales según
+                considere. Recuerde que la idea es alcanzar un consenso final.
+                (Los pesos deben sumar 100% y se asignan en múltiplos de 5).
               </p>
             </div>
           </div>
@@ -487,45 +632,140 @@ export default function SecondIterationStrategyPage({
         {/* Indicators list */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-slate-900">
-            Indicadores propuestos por el grupo
+            Indicadores propuestos por usted y el grupo en la primera iteración
           </h2>
 
-          {consolidatedIndicators.map((consInd) => {
-            const indicator = allIndicators.find(
-              (ind) => ind.id === consInd.indicatorId
-            );
-            if (!indicator) return null;
+          {/* Ordenar indicadores: primero los originales del usuario, luego los no considerados */}
+          {(() => {
+            const sortedIndicators = consolidatedIndicators.sort((a, b) => {
+              const userResponseA = userResponses[a.indicatorId];
+              const userResponseB = userResponses[b.indicatorId];
+              
+              // Si ambos son originales o ambos no son originales, mantener orden original
+              if (userResponseA?.isOriginal === userResponseB?.isOriginal) {
+                return 0;
+              }
+              
+              // Los originales van primero
+              if (userResponseA?.isOriginal && !userResponseB?.isOriginal) {
+                return -1;
+              }
+              
+              if (!userResponseA?.isOriginal && userResponseB?.isOriginal) {
+                return 1;
+              }
+              
+              return 0;
+            });
 
-            const userResponse = userResponses[consInd.indicatorId] || {
-              indicatorId: consInd.indicatorId,
-              weight: 0,
-              threshold: null,
-              excluded: false,
-              isOriginal: false,
-            };
+            const originalIndicators = sortedIndicators.filter(consInd => 
+              userResponses[consInd.indicatorId]?.isOriginal
+            );
+            const newIndicators = sortedIndicators.filter(consInd => 
+              !userResponses[consInd.indicatorId]?.isOriginal
+            );
 
             return (
-              <ConsolidatedIndicatorCard
-                key={indicator.id}
-                indicator={indicator}
-                consolidatedData={{
-                  weights: consInd.weights,
-                  average: consInd.average,
-                  count: consInd.count,
-                  thresholds: consInd.thresholds,
-                }}
-                userWeight={userResponse.weight}
-                userThreshold={userResponse.threshold}
-                excluded={userResponse.excluded}
-                isOriginal={userResponse.isOriginal}
-                onWeightChange={handleWeightChange}
-                onThresholdChange={handleThresholdChange}
-                onExcludedChange={handleExcludedChange}
-                showWeightWarning={showWeightWarning}
-                allUserResponses={userResponses}
-              />
+              <>
+                {/* Indicadores originales del usuario */}
+                {originalIndicators.length > 0 && (
+                  <>
+                    <div className="mb-6">
+                      <p className="text-sm text-slate-600">
+                        Revise y ajuste sus ponderaciones y umbrales basándose en el promedio del grupo
+                      </p>
+                    </div>
+                    {originalIndicators.map((consInd) => {
+                      const indicator = allIndicators.find(
+                        (ind) => ind.id === consInd.indicatorId
+                      );
+                      if (!indicator) return null;
+
+                      const userResponse = userResponses[consInd.indicatorId] || {
+                        indicatorId: consInd.indicatorId,
+                        weight: 0,
+                        threshold: null,
+                        excluded: false,
+                        isOriginal: false,
+                      };
+
+                      return (
+                        <ConsolidatedIndicatorCard
+                          key={indicator.id}
+                          indicator={indicator}
+                          consolidatedData={{
+                            weights: consInd.weights,
+                            average: consInd.average,
+                            count: consInd.count,
+                            thresholds: consInd.thresholds,
+                          }}
+                          userWeight={userResponse.weight}
+                          userThreshold={userResponse.threshold}
+                          excluded={userResponse.excluded}
+                          isOriginal={userResponse.isOriginal}
+                          onWeightChange={handleWeightChange}
+                          onThresholdChange={handleThresholdChange}
+                          onExcludedChange={handleExcludedChange}
+                          showWeightWarning={showWeightWarning}
+                          allUserResponses={userResponses}
+                        />
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* Indicadores nuevos propuestos por otros expertos */}
+                {newIndicators.length > 0 && (
+                  <>
+                    <div className="mt-8 mb-6">
+                      <h3 className="text-lg font-medium text-slate-800 mb-2">
+                        Indicadores propuestos por otros expertos
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        Considere estos indicadores adicionales que otros expertos seleccionaron
+                      </p>
+                    </div>
+                    {newIndicators.map((consInd) => {
+                      const indicator = allIndicators.find(
+                        (ind) => ind.id === consInd.indicatorId
+                      );
+                      if (!indicator) return null;
+
+                      const userResponse = userResponses[consInd.indicatorId] || {
+                        indicatorId: consInd.indicatorId,
+                        weight: 0,
+                        threshold: null,
+                        excluded: false,
+                        isOriginal: false,
+                      };
+
+                      return (
+                        <ConsolidatedIndicatorCard
+                          key={indicator.id}
+                          indicator={indicator}
+                          consolidatedData={{
+                            weights: consInd.weights,
+                            average: consInd.average,
+                            count: consInd.count,
+                            thresholds: consInd.thresholds,
+                          }}
+                          userWeight={userResponse.weight}
+                          userThreshold={userResponse.threshold}
+                          excluded={userResponse.excluded}
+                          isOriginal={userResponse.isOriginal}
+                          onWeightChange={handleWeightChange}
+                          onThresholdChange={handleThresholdChange}
+                          onExcludedChange={handleExcludedChange}
+                          showWeightWarning={showWeightWarning}
+                          allUserResponses={userResponses}
+                        />
+                      );
+                    })}
+                  </>
+                )}
+              </>
             );
-          })}
+          })()}
 
           {consolidatedIndicators.length === 0 && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
@@ -552,12 +792,17 @@ export default function SecondIterationStrategyPage({
             )}
             {!error && isValid && (
               <div className="text-sm text-green-600">
-                ✓ Suma de pesos correcta (100%)
+                ✓ Suma de pesos correcta (100%) y umbrales completos
               </div>
             )}
-            {!error && !isValid && (
+            {!error && !isWeightValid && (
               <div className="text-sm text-amber-600">
                 La suma debe ser 100% (actual: {totalWeight.toFixed(1)}%)
+              </div>
+            )}
+            {!error && isWeightValid && !hasRequiredThresholds && (
+              <div className="text-sm text-red-600">
+                Debe definir umbrales para indicadores nuevos
               </div>
             )}
           </div>
@@ -591,13 +836,16 @@ export default function SecondIterationStrategyPage({
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-slate-900 text-center mb-4">
-                ¿Está seguro de continuar?
+                {isStrategyReviewed ? "¿Guardar cambios en estrategia revisada?" : "¿Está seguro de continuar?"}
               </h3>
               <p className="text-sm text-slate-600 text-start mb-6">
-                Hemos detectado algunas observaciones antes de continuar:
+                {isStrategyReviewed 
+                  ? "Esta estrategia ya había sido revisada anteriormente. ¿Desea guardar los cambios realizados?"
+                  : "Hemos detectado algunas observaciones antes de continuar:"
+                }
               </p>
 
-              {unmodifiedIndicators.length > 0 && (
+              {!isStrategyReviewed && unmodifiedIndicators.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-slate-900 mb-2">
                     No ha modificado los pesos de estos indicadores:
@@ -618,7 +866,7 @@ export default function SecondIterationStrategyPage({
                 </div>
               )}
 
-              {indicatorsWithZeroWeight.length > 0 && (
+              {!isStrategyReviewed && indicatorsWithZeroWeight.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-slate-900 mb-2">
                     Sigue sin considerar estos indicadores:
@@ -641,18 +889,98 @@ export default function SecondIterationStrategyPage({
                 </div>
               )}
 
+              {!isStrategyReviewed && indicatorsWithoutThreshold.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-slate-900 mb-2">
+                    No ha definido umbrales para estos indicadores:
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-slate-700 bg-slate-50 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    {indicatorsWithoutThreshold.map((r) => {
+                      const indicator = allIndicators.find(
+                        (ind) => ind.id === r.indicatorId
+                      );
+                      return (
+                        <li key={r.indicatorId}>
+                          {indicator?.name || r.indicatorId} ({r.weight}%)
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {!isStrategyReviewed && indicatorsWithModifiedThresholds.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-slate-900 mb-2">
+                    Ha modificado los umbrales de estos indicadores:
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-2">
+                    Ha cambiado los umbrales que había definido originalmente para estos indicadores.
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-slate-700 bg-slate-50 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    {indicatorsWithModifiedThresholds.map((r) => {
+                      const indicator = allIndicators.find(
+                        (ind) => ind.id === r.indicatorId
+                      );
+                      const original = originalResponses[r.indicatorId];
+                      return (
+                        <li key={r.indicatorId}>
+                          {indicator?.name || r.indicatorId} ({r.weight}%)
+                          <div className="text-xs text-slate-500 ml-4">
+                            Original: "{original?.threshold || 'Sin umbral'}" → Actual: "{r.threshold || 'Sin umbral'}"
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {!isStrategyReviewed && newIndicatorsWithoutThreshold.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-red-900 mb-2">
+                    ⚠️ Debe definir umbrales para estos indicadores nuevos:
+                  </h4>
+                  <p className="text-sm text-red-600 mb-2">
+                    <strong>Obligatorio:</strong> Para los indicadores que no consideró en la primera iteración pero ahora está evaluando, debe definir un umbral.
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-slate-700 bg-red-50 rounded-lg p-4 max-h-48 overflow-y-auto border border-red-200">
+                    {newIndicatorsWithoutThreshold.map((r) => {
+                      const indicator = allIndicators.find(
+                        (ind) => ind.id === r.indicatorId
+                      );
+                      return (
+                        <li key={r.indicatorId} className="text-red-700">
+                          <strong>{indicator?.name || r.indicatorId}</strong> ({r.weight}%)
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirmModal(false)}
                   className="flex-1 rounded-full border-2 border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50 hover:cursor-pointer"
                 >
-                  Seguir editando
+                  {isStrategyReviewed ? "Cancelar" : "Seguir editando"}
                 </button>
                 <button
                   onClick={proceedToNext}
-                  className="flex-1 rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 hover:cursor-pointer"
+                  disabled={newIndicatorsWithoutThreshold.length > 0}
+                  className={`flex-1 rounded-full px-6 py-3 font-semibold ${
+                    newIndicatorsWithoutThreshold.length > 0
+                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700 hover:cursor-pointer"
+                  }`}
                 >
-                  Continuar
+                  {newIndicatorsWithoutThreshold.length > 0 
+                    ? "Complete los umbrales obligatorios" 
+                    : isStrategyReviewed 
+                      ? "Guardar cambios" 
+                      : "Continuar"
+                  }
                 </button>
               </div>
             </div>

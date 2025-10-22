@@ -28,6 +28,8 @@ export const apiRoutes = {
   },
   secondIterationUserResponses: (sessionId: string, strategyId: string) =>
     `/api/second-iteration/session/${sessionId}/strategy/${strategyId}`,
+  secondIterationStrategyStatus: (strategyId: string, token: string) =>
+    `/api/second-iteration/strategy/${strategyId}/status?token=${encodeURIComponent(token)}`,
   secondIterationExport: (surveyId: string) =>
     `/api/second-iteration/export?surveyId=${encodeURIComponent(surveyId)}`,
 };

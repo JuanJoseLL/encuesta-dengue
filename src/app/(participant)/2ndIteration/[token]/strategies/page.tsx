@@ -16,6 +16,8 @@ interface StrategyStatus {
   completed: boolean;
   status: "complete" | "incomplete" | "empty";
   indicatorCount: number;
+  hasModifications?: boolean;
+  hasThresholdModifications?: boolean;
 }
 
 export default function SecondIterationStrategiesPage({
@@ -44,22 +46,22 @@ export default function SecondIterationStrategiesPage({
         setSessionId(session.id);
         setRespondentEmail(session.respondent?.email || "");
 
-        // Get session summary with strategies
-        const summaryResponse = await fetch(
-          apiRoutes.sessionSummary(session.id)
+        // Get second iteration progress
+        const progressResponse = await fetch(
+          `/api/second-iteration/progress?sessionId=${session.id}`
         );
-        if (!summaryResponse.ok) {
-          throw new Error("Failed to load summary");
+        if (!progressResponse.ok) {
+          throw new Error("Failed to load second iteration progress");
         }
-        const summary = await summaryResponse.json();
+        const progressData = await progressResponse.json();
 
         // Map strategies with their status
-        const strategiesWithStatus = (summary.items || []).map((item: any) => {
-          const completed = item.status === "complete";
+        const strategiesWithStatus = progressData.strategies.map((item: any) => {
+          const completed = item.status === "reviewed";
           const status: "complete" | "incomplete" | "empty" =
-            item.status === "complete"
+            item.status === "reviewed"
               ? "complete"
-              : item.status === "not-applicable"
+              : item.status === "not-started"
               ? "empty"
               : "incomplete";
 
@@ -73,16 +75,13 @@ export default function SecondIterationStrategiesPage({
             completed,
             status,
             indicatorCount: item.indicatorCount || 0,
+            hasModifications: item.hasModifications,
+            hasThresholdModifications: item.hasThresholdModifications,
           };
         });
 
         setStrategies(strategiesWithStatus);
-
-        // Calculate global progress
-        const completedCount = strategiesWithStatus.filter(
-          (s: StrategyStatus) => s.completed
-        ).length;
-        setProgress(completedCount / strategiesWithStatus.length);
+        setProgress(progressData.progress);
       } catch (error) {
         console.error("Error loading progress:", error);
       } finally {
@@ -159,12 +158,11 @@ export default function SecondIterationStrategiesPage({
                 ¿Cómo funciona esta iteración?
               </h3>
               <p className="mt-1 text-sm text-blue-700">
-                En esta segunda iteración, verá todos los indicadores que
+                En esta segunda iteración, podrá ver todos los indicadores que
                 fueron seleccionados por al menos un experto para cada
-                estrategia. Podrá ver los pesos asignados por cada persona y el
-                promedio. Puede ajustar sus respuestas o mantener su postura
-                original. Los cambios se guardan automáticamente en una copia
-                separada de sus respuestas iniciales.
+                estrategia, en la iteración anterior. Además, podrá ver y modificar el peso que usted asignó, así como el
+                promedio del grupo. Es decir, la idea es avanzar hacia un consenso final. Los cambios se guardan automáticamente en una copia
+                separada de sus respuestas iniciales, por trazabilidad.
               </p>
             </div>
           </div>
@@ -215,9 +213,25 @@ export default function SecondIterationStrategiesPage({
                 </div>
 
                 <div className="flex flex-col items-end gap-2">
-                  <span className="text-xs text-blue-600 group-hover:underline">
-                    Revisar →
-                  </span>
+                  {strategy.completed ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Revisada
+                      </div>
+                      {(strategy.hasModifications || strategy.hasThresholdModifications) && (
+                        <div className="text-xs text-amber-600">
+                          Modificada
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-blue-600 group-hover:underline">
+                      Revisar →
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>

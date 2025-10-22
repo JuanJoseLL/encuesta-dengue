@@ -88,17 +88,6 @@ export function StrategyHeader({
           </div>
         )}
 
-        {/* Instructions */}
-        <div className="pt-4 border-t border-slate-200">
-          <div className="flex items-start gap-2.5">
-            <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Elija los indicadores que considera más útiles para activar esta estrategia. Luego, asigne un peso porcentual a cada uno, según su nivel de importancia. (Los pesos deben sumar 100% y se asignan en múltiplos de 5).
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

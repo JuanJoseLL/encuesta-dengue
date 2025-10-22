@@ -116,13 +116,20 @@ export function ConsolidatedIndicatorCard({
         </div>
 
         <div className="text-xs text-slate-700">
-          <strong>Pesos individuales de otros expertos:</strong>{" "}
+          <strong>Pesos individuales de los otros expertos:</strong>{" "}
           {consolidatedData.weights.map(weight => `${weight}%`).join(", ")}
         </div>
 
         {consolidatedData.thresholds.length > 0 && (
           <div className="text-xs text-slate-600">
-            <strong>Umbrales:</strong> {consolidatedData.thresholds.join(", ")}
+            <strong>Umbrales propuestos por los otros expertos para este indicador:</strong>
+            <ul className="mt-1 list-disc list-inside space-y-0.5">
+              {consolidatedData.thresholds.map((threshold, index) => (
+                <li key={index} className="text-slate-700">
+                  {threshold}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -193,7 +200,7 @@ export function ConsolidatedIndicatorCard({
       <div className="pt-2 text-xs text-slate-600">
         <div className="flex flex-col gap-1">
           <label className="font-medium text-slate-500">
-            Umbral (opcional)
+           Teniendo en cuenta los umbrales propuestos por los otros expertos, reconsidere su umbral:
           </label>
           <input
             type="text"

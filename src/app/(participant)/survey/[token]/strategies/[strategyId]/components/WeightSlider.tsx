@@ -147,7 +147,7 @@ export function WeightSlider({
       </div>
       <p className="text-[11px] text-slate-500">
         Define un valor de referencia para este indicador en las unidades que
-        manejes habitualmente. Escriba "No aplica" si no deseas establecer un umbral.
+        manejes habitualmente.
       </p>
     </div>
   );
