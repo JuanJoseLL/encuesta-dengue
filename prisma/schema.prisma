@@ -112,10 +112,11 @@ model ResponseSession {
   currentStrategyId String?
   metadata          Json?        // JSON - native JSON type for PostgreSQL
 
-  survey            Survey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  respondent        Respondent   @relation(fields: [respondentId], references: [id], onDelete: Cascade)
-  responses         Response[]
-  logs              SessionLog[]
+  survey                    Survey                     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondent                Respondent                 @relation(fields: [respondentId], references: [id], onDelete: Cascade)
+  responses                 Response[]
+  logs                      SessionLog[]
+  secondIterationResponses  SecondIterationResponse[]
 
   @@index([token])
   @@index([status])
@@ -152,4 +153,26 @@ model SessionLog {
   session    ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, timestamp])
+}
+
+// ==========================================
+// Segunda Iteración
+// ==========================================
+
+model SecondIterationResponse {
+  id          String          @id @default(cuid())
+  sessionId   String
+  strategyId  String
+  indicatorId String
+  weight      Float           @default(0)
+  threshold   String?
+  excluded    Boolean         @default(false)  // true si el usuario marcó que no considera este indicador
+  isOriginal  Boolean         @default(false)  // true si el indicador estaba en su respuesta original
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  session     ResponseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, strategyId, indicatorId])
+  @@index([sessionId, strategyId])
 }

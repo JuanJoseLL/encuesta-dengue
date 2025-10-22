@@ -230,6 +230,7 @@ export function WeightPanel({
               onWeightChange={onWeightChange}
               onThresholdChange={onThresholdChange}
               showWeightWarning={showWeightWarning}
+              allWeights={weights}
             />
           );
         })}

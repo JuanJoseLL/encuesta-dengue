@@ -28,10 +28,10 @@ export function StrategyHeader({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href={`/survey/${token}/strategies`}
+            href={`/2ndIteration/${token}/strategies`}
             className="text-sm text-blue-600 hover:underline"
           >
-            ← Volver a lista
+            ← Volver a la lista de estrategias
           </Link>
           <span className="text-slate-300">|</span>
           <span className="text-sm text-slate-600">

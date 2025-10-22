@@ -76,17 +76,15 @@ export function useWeightManagement() {
     (indicatorId: string, value: string) => {
       userMadeChangesRef.current = true;
 
-      const trimmedValue = value.trim();
-
       setWeights((prev) => {
         const current = prev[indicatorId] ?? createEmptyAllocation();
 
         const updatedAllocation: IndicatorAllocation = {
           ...current,
-          threshold: trimmedValue === "" ? null : trimmedValue,
+          threshold: value === "" ? null : value,
         };
 
-        // No validation - accept any text value
+        // No validation - accept any text value including spaces
 
         return {
           ...prev,

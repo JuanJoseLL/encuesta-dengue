@@ -90,6 +90,7 @@ CREATE TABLE "Response" (
     "strategyId" TEXT NOT NULL,
     "indicatorId" TEXT NOT NULL,
     "weight" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "threshold" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -106,6 +107,22 @@ CREATE TABLE "SessionLog" (
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "SessionLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SecondIterationResponse" (
+    "id" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "strategyId" TEXT NOT NULL,
+    "indicatorId" TEXT NOT NULL,
+    "weight" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "threshold" TEXT,
+    "excluded" BOOLEAN NOT NULL DEFAULT false,
+    "isOriginal" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SecondIterationResponse_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -171,6 +188,12 @@ CREATE UNIQUE INDEX "Response_sessionId_strategyId_indicatorId_key" ON "Response
 -- CreateIndex
 CREATE INDEX "SessionLog_sessionId_timestamp_idx" ON "SessionLog"("sessionId", "timestamp");
 
+-- CreateIndex
+CREATE INDEX "SecondIterationResponse_sessionId_strategyId_idx" ON "SecondIterationResponse"("sessionId", "strategyId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SecondIterationResponse_sessionId_strategyId_indicatorId_key" ON "SecondIterationResponse"("sessionId", "strategyId", "indicatorId");
+
 -- AddForeignKey
 ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -194,3 +217,6 @@ ALTER TABLE "Response" ADD CONSTRAINT "Response_indicatorId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "SessionLog" ADD CONSTRAINT "SessionLog_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "ResponseSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SecondIterationResponse" ADD CONSTRAINT "SecondIterationResponse_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "ResponseSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;

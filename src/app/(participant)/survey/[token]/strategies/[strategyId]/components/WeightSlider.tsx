@@ -7,6 +7,7 @@ interface WeightSliderProps {
   onWeightChange: (indicatorId: string, value: number) => void;
   onThresholdChange: (indicatorId: string, value: string) => void;
   showWeightWarning: boolean;
+  allWeights: Record<string, IndicatorAllocation>;
 }
 
 export function WeightSlider({
@@ -15,12 +16,38 @@ export function WeightSlider({
   onWeightChange,
   onThresholdChange,
   showWeightWarning,
+  allWeights,
 }: WeightSliderProps) {
   const hasZeroWeight = (allocation.weight ?? 0) === 0;
   const thresholdValue = allocation.threshold ?? "";
   const thresholdInvalid = false; // No validation - accept any text
 
   const shouldHighlightZeroWeight = hasZeroWeight && showWeightWarning;
+
+  // Calcular el máximo posible basado en otros indicadores
+  const othersTotal = Object.entries(allWeights).reduce(
+    (sum, [id, weightAllocation]) => {
+      if (id === indicator.id) {
+        return sum;
+      }
+      return sum + (weightAllocation?.weight ?? 0);
+    },
+    0
+  );
+  const maxAllowed = Math.max(0, 100 - othersTotal);
+
+  // Función para manejar el click inteligente en el slider
+  const handleSliderClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement;
+    const rect = target.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = (clickX / rect.width) * 100;
+    const clickedValue = Math.round(percentage / 5) * 5; // Redondear a múltiplos de 5
+    
+    // Si el valor clickeado es mayor al máximo permitido, usar el máximo
+    const finalValue = Math.min(clickedValue, maxAllowed);
+    onWeightChange(indicator.id, finalValue);
+  };
 
   return (
     <div
@@ -88,18 +115,7 @@ export function WeightSlider({
           onChange={(e) =>
             onWeightChange(indicator.id, Number.parseFloat(e.target.value))
           }
-          onInput={(e) =>
-            onWeightChange(
-              indicator.id,
-              Number.parseFloat((e.target as HTMLInputElement).value)
-            )
-          }
-          onClick={(e) =>
-            onWeightChange(
-              indicator.id,
-              Number.parseFloat((e.target as HTMLInputElement).value)
-            )
-          }
+          onClick={handleSliderClick}
           className="w-full cursor-pointer"
         />
         {/* Marcas de escala */}

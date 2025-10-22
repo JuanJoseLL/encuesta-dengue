@@ -20,4 +20,14 @@ export const apiRoutes = {
 
   // Exports
   exportCsv: (surveyId: string) => `/api/exports/csv?surveyId=${encodeURIComponent(surveyId)}`,
+
+  // Second Iteration
+  secondIterationConsolidated: (strategyId: string, sessionId?: string) => {
+    const baseUrl = `/api/second-iteration/consolidated/${strategyId}`;
+    return sessionId ? `${baseUrl}?sessionId=${encodeURIComponent(sessionId)}` : baseUrl;
+  },
+  secondIterationUserResponses: (sessionId: string, strategyId: string) =>
+    `/api/second-iteration/session/${sessionId}/strategy/${strategyId}`,
+  secondIterationExport: (surveyId: string) =>
+    `/api/second-iteration/export?surveyId=${encodeURIComponent(surveyId)}`,
 };
