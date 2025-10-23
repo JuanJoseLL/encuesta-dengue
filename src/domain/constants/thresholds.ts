@@ -19,7 +19,7 @@ export const INDICATOR_SCALES: Record<string, string> = {
   // ===== VIGILANCIA EPIDEMIOLÓGICA (IDs 12-30) =====
   "Número de casos por semana epidemiológica": "Casos/semana/barrio",
   "Tasa de incidencia semanal": "Casos/100,000 hab",
-  "Zona del canal endémico (situación)": "% del umbral endémico",
+  "Zona del canal endémico (situación)": "Zona (seguridad/éxito/alerta/epidemia)",
   "Razón de crecimiento epidémico frente al año anterior": "Razón de cambio",
   "Variación porcentual": "% de cambio",
   "Variación promedio vs. años anteriores": "% de variación",
@@ -33,8 +33,8 @@ export const INDICATOR_SCALES: Record<string, string> = {
   "Muertes probables": "Número de muertes",
   "Tiempo entre síntoma y consulta": "Días promedio",
   "Tiempo entre consulta y notificación": "Días promedio",
-  "Inicio y mantenimiento de brote histórico": "Barrios/zona",
-  "Serotipos circulantes": "% por serotipo",
+  "Inicio y mantenimiento de brote histórico": "Semanas en ascenso",
+  "Serotipos circulantes": "Número de serotipos activos",
   "Tiempo de notificación y confirmación de casos": "Horas o días",
   
   // ===== VULNERABILIDAD SOCIAL (IDs 31-36, 45) =====
@@ -69,9 +69,9 @@ export const INDICATOR_SCALES: Record<string, string> = {
   "Disponibilidad de equipos": "% operativos",
   "Personal en terreno": "Personas/habitantes",
   "Disponibilidad de insumos": "% de stock",
-  "Tiempo de respuesta de control vectorial desde la notificación": "Días",
+  "Tiempo de respuesta de control vectorial desde la notificación": "Horas",
   "Cobertura de eliminación de criaderos o control químico en zonas de brote": "% de cobertura",
-  "Tiempo de alistamiento de brigadas": "Días",
+  "Tiempo de alistamiento de brigadas": "Horas",
   "Tiempo promedio de ejecución": "Días/barrio",
   "Cobertura territorial por brigada": "Viviendas/día",
   "Costos unitarios por intervención": "USD/acción",
@@ -82,10 +82,10 @@ export const INDICATOR_SCALES: Record<string, string> = {
   "Probabilidad de reducción de casos": "% de reducción",
   "Reducción de índice de Breteau tras control larvario": "% de reducción IB",
   "Retención de aprendizaje comunitario": "% de hogares",
-  "Tasa de reinfestación": "Meses hasta reinfestación",
+  "Tasa de reinfestación": "Semanas hasta reinfestación",
   
   // ===== SALUD (IDs 68-69) =====
-  "Disponibilidad de camas hospitalarias/UCI para dengue grave": "Camas/100,000 hab",
+  "Disponibilidad de camas hospitalarias/UCI para dengue grave": "% de camas libres",
   "Cobertura de hogares alcanzados con mensajes de riesgo": "% de hogares",
 };
 
