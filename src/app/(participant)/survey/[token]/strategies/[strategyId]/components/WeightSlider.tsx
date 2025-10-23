@@ -141,7 +141,7 @@ export function WeightSlider({
             )}
             {getIndicatorThreshold(indicator.name) && (
               <span className="ml-1 font-semibold text-blue-600">
-                - Sugerido: {getIndicatorThreshold(indicator.name)}
+                - Ej: {getIndicatorThreshold(indicator.name)}
               </span>
             )}
           </label>

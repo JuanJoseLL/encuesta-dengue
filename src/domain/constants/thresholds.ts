@@ -97,9 +97,9 @@ export const INDICATOR_THRESHOLDS: Record<string, string> = {
   // ===== ÍNDICES ENTOMOLÓGICOS (IDs 1-11) =====
   "Índice de Breteau (IB)": "> 20",
   "Índice de vivienda (IV)": "> 10%",
-  "Índice de depósito (ID)": "> 3%",
+  "Índice de depósito (ID)": "> 5%",
   "Tipo de depósito positivo dominante": "Según tipo",
-  "Índice pupal": "> 1",
+  "Índice pupal": "> 1 pupa/persona",
   "Número de ovitrampas positivas": "> 60%",
   "Nivel de infestación crítica": "IB > 20 o IV > 10%",
   "Índice Aédico en sumidero": "> 5%",
@@ -112,7 +112,7 @@ export const INDICATOR_THRESHOLDS: Record<string, string> = {
   "Tasa de incidencia semanal": "> 20",
   "Zona del canal endémico (situación)": "> 50%",
   "Razón de crecimiento epidémico frente al año anterior": "> 1.3",
-  "Variación porcentual": "> 0.2%",
+  "Variación porcentual": "> 10%",
   "Variación promedio vs. años anteriores": "> 15%",
   "Tipo de brote": "Tipo I (3-5 semanas)",
   "Porcentaje de hospitalización por dengue": "> 10%",
@@ -130,7 +130,7 @@ export const INDICATOR_THRESHOLDS: Record<string, string> = {
   
   // ===== VULNERABILIDAD SOCIAL (IDs 31-36, 45) =====
   "Número de organizaciones sociales": "> 2",
-  "Índice de Vulnerabilidad Socioeconómica": "> 0.06",
+  "Índice de Vulnerabilidad Socioeconómica": "> 0.6",
   "Densidad poblacional": "> 10,000",
   "Percepción de riesgo comunitario": "> 5%",
   "Cobertura de educación preventiva": "> 60%",
@@ -138,11 +138,11 @@ export const INDICATOR_THRESHOLDS: Record<string, string> = {
   "Rechazo comunitario a intervención": "> 10%",
   
   // ===== CONTROL VECTORIAL (IDs 37-41) =====
-  "Inspección y control de sumideros": "> 80%",
-  "Inspección y control en viviendas": "> 70%",
-  "Inspección y control en lugares de concentración humana": "> 70%",
-  "Cobertura en instituciones educativas": "> 80%",
-  "Inspección y control en cuerpos de agua (control biológico)": "> 80%",
+  "Inspección y control de sumideros": "< 80%",
+  "Inspección y control en viviendas": "< 70%",
+  "Inspección y control en lugares de concentración humana": "< 70%",
+  "Cobertura en instituciones educativas": "< 80%",
+  "Inspección y control en cuerpos de agua (control biológico)": "< 80%",
   
   // ===== SECTOR ECONÓMICO-AMBIENTAL (IDs 42-52) =====
   "Sector económico": "> 3 obras/km²",
