@@ -1,5 +1,6 @@
 import type { Indicator } from "@/domain/models";
 import type { IndicatorAllocation } from "../types";
+import { getIndicatorScale, getIndicatorThreshold } from "@/domain/constants";
 
 interface WeightSliderProps {
   indicator: Indicator;
@@ -133,12 +134,22 @@ export function WeightSlider({
         <div className="flex flex-col gap-1">
           <label className="font-medium text-slate-500">
             Umbral
+            {getIndicatorScale(indicator.name) && (
+              <span className="ml-1 text-slate-600">
+                ({getIndicatorScale(indicator.name)})
+              </span>
+            )}
+            {getIndicatorThreshold(indicator.name) && (
+              <span className="ml-1 font-semibold text-blue-600">
+                - Sugerido: {getIndicatorThreshold(indicator.name)}
+              </span>
+            )}
           </label>
           <input
             type="text"
             value={thresholdValue}
             onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
-            placeholder="Ej. 25"
+            placeholder={getIndicatorThreshold(indicator.name) || "Ingrese el umbral"}
             className={
               "w-full rounded border px-2 py-1 text-xs border-slate-200 focus:border-blue-500 focus:ring-blue-200"
             }
