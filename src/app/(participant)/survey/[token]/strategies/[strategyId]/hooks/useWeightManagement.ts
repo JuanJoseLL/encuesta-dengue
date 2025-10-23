@@ -81,9 +81,10 @@ export function useWeightManagement() {
 
         const updatedAllocation: IndicatorAllocation = {
           ...current,
-          // Store the value as-is, only convert empty string to null
           threshold: value === "" ? null : value,
         };
+
+        // No validation - accept any text value including spaces
 
         return {
           ...prev,

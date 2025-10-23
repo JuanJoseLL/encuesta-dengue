@@ -224,33 +224,6 @@ export default function StrategyOverviewPage({
           />
         </header>
 
-        {/* Banner informativo si ya fue enviada */}
-        {sessionStatus === "submitted" && (
-          <div className="rounded-xl border-2 border-green-200 bg-green-50 p-4 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-green-900">
-                  ✓ Encuesta enviada
-                </h3>
-                <p className="mt-1 text-sm text-green-700">
-                  Sus respuestas han sido registradas. Puede seguir editando sus ponderaciones si lo considera necesario. Los cambios se guardarán automáticamente.
-                </p>
-              </div>
-              <Link
-                href={`/survey/${token}/summary`}
-                className="flex-shrink-0 text-sm font-medium text-green-700 hover:text-green-800 underline"
-              >
-                Ver resumen
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* Actions */}
         <div className="flex gap-3">
           <Link
@@ -262,7 +235,7 @@ export default function StrategyOverviewPage({
           {canSubmit && sessionStatus !== "submitted" && (
             <button
               onClick={handleSubmit}
-              className="rounded-full bg-green-600 px-6 py-2.5 font-semibold text-white transition hover:bg-green-700"
+              className="rounded-full bg-green-600 px-6 py-2.5 font-semibold text-white transition hover:bg-green-700 hover:cursor-pointer"
             >
               Enviar encuesta final
             </button>
@@ -338,81 +311,8 @@ export default function StrategyOverviewPage({
           ))}
         </section>
 
-        {/* Help Card */}
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
-          <h3 className="font-semibold text-slate-900">💡 Sobre la encuesta</h3>
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
-            <li>
-              • Cada estrategia requiere ponderar los indicadores más relevantes
-              para su activación
-            </li>
-            <li>
-              • Los pesos indican la importancia relativa de cada indicador para
-              tomar la decisión
-            </li>
-            <li>• Puedes completar las estrategias en cualquier orden</li>
-            <li>
-              • Los cambios se guardan automáticamente cada pocos segundos
-            </li>
-            <li>
-              • Asegúrate que los pesos sumen exactamente 100% antes de avanzar
-            </li>
-          </ul>
-        </div>
-        {/* Role Selection Modal */}
-        {showRoleModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
-              <h3 className="text-xl font-semibold text-slate-900">
-                Selecciona tu rol profesional
-              </h3>
-              <p className="mt-2 text-sm text-slate-600">
-                Antes de enviar, necesitamos conocer tu perfil profesional
-              </p>
-
-              <div className="mt-6 space-y-2">
-                {PARTICIPANT_ROLES.map((role) => (
-                  <label
-                    key={role}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-4 transition ${
-                      selectedRole === role
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-slate-200 bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role}
-                      checked={selectedRole === role}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                      className="h-4 w-4 text-blue-600"
-                    />
-                    <span className="font-medium text-slate-900">
-                      {PARTICIPANT_ROLE_LABELS[role]}
-                    </span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => setShowRoleModal(false)}
-                  className="flex-1 rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleRoleSelected}
-                  disabled={!selectedRole}
-                  className="flex-1 rounded-full bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Continuar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        
+        
 
         {/* Confirmation Modal */}
         {showConfirmModal && (
@@ -445,14 +345,14 @@ export default function StrategyOverviewPage({
                 <button
                   onClick={() => setShowConfirmModal(false)}
                   disabled={submitting}
-                  className="flex-1 rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  className="flex-1 rounded-full border border-slate-200 px-6 py-3 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 hover:cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmSubmit}
                   disabled={submitting}
-                  className="flex-1 rounded-full bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 rounded-full bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
                 >
                   {submitting ? "Enviando..." : "Sí, enviar"}
                 </button>
