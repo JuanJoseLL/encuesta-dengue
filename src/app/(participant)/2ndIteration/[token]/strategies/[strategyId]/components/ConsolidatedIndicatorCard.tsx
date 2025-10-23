@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Indicator } from "@/domain/models";
+import { getIndicatorScale } from "@/domain/constants";
 
 interface ConsolidatedData {
   weights: number[];
@@ -108,46 +109,74 @@ export function ConsolidatedIndicatorCard({
       </div>
 
       {/* Estadísticas consolidadas */}
-      <div className="rounded-md bg-blue-50 p-3 space-y-2">
-        <div className="text-xs text-slate-500">
+      <div className="rounded-md bg-blue-50 p-4 space-y-3">
+        {/* Información general */}
+        <div className="text-xs text-slate-600 pb-2 border-b border-blue-200">
           {consolidatedData.count} experto(s)
-          {isOriginal ? " incluyéndolo a usted," : ""} seleccionaron este
-          indicador
+          {isOriginal ? " incluyéndolo a usted," : ""} seleccionaron este indicador
         </div>
 
-        <div className="text-xs text-slate-700">
-          <strong>Pesos individuales de los otros expertos:</strong>{" "}
-          {consolidatedData.weights.map(weight => `${weight}%`).join(", ")}
+        {/* Sección de Pesos */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-shrink-0 w-1 h-4 bg-green-500 rounded-full"></div>
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+              Ponderaciones
+            </h4>
+          </div>
+          
+          <div className="pl-4 space-y-1.5">
+            <div className="text-xs text-slate-700">
+              <span className="font-medium">Pesos individuales de otros expertos:</span>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {consolidatedData.weights.map((weight, index) => (
+                  <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium text-[11px]">
+                    {weight}%
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-baseline gap-2 pt-1">
+              <span className="text-xs font-medium text-slate-700">Promedio del grupo:</span>
+              <span className="text-lg font-bold text-green-700">
+                {normalizedPercentage.toFixed(2)}%
+              </span>
+            </div>
+          </div>
         </div>
 
+        {/* Sección de Umbrales */}
         {consolidatedData.thresholds.length > 0 && (
-          <div className="text-xs text-slate-600">
-            <strong>Umbrales propuestos por los otros expertos para este indicador:</strong>
-            <ul className="mt-1 list-disc list-inside space-y-0.5">
-              {consolidatedData.thresholds.map((threshold, index) => (
-                <li key={index} className="text-slate-700">
-                  {threshold}
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-2 pt-2 border-t border-blue-200">
+            <div className="flex items-center gap-2">
+              <div className="flex-shrink-0 w-1 h-4 bg-purple-500 rounded-full"></div>
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                Umbrales
+              </h4>
+            </div>
+            
+            <div className="pl-4">
+              <div className="text-xs text-slate-700">
+                <span className="font-medium">Umbrales propuestos por otros expertos:</span>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {consolidatedData.thresholds.map((threshold, index) => (
+                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium text-[11px]">
+                      {threshold}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
-
-        <div className="flex items-center justify-start">
-          <span className="text-sm font-semibold text-slate-700 mr-2">
-            Promedio del grupo:
-          </span>
-          <span className="text-lg font-bold text-blue-600">
-            {normalizedPercentage.toFixed(2)}%
-          </span>
-        </div>
       </div>
 
       {/* Input de peso del usuario */}
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <label className="text-xs font-medium text-slate-700">
-            Teniendo en cuenta la ponderación de otros expertos y el promedio del grupo, reconsidere su ponderación:
+            Su ponderación es {userWeight}%. Teniendo en cuenta la ponderación de otros expertos y el promedio del grupo, puede ajustarla si lo considera necesario:
           </label>
           <div className="flex items-center gap-1">
             <input
@@ -200,13 +229,18 @@ export function ConsolidatedIndicatorCard({
       <div className="pt-2 text-xs text-slate-600">
         <div className="flex flex-col gap-1">
           <label className="font-medium text-slate-500">
-           Teniendo en cuenta los umbrales propuestos por los otros expertos, reconsidere su umbral:
+            Su umbral: {userThreshold || "(no definido)"}. Teniendo en cuenta los umbrales de otros expertos, puede ajustarlo si lo considera necesario
+            {getIndicatorScale(indicator.name) && (
+              <span className="ml-1 text-slate-600">
+                (Escala: {getIndicatorScale(indicator.name)})
+              </span>
+            )}:
           </label>
           <input
             type="text"
             value={userThreshold || ""}
             onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
-            placeholder="Ej. 25"
+            placeholder={getIndicatorScale(indicator.name) || "Ingrese el umbral"}
             className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-blue-500 focus:ring-blue-200"
           />
         </div>
