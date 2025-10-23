@@ -181,7 +181,15 @@ async function calculateConsolidatedStats(surveyId: string) {
     const strategy = strategyMap.get(strategyId);
     const totalPeople = peoplePerStrategy.get(strategyId)?.size || 1;
 
-    const strategyData = [];
+    const strategyData: Array<{
+      indicatorId: string;
+      indicatorName: string;
+      responses: string;
+      promedio: number;
+      count: number;
+      thresholds: string;
+      porcentajeNormalizado?: number;
+    }> = [];
     let sumPromedios = 0;
 
     // Primera pasada: calcular promedios

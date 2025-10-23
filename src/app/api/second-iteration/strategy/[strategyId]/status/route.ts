@@ -3,10 +3,10 @@ import { prisma } from "@/lib/db/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { strategyId: string } }
+  { params }: { params: Promise<{ strategyId: string }> }
 ) {
   try {
-    const { strategyId } = params;
+    const { strategyId } = await params;
 
     // Obtener la sesión del usuario desde el token
     const token = request.nextUrl.searchParams.get("token");
