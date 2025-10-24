@@ -136,11 +136,11 @@ export default function SecondIterationStrategiesPage({
         </header>
 
         {/* Info Card */}
-        <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-6 shadow-sm">
-          <div className="flex items-start gap-3">
+        <div className="rounded-2xl border-2 border-indigo-700 bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 shadow-lg">
+          <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
               <svg
-                className="h-6 w-6 text-blue-600"
+                className="h-8 w-8 text-indigo-100"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -148,20 +148,20 @@ export default function SecondIterationStrategiesPage({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900">
+              <h3 className="text-lg font-bold text-white mb-3">
                 ¿Cómo funciona esta iteración?
               </h3>
-              <p className="mt-1 text-sm text-blue-700">
-                En esta segunda iteración, podrá ver todos los indicadores que
+              <p className="text-base leading-relaxed text-indigo-50">
+                En esta segunda iteración, podrá <strong className="font-bold text-white">ver todos los indicadores</strong> que
                 fueron seleccionados por al menos un experto para cada
-                estrategia, en la iteración anterior. Además, podrá ver y modificar el peso que usted asignó, así como el
-                promedio del grupo. Es decir, la idea es avanzar hacia un consenso final. Los cambios se guardan automáticamente en una copia
+                estrategia, en la iteración anterior. Además, podrá <strong className="font-bold text-white">ver y modificar el peso</strong> que usted asignó, así como el
+                promedio del grupo. Es decir, la idea es <strong className="font-bold text-white">avanzar hacia un consenso final</strong>. Los cambios se guardan automáticamente en una copia
                 separada de sus respuestas iniciales, por trazabilidad.
               </p>
             </div>

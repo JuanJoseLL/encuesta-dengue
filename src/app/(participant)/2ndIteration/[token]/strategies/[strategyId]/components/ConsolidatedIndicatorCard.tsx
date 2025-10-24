@@ -183,7 +183,7 @@ export function ConsolidatedIndicatorCard({
               type="number"
               min="0"
               max="100"
-              step="5"
+              step="0.01"
               value={userWeight}
               onChange={(e) =>
                 onWeightChange(

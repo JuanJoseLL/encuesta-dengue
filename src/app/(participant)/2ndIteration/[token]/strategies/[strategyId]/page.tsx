@@ -282,7 +282,8 @@ export default function SecondIterationStrategyPage({
   // Handlers
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     const clampedValue = Math.min(100, Math.max(0, value));
-    const roundedValue = Math.round(clampedValue / 5) * 5;
+    // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
+    const roundedValue = Math.round(clampedValue * 100) / 100;
 
     setUserResponses((prev) => {
       const others = Object.entries(prev).reduce((sum, [id, r]) => {

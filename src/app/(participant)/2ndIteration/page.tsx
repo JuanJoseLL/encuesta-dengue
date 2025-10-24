@@ -83,7 +83,7 @@ export default function SurveyLoginPage() {
       <div className="mx-auto max-w-2xl space-y-8">
         {/* Header */}
         <div className="space-y-4 text-center">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <Image
               src="/Logo Dengue-IA color negativo.png"
               alt="Logo Dengue-IA Cali"
@@ -92,12 +92,21 @@ export default function SurveyLoginPage() {
               className="object-contain"
             />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900">
-            Ponderación de indicadores para priorizar estrategias de respuesta al dengue en Cali
-          </h1>
-          <p className="text-lg text-slate-600">
-            Su participación nos ayudará a construir un sistema inteligente de apoyo a decisiones basado en evidencia real y contextualizada en Cali.
-          </p>
+
+          {/* Title with integrated iteration indicator */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <h1 className="text-3xl font-bold text-slate-900">
+                Iteración 2: Ponderación de Indicadores
+              </h1>
+              <span className="inline-flex h-7 w-12 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">
+                2/3
+              </span>
+            </div>
+            <p className="text-base text-slate-600">
+              En esta etapa, revisará los resultados grupales y ajustará sus decisiones sobre indicadores, pesos y umbrales para priorizar estrategias de respuesta al dengue en Cali.
+            </p>
+          </div>
         </div>
 
         {/* Email Input Card */}
