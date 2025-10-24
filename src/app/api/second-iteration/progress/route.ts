@@ -131,10 +131,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Verificar si la estrategia fue explícitamente marcada como revisada
+      const hasReviewedAt = strategyResponses.some(r => r.reviewedAt !== null);
+
       // Una estrategia se considera "revisada" si:
-      // 1. Los pesos son válidos (suman 100%) Y
-      // 2. Se han hecho modificaciones (pesos o umbrales)
-      const isReviewed = weightsValid && (hasModifications || hasThresholdModifications);
+      // 1. Fue explícitamente marcada como revisada (reviewedAt no es null) O
+      // 2. Los pesos son válidos (suman 100%) Y se han hecho modificaciones (pesos o umbrales)
+      const isReviewed = hasReviewedAt || (weightsValid && (hasModifications || hasThresholdModifications));
 
       // Determinar el status
       let status: "reviewed" | "incomplete" | "not-started";

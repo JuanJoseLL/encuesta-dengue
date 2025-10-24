@@ -168,6 +168,7 @@ model SecondIterationResponse {
   threshold   String?
   excluded    Boolean         @default(false)  // true si el usuario marcó que no considera este indicador
   isOriginal  Boolean         @default(false)  // true si el indicador estaba en su respuesta original
+  reviewedAt  DateTime?       // timestamp cuando el usuario confirmó la revisión de la estrategia
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 

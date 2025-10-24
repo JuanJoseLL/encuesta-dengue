@@ -386,10 +386,8 @@ export default function SecondIterationStrategyPage({
 
   // Navegación
   const currentIndex = strategies.findIndex((s) => s.id === strategyId);
-  const hasNext = currentIndex >= 0 && currentIndex < strategies.length - 1;
-  const hasPrev = currentIndex > 0;
 
-  const handleNext = async () => {
+  const handleCompleteReview = async () => {
     if (!isWeightValid) {
       setError("Los pesos deben sumar exactamente 100% antes de continuar");
       return;
@@ -417,7 +415,7 @@ export default function SecondIterationStrategyPage({
 
     // Si no hay modificaciones y la estrategia ya está revisada, continuar directamente
     if (!hasModifications && isStrategyReviewed) {
-      await proceedToNext();
+      await proceedToComplete();
       return;
     }
 
@@ -425,7 +423,37 @@ export default function SecondIterationStrategyPage({
     setShowConfirmModal(true);
   };
 
-  const proceedToNext = async () => {
+  // Función para marcar la estrategia como revisada
+  const markStrategyAsReviewed = useCallback(async () => {
+    if (!sessionId) return;
+
+    try {
+      const responsesArray = Object.values(userResponses);
+
+      const response = await fetch(
+        apiRoutes.secondIterationUserResponses(sessionId, strategyId),
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            responses: responsesArray,
+            markAsReviewed: true, // Flag para indicar que se debe marcar como revisada
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to mark strategy as reviewed");
+      }
+    } catch (err) {
+      console.error("Error marking strategy as reviewed:", err);
+      throw err;
+    }
+  }, [sessionId, strategyId, userResponses]);
+
+  const proceedToComplete = async () => {
     try {
       setShowConfirmModal(false);
       
@@ -439,46 +467,19 @@ export default function SecondIterationStrategyPage({
       }
 
       // Marcar la estrategia como revisada cuando se confirma
+      await markStrategyAsReviewed();
       setIsStrategyReviewed(true);
 
       loadedStrategyIdRef.current = null;
 
-      if (hasNext) {
-        router.push(
-          `/2ndIteration/${token}/strategies/${strategies[currentIndex + 1].id}`
-        );
-      } else {
-        router.push(`/2ndIteration/${token}/strategies`);
-      }
+      // Redirigir al listado de estrategias
+      router.push(`/2ndIteration/${token}/strategies`);
     } catch (error) {
-      console.error("Error during navigation:", error);
-      setError("Error al guardar antes de navegar");
+      console.error("Error during completion:", error);
+      setError("Error al guardar antes de completar");
     }
   };
 
-  const handlePrev = async () => {
-    try {
-      if (hasUnsavedChanges) {
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
-        }
-        await saveChanges();
-        await new Promise((resolve) => setTimeout(resolve, 300));
-      }
-
-      loadedStrategyIdRef.current = null;
-
-      if (hasPrev) {
-        router.push(
-          `/2ndIteration/${token}/strategies/${strategies[currentIndex - 1].id}`
-        );
-      }
-    } catch (error) {
-      console.error("Error during navigation:", error);
-      setError("Error al guardar antes de navegar");
-    }
-  };
 
   if (!strategy) {
     return (
@@ -778,15 +779,7 @@ export default function SecondIterationStrategyPage({
         </div>
 
         {/* Navigation Footer */}
-        <footer className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <button
-            onClick={handlePrev}
-            disabled={!hasPrev}
-            className="rounded-full border border-slate-200 px-6 py-2 font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            ← Anterior
-          </button>
-
+        <footer className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="text-center">
             {error && (
               <div className="text-sm text-red-600">{error}</div>
@@ -809,11 +802,11 @@ export default function SecondIterationStrategyPage({
           </div>
 
           <button
-            onClick={handleNext}
+            onClick={handleCompleteReview}
             disabled={!isValid}
-            className="rounded-full bg-blue-600 px-6 py-2 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
           >
-            {hasNext ? "Siguiente →" : "Finalizar →"}
+            Completar revisión
           </button>
         </footer>
 
@@ -968,7 +961,7 @@ export default function SecondIterationStrategyPage({
                   {isStrategyReviewed ? "Cancelar" : "Seguir editando"}
                 </button>
                 <button
-                  onClick={proceedToNext}
+                  onClick={proceedToComplete}
                   disabled={newIndicatorsWithoutThreshold.length > 0}
                   className={`flex-1 rounded-full px-6 py-3 font-semibold ${
                     newIndicatorsWithoutThreshold.length > 0
@@ -980,7 +973,7 @@ export default function SecondIterationStrategyPage({
                     ? "Complete los umbrales obligatorios" 
                     : isStrategyReviewed 
                       ? "Guardar cambios" 
-                      : "Continuar"
+                      : "Completar revisión"
                   }
                 </button>
               </div>

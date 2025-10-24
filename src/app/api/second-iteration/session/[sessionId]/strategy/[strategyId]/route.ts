@@ -80,7 +80,7 @@ export async function PATCH(
   try {
     const { sessionId, strategyId } = await params;
     const body = await request.json();
-    const { responses } = body;
+    const { responses, markAsReviewed } = body;
 
     // Validar que responses sea un array
     if (!Array.isArray(responses)) {
@@ -89,6 +89,8 @@ export async function PATCH(
         { status: 400 }
       );
     }
+
+    const reviewedAt = markAsReviewed ? new Date() : null;
 
     // Actualizar o crear cada respuesta
     for (const response of responses) {
@@ -106,6 +108,7 @@ export async function PATCH(
           weight: weight ?? 0,
           threshold: threshold ?? null,
           excluded: excluded ?? false,
+          reviewedAt: reviewedAt,
           updatedAt: new Date(),
         },
         create: {
@@ -116,6 +119,7 @@ export async function PATCH(
           threshold: threshold ?? null,
           excluded: excluded ?? false,
           isOriginal: isOriginal ?? false,
+          reviewedAt: reviewedAt,
         },
       });
     }

@@ -57,6 +57,9 @@ export async function GET(
     );
     const weightsValid = Math.abs(totalWeight - 100) < 0.01;
 
+    // Verificar si la estrategia fue explícitamente marcada como revisada
+    const hasReviewedAt = secondIterationResponses.some(r => r.reviewedAt !== null);
+
     // Verificar si hay modificaciones comparando con las respuestas originales
     let hasModifications = false;
     let hasThresholdModifications = false;
@@ -87,9 +90,9 @@ export async function GET(
     }
 
     // Una estrategia se considera "revisada" si:
-    // 1. Los pesos son válidos (suman 100%) Y
-    // 2. Se han hecho modificaciones (pesos o umbrales)
-    const isReviewed = weightsValid && (hasModifications || hasThresholdModifications);
+    // 1. Fue explícitamente marcada como revisada (reviewedAt no es null) O
+    // 2. Los pesos son válidos (suman 100%) Y se han hecho modificaciones (pesos o umbrales)
+    const isReviewed = hasReviewedAt || (weightsValid && (hasModifications || hasThresholdModifications));
 
     return NextResponse.json({ isReviewed });
   } catch (error) {
