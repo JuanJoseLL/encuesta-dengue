@@ -60,7 +60,7 @@ export function ConsolidatedIndicatorCard({
     const rect = target.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = (clickX / rect.width) * 100;
-    const clickedValue = Math.round(percentage / 5) * 5; // Redondear a múltiplos de 5
+    const clickedValue = Math.round(percentage);
     
     // Si el valor clickeado es mayor al máximo permitido, usar el máximo
     const finalValue = Math.min(clickedValue, maxAllowed);
@@ -184,13 +184,14 @@ export function ConsolidatedIndicatorCard({
               min="0"
               max="100"
               step="0.01"
-              value={userWeight}
+              value={userWeight === 0 ? "" : userWeight}
               onChange={(e) =>
                 onWeightChange(
                   indicator.id,
                   Number.parseFloat(e.target.value) || 0
                 )
               }
+              placeholder="0"
               className="w-16 rounded border border-slate-200 px-2 py-1 text-xs text-right focus:border-blue-500 focus:ring-blue-200"
             />
             <span className="text-[10px] font-semibold text-slate-500">%</span>
@@ -203,7 +204,7 @@ export function ConsolidatedIndicatorCard({
             type="range"
             min="0"
             max="100"
-            step="5"
+            step="1"
             value={userWeight}
             onChange={(e) =>
               onWeightChange(indicator.id, Number.parseFloat(e.target.value))

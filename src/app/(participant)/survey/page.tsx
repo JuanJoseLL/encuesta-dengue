@@ -313,7 +313,7 @@ export default function SurveyLoginPage() {
                     <span>Para cada estrategia, deberá:</span>
                     <ol className="mt-2 ml-6 list-decimal space-y-1 text-sm text-slate-600">
                       <li>Seleccionar los indicadores más relevantes.</li>
-                      <li>Asignar un peso porcentual a cada uno (en múltiplos de 5%).</li>
+                      <li>Asignar un peso porcentual a cada uno.</li>
                       <li>Asegurarse de que la suma de los pesos por estrategia sea del 100%.</li>
                     </ol>
                   </div>

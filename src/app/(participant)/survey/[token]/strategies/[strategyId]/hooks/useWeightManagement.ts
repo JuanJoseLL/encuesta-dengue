@@ -41,7 +41,8 @@ export function useWeightManagement() {
     userMadeChangesRef.current = true;
 
     const clampedValue = Math.min(100, Math.max(0, value));
-    const roundedValue = Math.round(clampedValue / 5) * 5;
+    // Redondear a 1 decimal para permitir valores como 33.3, 25.5, etc.
+    const roundedValue = Math.round(clampedValue * 10) / 10;
 
     setWeights((prev) => {
       const othersTotal = Object.entries(prev).reduce(
@@ -104,45 +105,21 @@ export function useWeightManagement() {
 
       setPreviousWeights(cloneAllocationState(prev));
 
-      const perItemBase = Math.floor(100 / selected.length / 5) * 5;
-      const remainder = 100 - perItemBase * selected.length;
-      const increments = Math.max(0, Math.floor(remainder / 5));
+      // Calcular distribución equitativa con 1 decimal de precisión
+      const baseWeight = Math.floor((100 / selected.length) * 10) / 10;
+      const totalAssigned = baseWeight * selected.length;
+      const remainder = Math.round((100 - totalAssigned) * 10) / 10;
 
       const newWeights: Record<string, IndicatorAllocation> = {};
       selected.forEach((id, index) => {
-        const extra = index < increments ? 5 : 0;
         const existing = prev[id] ?? createEmptyAllocation();
+        // Distribuir el resto entre los primeros indicadores con incrementos de 0.1
+        const extra = index === 0 ? remainder : 0;
         newWeights[id] = {
           ...existing,
-          weight: perItemBase + extra,
+          weight: Math.round((baseWeight + extra) * 10) / 10,
         };
       });
-
-      const assignedTotal = Object.values(newWeights).reduce(
-        (sum, allocation) => sum + (allocation.weight ?? 0),
-        0
-      );
-      let difference = 100 - assignedTotal;
-      if (difference !== 0) {
-        const step = difference > 0 ? 5 : -5;
-        const ordered = [...selected];
-        let idx = 0;
-        while (difference !== 0 && ordered.length > 0) {
-          const indicatorId = ordered[idx % ordered.length];
-          const nextValue = (newWeights[indicatorId]?.weight ?? 0) + step;
-          if (nextValue >= 0 && nextValue <= 100) {
-            newWeights[indicatorId] = {
-              ...newWeights[indicatorId],
-              weight: nextValue,
-            };
-            difference -= step;
-          } else {
-            ordered.splice(idx % ordered.length, 1);
-            continue;
-          }
-          idx += 1;
-        }
-      }
 
       return newWeights;
     });

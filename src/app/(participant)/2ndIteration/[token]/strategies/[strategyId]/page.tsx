@@ -576,11 +576,11 @@ export default function SecondIterationStrategyPage({
         </header>
 
         {/* Info banner */}
-        <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm">
+        <div className="rounded-2xl border-2 border-indigo-700 bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 shadow-lg">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <svg
-                className="h-5 w-5 text-blue-600"
+                className="h-6 w-6 text-indigo-100"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -588,21 +588,21 @@ export default function SecondIterationStrategyPage({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900">
+              <h3 className="text-base font-bold text-white mb-2">
                 Revisión Colaborativa
               </h3>
-              <p className="mt-1 text-sm text-blue-700">
+              <p className="text-sm leading-relaxed text-indigo-50">
                 A continuación se muestran todos los indicadores seleccionados
-                por al menos un experto, en la iteración anterior. Puede ver en una lista las ponderaciones de cada
-                experto para este indicador y el promedio del grupo. Ajuste sus pesos y umbrales según
-                considere. Recuerde que la idea es alcanzar un consenso final.
-                (Los pesos deben sumar 100% y se asignan en múltiplos de 5).
+                por al menos un experto, en la iteración anterior. Puede ver en una lista las <strong className="font-bold text-white">ponderaciones de cada
+                experto</strong> para este indicador y el <strong className="font-bold text-white">promedio del grupo</strong>. Ajuste sus pesos y umbrales según
+                considere. Recuerde que la idea es <strong className="font-bold text-white">alcanzar un consenso final</strong>.
+                (Los pesos deben sumar 100%).
               </p>
             </div>
           </div>
