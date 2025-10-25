@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator } from "@/domain/models";
+import { getIndicatorThreshold } from "@/domain/constants";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
 import { ConsolidatedIndicatorCard } from "./components/ConsolidatedIndicatorCard";
 
@@ -169,10 +170,16 @@ export default function SecondIterationStrategyPage({
         // Agregar indicadores consolidados que no están en las respuestas del usuario
         consolidatedData.indicators.forEach((ind: ConsolidatedIndicator) => {
           if (!responsesMap[ind.indicatorId]) {
+            // Buscar el indicador para obtener el umbral sugerido
+            const indicator = indicatorsData.indicators.find(
+              (i: Indicator) => i.id === ind.indicatorId
+            );
+            const suggestedThreshold = indicator ? getIndicatorThreshold(indicator.name) : null;
+
             responsesMap[ind.indicatorId] = {
               indicatorId: ind.indicatorId,
               weight: 0,
-              threshold: null,
+              threshold: suggestedThreshold,
               excluded: false,
               isOriginal: false,
             };

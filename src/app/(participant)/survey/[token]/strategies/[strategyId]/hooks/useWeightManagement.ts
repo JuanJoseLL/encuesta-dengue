@@ -1,8 +1,16 @@
 import { useState, useRef, useCallback } from "react";
+import type { Indicator } from "@/domain/models";
 import type { IndicatorAllocation } from "../types";
 import { createEmptyAllocation, cloneAllocationState } from "../types";
+import { getIndicatorThreshold } from "@/domain/constants";
 
-export function useWeightManagement() {
+interface UseWeightManagementProps {
+  availableIndicators?: Indicator[];
+}
+
+export function useWeightManagement(props?: UseWeightManagementProps) {
+  const { availableIndicators = [] } = props || {};
+
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
   const [weights, setWeights] = useState<Record<string, IndicatorAllocation>>({});
   const [previousWeights, setPreviousWeights] = useState<Record<string, IndicatorAllocation> | null>(null);
@@ -28,14 +36,21 @@ export function useWeightManagement() {
       if (newWeights[indicatorId]) {
         delete newWeights[indicatorId];
       } else {
-        newWeights[indicatorId] = createEmptyAllocation();
+        // Buscar el indicador y pre-llenar el umbral recomendado
+        const indicator = availableIndicators.find((ind) => ind.id === indicatorId);
+        const suggestedThreshold = indicator ? getIndicatorThreshold(indicator.name) : null;
+
+        newWeights[indicatorId] = {
+          weight: 0,
+          threshold: suggestedThreshold,
+        };
       }
       return newWeights;
     });
 
     setError("");
     setShowWeightWarning(false);
-  }, []);
+  }, [availableIndicators]);
 
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     userMadeChangesRef.current = true;

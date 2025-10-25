@@ -71,6 +71,12 @@ export function WeightSlider({
                 Math.round(Number.parseFloat(e.target.value) || 0)
               )
             }
+            onKeyDown={(e) => {
+              // Prevenir la entrada de punto, coma, "e", "+", "-"
+              if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             placeholder="0"
             className={`w-16 rounded border px-2 py-1 text-xs text-right ${
               thresholdInvalid
