@@ -56,7 +56,7 @@ export function WeightPanel({
                 : "text-amber-600"
             }`}
           >
-            {totalWeight.toFixed(1)}%
+            {Math.round(totalWeight)}%
           </span>
         </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
@@ -73,9 +73,9 @@ export function WeightPanel({
         </div>
         <div className="mt-2 text-xs text-slate-600">
           {remaining > 0
-            ? `Faltan ${remaining.toFixed(1)}%`
+            ? `Faltan ${Math.round(remaining)}%`
             : remaining < 0
-            ? `Excedido por ${Math.abs(remaining).toFixed(1)}%`
+            ? `Excedido por ${Math.abs(Math.round(remaining))}%`
             : "Suma correcta ✓"}
         </div>
       </div>

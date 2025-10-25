@@ -63,12 +63,12 @@ export function WeightSlider({
             type="number"
             min="0"
             max="100"
-            step="0.1"
-            value={allocation.weight === 0 ? "" : allocation.weight ?? ""}
+            step="1"
+            value={allocation.weight === 0 ? "" : Math.round(allocation.weight ?? 0)}
             onChange={(e) =>
               onWeightChange(
                 indicator.id,
-                Number.parseFloat(e.target.value) || 0
+                Math.round(Number.parseFloat(e.target.value) || 0)
               )
             }
             placeholder="0"
@@ -125,6 +125,7 @@ export function WeightSlider({
             value={thresholdValue}
             onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
             placeholder={getIndicatorThreshold(indicator.name) || "Ingrese el umbral"}
+            maxLength={90}
             className={
               "w-full rounded border px-2 py-1 text-xs border-slate-200 focus:border-blue-500 focus:ring-blue-200"
             }

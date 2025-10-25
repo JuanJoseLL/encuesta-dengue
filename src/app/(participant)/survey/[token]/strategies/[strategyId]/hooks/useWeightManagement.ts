@@ -41,8 +41,8 @@ export function useWeightManagement() {
     userMadeChangesRef.current = true;
 
     const clampedValue = Math.min(100, Math.max(0, value));
-    // Redondear a 1 decimal para permitir valores como 33.3, 25.5, etc.
-    const roundedValue = Math.round(clampedValue * 10) / 10;
+    // Redondear a número entero
+    const roundedValue = Math.round(clampedValue);
 
     setWeights((prev) => {
       const othersTotal = Object.entries(prev).reduce(
@@ -105,19 +105,19 @@ export function useWeightManagement() {
 
       setPreviousWeights(cloneAllocationState(prev));
 
-      // Calcular distribución equitativa con 1 decimal de precisión
-      const baseWeight = Math.floor((100 / selected.length) * 10) / 10;
+      // Calcular distribución equitativa con números enteros
+      const baseWeight = Math.floor(100 / selected.length);
       const totalAssigned = baseWeight * selected.length;
-      const remainder = Math.round((100 - totalAssigned) * 10) / 10;
+      const remainder = 100 - totalAssigned;
 
       const newWeights: Record<string, IndicatorAllocation> = {};
       selected.forEach((id, index) => {
         const existing = prev[id] ?? createEmptyAllocation();
-        // Distribuir el resto entre los primeros indicadores con incrementos de 0.1
-        const extra = index === 0 ? remainder : 0;
+        // Distribuir el resto entre los primeros indicadores
+        const extra = index < remainder ? 1 : 0;
         newWeights[id] = {
           ...existing,
-          weight: Math.round((baseWeight + extra) * 10) / 10,
+          weight: baseWeight + extra,
         };
       });
 

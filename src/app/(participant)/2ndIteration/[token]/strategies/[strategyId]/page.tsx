@@ -282,8 +282,8 @@ export default function SecondIterationStrategyPage({
   // Handlers
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     const clampedValue = Math.min(100, Math.max(0, value));
-    // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
-    const roundedValue = Math.round(clampedValue * 100) / 100;
+    // Redondear a número entero
+    const roundedValue = Math.round(clampedValue);
 
     setUserResponses((prev) => {
       const others = Object.entries(prev).reduce((sum, [id, r]) => {
@@ -624,7 +624,7 @@ export default function SecondIterationStrategyPage({
                     : "text-red-600"
                 }`}
               >
-                {totalWeight.toFixed(1)}%
+                {Math.round(totalWeight)}%
               </span>
               <span className="text-sm text-slate-500">/ 100%</span>
             </div>
@@ -791,7 +791,7 @@ export default function SecondIterationStrategyPage({
             )}
             {!error && !isWeightValid && (
               <div className="text-sm text-amber-600">
-                La suma debe ser 100% (actual: {totalWeight.toFixed(1)}%)
+                La suma debe ser 100% (actual: {Math.round(totalWeight)}%)
               </div>
             )}
             {!error && isWeightValid && !hasRequiredThresholds && (

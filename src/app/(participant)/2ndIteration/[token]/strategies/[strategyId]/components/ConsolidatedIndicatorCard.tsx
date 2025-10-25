@@ -183,12 +183,12 @@ export function ConsolidatedIndicatorCard({
               type="number"
               min="0"
               max="100"
-              step="0.01"
-              value={userWeight === 0 ? "" : userWeight}
+              step="1"
+              value={userWeight === 0 ? "" : Math.round(userWeight)}
               onChange={(e) =>
                 onWeightChange(
                   indicator.id,
-                  Number.parseFloat(e.target.value) || 0
+                  Math.round(Number.parseFloat(e.target.value) || 0)
                 )
               }
               placeholder="0"
@@ -242,6 +242,7 @@ export function ConsolidatedIndicatorCard({
             value={userThreshold || ""}
             onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
             placeholder={getIndicatorScale(indicator.name) || "Ingrese el umbral"}
+            maxLength={90}
             className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-blue-500 focus:ring-blue-200"
           />
         </div>
