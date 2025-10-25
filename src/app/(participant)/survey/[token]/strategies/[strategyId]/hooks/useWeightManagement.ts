@@ -1,8 +1,16 @@
 import { useState, useRef, useCallback } from "react";
+import type { Indicator } from "@/domain/models";
 import type { IndicatorAllocation } from "../types";
 import { createEmptyAllocation, cloneAllocationState } from "../types";
+import { getIndicatorThreshold } from "@/domain/constants";
 
-export function useWeightManagement() {
+interface UseWeightManagementProps {
+  availableIndicators?: Indicator[];
+}
+
+export function useWeightManagement(props?: UseWeightManagementProps) {
+  const { availableIndicators = [] } = props || {};
+
   const [selectedIndicators, setSelectedIndicators] = useState<Set<string>>(new Set());
   const [weights, setWeights] = useState<Record<string, IndicatorAllocation>>({});
   const [previousWeights, setPreviousWeights] = useState<Record<string, IndicatorAllocation> | null>(null);
@@ -28,20 +36,28 @@ export function useWeightManagement() {
       if (newWeights[indicatorId]) {
         delete newWeights[indicatorId];
       } else {
-        newWeights[indicatorId] = createEmptyAllocation();
+        // Buscar el indicador y pre-llenar el umbral recomendado
+        const indicator = availableIndicators.find((ind) => ind.id === indicatorId);
+        const suggestedThreshold = indicator ? getIndicatorThreshold(indicator.name) : null;
+
+        newWeights[indicatorId] = {
+          weight: 0,
+          threshold: suggestedThreshold,
+        };
       }
       return newWeights;
     });
 
     setError("");
     setShowWeightWarning(false);
-  }, []);
+  }, [availableIndicators]);
 
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     userMadeChangesRef.current = true;
 
     const clampedValue = Math.min(100, Math.max(0, value));
-    const roundedValue = Math.round(clampedValue / 5) * 5;
+    // Redondear a número entero
+    const roundedValue = Math.round(clampedValue);
 
     setWeights((prev) => {
       const othersTotal = Object.entries(prev).reduce(
@@ -104,45 +120,21 @@ export function useWeightManagement() {
 
       setPreviousWeights(cloneAllocationState(prev));
 
-      const perItemBase = Math.floor(100 / selected.length / 5) * 5;
-      const remainder = 100 - perItemBase * selected.length;
-      const increments = Math.max(0, Math.floor(remainder / 5));
+      // Calcular distribución equitativa con números enteros
+      const baseWeight = Math.floor(100 / selected.length);
+      const totalAssigned = baseWeight * selected.length;
+      const remainder = 100 - totalAssigned;
 
       const newWeights: Record<string, IndicatorAllocation> = {};
       selected.forEach((id, index) => {
-        const extra = index < increments ? 5 : 0;
         const existing = prev[id] ?? createEmptyAllocation();
+        // Distribuir el resto entre los primeros indicadores
+        const extra = index < remainder ? 1 : 0;
         newWeights[id] = {
           ...existing,
-          weight: perItemBase + extra,
+          weight: baseWeight + extra,
         };
       });
-
-      const assignedTotal = Object.values(newWeights).reduce(
-        (sum, allocation) => sum + (allocation.weight ?? 0),
-        0
-      );
-      let difference = 100 - assignedTotal;
-      if (difference !== 0) {
-        const step = difference > 0 ? 5 : -5;
-        const ordered = [...selected];
-        let idx = 0;
-        while (difference !== 0 && ordered.length > 0) {
-          const indicatorId = ordered[idx % ordered.length];
-          const nextValue = (newWeights[indicatorId]?.weight ?? 0) + step;
-          if (nextValue >= 0 && nextValue <= 100) {
-            newWeights[indicatorId] = {
-              ...newWeights[indicatorId],
-              weight: nextValue,
-            };
-            difference -= step;
-          } else {
-            ordered.splice(idx % ordered.length, 1);
-            continue;
-          }
-          idx += 1;
-        }
-      }
 
       return newWeights;
     });

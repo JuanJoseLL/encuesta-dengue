@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator } from "@/domain/models";
+import { getIndicatorThreshold } from "@/domain/constants";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
 import { ConsolidatedIndicatorCard } from "./components/ConsolidatedIndicatorCard";
 
@@ -169,10 +170,16 @@ export default function SecondIterationStrategyPage({
         // Agregar indicadores consolidados que no están en las respuestas del usuario
         consolidatedData.indicators.forEach((ind: ConsolidatedIndicator) => {
           if (!responsesMap[ind.indicatorId]) {
+            // Buscar el indicador para obtener el umbral sugerido
+            const indicator = indicatorsData.indicators.find(
+              (i: Indicator) => i.id === ind.indicatorId
+            );
+            const suggestedThreshold = indicator ? getIndicatorThreshold(indicator.name) : null;
+
             responsesMap[ind.indicatorId] = {
               indicatorId: ind.indicatorId,
               weight: 0,
-              threshold: null,
+              threshold: suggestedThreshold,
               excluded: false,
               isOriginal: false,
             };
@@ -290,8 +297,8 @@ export default function SecondIterationStrategyPage({
   // Handlers
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     const clampedValue = Math.min(100, Math.max(0, value));
-    // Redondear a 2 decimales para evitar problemas de precisión de punto flotante
-    const roundedValue = Math.round(clampedValue * 100) / 100;
+    // Redondear a número entero
+    const roundedValue = Math.round(clampedValue);
 
     setUserResponses((prev) => {
       const others = Object.entries(prev).reduce((sum, [id, r]) => {
@@ -575,6 +582,7 @@ export default function SecondIterationStrategyPage({
             totalStrategies={strategies.length}
             saving={saving}
             lastSaved={lastSaved}
+            basePath="2ndIteration"
           />
 
           <ProgressBar
@@ -584,11 +592,11 @@ export default function SecondIterationStrategyPage({
         </header>
 
         {/* Info banner */}
-        <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm">
+        <div className="rounded-2xl border-2 border-indigo-700 bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 shadow-lg">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <svg
-                className="h-5 w-5 text-blue-600"
+                className="h-6 w-6 text-indigo-100"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -596,21 +604,21 @@ export default function SecondIterationStrategyPage({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900">
+              <h3 className="text-base font-bold text-white mb-2">
                 Revisión Colaborativa
               </h3>
-              <p className="mt-1 text-sm text-blue-700">
+              <p className="text-sm leading-relaxed text-indigo-50">
                 A continuación se muestran todos los indicadores seleccionados
-                por al menos un experto, en la iteración anterior. Puede ver en una lista las ponderaciones de cada
-                experto para este indicador y el promedio del grupo. Ajuste sus pesos y umbrales según
-                considere. Recuerde que la idea es alcanzar un consenso final.
-                (Los pesos deben sumar 100% y se asignan en múltiplos de 5).
+                por al menos un experto, en la iteración anterior. Puede ver en una lista las <strong className="font-bold text-white">ponderaciones de cada
+                experto</strong> para este indicador y el <strong className="font-bold text-white">promedio del grupo</strong>. Ajuste sus pesos y umbrales según
+                considere. Recuerde que la idea es <strong className="font-bold text-white">alcanzar un consenso final</strong>.
+                (Los pesos deben sumar 100%).
               </p>
             </div>
           </div>
@@ -632,7 +640,7 @@ export default function SecondIterationStrategyPage({
                     : "text-red-600"
                 }`}
               >
-                {totalWeight.toFixed(1)}%
+                {Math.round(totalWeight)}%
               </span>
               <span className="text-sm text-slate-500">/ 100%</span>
             </div>
@@ -799,7 +807,7 @@ export default function SecondIterationStrategyPage({
             )}
             {!error && !isWeightValid && (
               <div className="text-sm text-amber-600">
-                La suma debe ser 100% (actual: {totalWeight.toFixed(1)}%)
+                La suma debe ser 100% (actual: {Math.round(totalWeight)}%)
               </div>
             )}
             {!error && isWeightValid && !hasRequiredThresholds && (

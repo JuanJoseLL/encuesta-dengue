@@ -66,7 +66,7 @@ export default function StrategyWizardPage({
     indicatorsWithoutThreshold,
     hasInvalidThresholds,
     isValid,
-  } = useWeightManagement();
+  } = useWeightManagement({ availableIndicators });
 
   // Cargar datos de la estrategia
   useEffect(() => {

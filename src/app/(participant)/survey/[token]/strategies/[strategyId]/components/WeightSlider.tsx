@@ -25,31 +25,6 @@ export function WeightSlider({
 
   const shouldHighlightZeroWeight = hasZeroWeight && showWeightWarning;
 
-  // Calcular el máximo posible basado en otros indicadores
-  const othersTotal = Object.entries(allWeights).reduce(
-    (sum, [id, weightAllocation]) => {
-      if (id === indicator.id) {
-        return sum;
-      }
-      return sum + (weightAllocation?.weight ?? 0);
-    },
-    0
-  );
-  const maxAllowed = Math.max(0, 100 - othersTotal);
-
-  // Función para manejar el click inteligente en el slider
-  const handleSliderClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    const rect = target.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = (clickX / rect.width) * 100;
-    const clickedValue = Math.round(percentage / 5) * 5; // Redondear a múltiplos de 5
-    
-    // Si el valor clickeado es mayor al máximo permitido, usar el máximo
-    const finalValue = Math.min(clickedValue, maxAllowed);
-    onWeightChange(indicator.id, finalValue);
-  };
-
   return (
     <div
       className={`space-y-2 rounded-lg border p-3 transition-all ${
@@ -88,14 +63,21 @@ export function WeightSlider({
             type="number"
             min="0"
             max="100"
-            step="5"
-            value={allocation.weight ?? 0}
+            step="1"
+            value={allocation.weight === 0 ? "" : Math.round(allocation.weight ?? 0)}
             onChange={(e) =>
               onWeightChange(
                 indicator.id,
-                Number.parseFloat(e.target.value) || 0
+                Math.round(Number.parseFloat(e.target.value) || 0)
               )
             }
+            onKeyDown={(e) => {
+              // Prevenir la entrada de punto, coma, "e", "+", "-"
+              if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            placeholder="0"
             className={`w-16 rounded border px-2 py-1 text-xs text-right ${
               thresholdInvalid
                 ? "border-red-300 focus:border-red-400 focus:ring-red-200"
@@ -111,12 +93,11 @@ export function WeightSlider({
           type="range"
           min="0"
           max="100"
-          step="5"
+          step="1"
           value={allocation.weight ?? 0}
           onChange={(e) =>
             onWeightChange(indicator.id, Number.parseFloat(e.target.value))
           }
-          onClick={handleSliderClick}
           className="w-full cursor-pointer"
         />
         {/* Marcas de escala */}
@@ -150,6 +131,7 @@ export function WeightSlider({
             value={thresholdValue}
             onChange={(e) => onThresholdChange(indicator.id, e.target.value)}
             placeholder={getIndicatorThreshold(indicator.name) || "Ingrese el umbral"}
+            maxLength={90}
             className={
               "w-full rounded border px-2 py-1 text-xs border-slate-200 focus:border-blue-500 focus:ring-blue-200"
             }
