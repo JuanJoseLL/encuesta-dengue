@@ -13,6 +13,7 @@ interface StrategyHeaderProps {
   totalStrategies: number;
   saving: boolean;
   lastSaved: Date | null;
+  basePath?: string; // Nueva prop opcional para definir la ruta base
 }
 
 export function StrategyHeader({
@@ -22,13 +23,14 @@ export function StrategyHeader({
   totalStrategies,
   saving,
   lastSaved,
+  basePath = "survey", // Por defecto usa "survey"
 }: StrategyHeaderProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href={`/2ndIteration/${token}/strategies`}
+            href={`/${basePath}/${token}/strategies`}
             className="text-sm text-blue-600 hover:underline"
           >
             ← Volver a la lista de estrategias

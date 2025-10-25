@@ -574,6 +574,7 @@ export default function SecondIterationStrategyPage({
             totalStrategies={strategies.length}
             saving={saving}
             lastSaved={lastSaved}
+            basePath="2ndIteration"
           />
 
           <ProgressBar
