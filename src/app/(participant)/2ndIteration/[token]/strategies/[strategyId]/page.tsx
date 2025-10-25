@@ -193,6 +193,14 @@ export default function SecondIterationStrategyPage({
           if (progressResponse.ok) {
             const progressData = await progressResponse.json();
             setReviewedProgress(progressData.progress);
+            
+            // Verificar si esta estrategia específica está revisada
+            const currentStrategyStatus = progressData.strategies.find(
+              (s: any) => s.strategyId === strategyId
+            );
+            if (currentStrategyStatus && currentStrategyStatus.status === "reviewed") {
+              setIsStrategyReviewed(true);
+            }
           }
         } catch (error) {
           console.error("Error loading progress:", error);
@@ -806,7 +814,7 @@ export default function SecondIterationStrategyPage({
             disabled={!isValid}
             className="rounded-full bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
           >
-            Completar revisión
+            Completar revisión de estrategia
           </button>
         </footer>
 

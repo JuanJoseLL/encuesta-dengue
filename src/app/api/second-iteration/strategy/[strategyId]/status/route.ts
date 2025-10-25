@@ -89,10 +89,9 @@ export async function GET(
       }
     }
 
-    // Una estrategia se considera "revisada" si:
-    // 1. Fue explícitamente marcada como revisada (reviewedAt no es null) O
-    // 2. Los pesos son válidos (suman 100%) Y se han hecho modificaciones (pesos o umbrales)
-    const isReviewed = hasReviewedAt || (weightsValid && (hasModifications || hasThresholdModifications));
+    // Una estrategia se considera "revisada" SOLO si:
+    // Fue explícitamente marcada como revisada (reviewedAt no es null)
+    const isReviewed = hasReviewedAt;
 
     return NextResponse.json({ isReviewed });
   } catch (error) {

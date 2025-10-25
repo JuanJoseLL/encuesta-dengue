@@ -134,15 +134,16 @@ export async function GET(request: NextRequest) {
       // Verificar si la estrategia fue explícitamente marcada como revisada
       const hasReviewedAt = strategyResponses.some(r => r.reviewedAt !== null);
 
-      // Una estrategia se considera "revisada" si:
-      // 1. Fue explícitamente marcada como revisada (reviewedAt no es null) O
-      // 2. Los pesos son válidos (suman 100%) Y se han hecho modificaciones (pesos o umbrales)
-      const isReviewed = hasReviewedAt || (weightsValid && (hasModifications || hasThresholdModifications));
+      // Una estrategia se considera "revisada" SOLO si:
+      // Fue explícitamente marcada como revisada (reviewedAt no es null)
+      const isReviewed = hasReviewedAt;
 
       // Determinar el status
-      let status: "reviewed" | "incomplete" | "not-started";
+      let status: "reviewed" | "modified" | "incomplete" | "not-started";
       if (isReviewed) {
         status = "reviewed";
+      } else if (strategyResponses.length > 0 && (hasModifications || hasThresholdModifications)) {
+        status = "modified";
       } else if (strategyResponses.length > 0) {
         status = "incomplete";
       } else {
@@ -167,6 +168,7 @@ export async function GET(request: NextRequest) {
 
     // Calcular progreso general
     const reviewedCount = strategyStatuses.filter((s) => s.status === "reviewed").length;
+    const modifiedCount = strategyStatuses.filter((s) => s.status === "modified").length;
     const totalStrategies = strategyStatuses.length;
     const progress = totalStrategies > 0 ? reviewedCount / totalStrategies : 0;
 
@@ -174,6 +176,7 @@ export async function GET(request: NextRequest) {
       sessionId,
       totalStrategies,
       reviewedStrategies: reviewedCount,
+      modifiedStrategies: modifiedCount,
       progress,
       strategies: strategyStatuses,
     });

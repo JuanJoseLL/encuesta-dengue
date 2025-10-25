@@ -90,11 +90,33 @@ export async function PATCH(
       );
     }
 
-    const reviewedAt = markAsReviewed ? new Date() : null;
-
     // Actualizar o crear cada respuesta
     for (const response of responses) {
       const { indicatorId, weight, threshold, excluded, isOriginal } = response;
+
+      // Si markAsReviewed es true, establecer reviewedAt, si no, mantener el valor existente
+      const updateData: any = {
+        weight: weight ?? 0,
+        threshold: threshold ?? null,
+        excluded: excluded ?? false,
+        updatedAt: new Date(),
+      };
+
+      // Solo actualizar reviewedAt si markAsReviewed es true
+      if (markAsReviewed) {
+        updateData.reviewedAt = new Date();
+      }
+
+      const createData: any = {
+        sessionId,
+        strategyId,
+        indicatorId,
+        weight: weight ?? 0,
+        threshold: threshold ?? null,
+        excluded: excluded ?? false,
+        isOriginal: isOriginal ?? false,
+        reviewedAt: markAsReviewed ? new Date() : null,
+      };
 
       await prisma.secondIterationResponse.upsert({
         where: {
@@ -104,23 +126,8 @@ export async function PATCH(
             indicatorId,
           },
         },
-        update: {
-          weight: weight ?? 0,
-          threshold: threshold ?? null,
-          excluded: excluded ?? false,
-          reviewedAt: reviewedAt,
-          updatedAt: new Date(),
-        },
-        create: {
-          sessionId,
-          strategyId,
-          indicatorId,
-          weight: weight ?? 0,
-          threshold: threshold ?? null,
-          excluded: excluded ?? false,
-          isOriginal: isOriginal ?? false,
-          reviewedAt: reviewedAt,
-        },
+        update: updateData,
+        create: createData,
       });
     }
 
