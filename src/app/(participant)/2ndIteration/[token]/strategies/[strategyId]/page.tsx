@@ -2,13 +2,13 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator } from "@/domain/models";
 import { getIndicatorThreshold } from "@/domain/constants";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
-import { ConsolidatedIndicatorCard } from "./components/ConsolidatedIndicatorCard";
+import { ConsolidatedIndicatorsTable } from "./components/ConsolidatedIndicatorsTable";
+import { PivotIndicatorsTable } from "./components/PivotIndicatorsTable";
 
 interface SecondIterationPageParams {
   token: string;
@@ -59,12 +59,12 @@ export default function SecondIterationStrategyPage({
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showWeightWarning, setShowWeightWarning] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [reviewedProgress, setReviewedProgress] = useState(0);
   const [isStrategyReviewed, setIsStrategyReviewed] = useState(false);
+  const [showExcelModal, setShowExcelModal] = useState(false);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadedStrategyIdRef = useRef<string | null>(null);
@@ -321,7 +321,6 @@ export default function SecondIterationStrategyPage({
     });
 
     setError("");
-    setShowWeightWarning(false);
   }, []);
 
   const handleThresholdChange = useCallback(
@@ -331,20 +330,6 @@ export default function SecondIterationStrategyPage({
         [indicatorId]: {
           ...prev[indicatorId],
           threshold: value === "" ? null : value,
-        },
-      }));
-    },
-    []
-  );
-
-  const handleExcludedChange = useCallback(
-    (indicatorId: string, excluded: boolean) => {
-      setUserResponses((prev) => ({
-        ...prev,
-        [indicatorId]: {
-          ...prev[indicatorId],
-          excluded,
-          weight: excluded ? 0 : prev[indicatorId].weight,
         },
       }));
     },
@@ -625,7 +610,7 @@ export default function SecondIterationStrategyPage({
         </div>
 
         {/* Weight summary */}
-        <div className="sticky top-0 z-99999 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="sticky top-0 z-9999 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-700">
               Peso total asignado:
@@ -647,151 +632,43 @@ export default function SecondIterationStrategyPage({
           </div>
         </div>
 
-        {/* Indicators list */}
+        {/* Indicators Table */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-slate-900">
-            Indicadores propuestos por usted y el grupo en la primera iteración
-          </h2>
-
-          {/* Ordenar indicadores: primero los originales del usuario, luego los no considerados */}
-          {(() => {
-            const sortedIndicators = consolidatedIndicators.sort((a, b) => {
-              const userResponseA = userResponses[a.indicatorId];
-              const userResponseB = userResponses[b.indicatorId];
-              
-              // Si ambos son originales o ambos no son originales, mantener orden original
-              if (userResponseA?.isOriginal === userResponseB?.isOriginal) {
-                return 0;
-              }
-              
-              // Los originales van primero
-              if (userResponseA?.isOriginal && !userResponseB?.isOriginal) {
-                return -1;
-              }
-              
-              if (!userResponseA?.isOriginal && userResponseB?.isOriginal) {
-                return 1;
-              }
-              
-              return 0;
-            });
-
-            const originalIndicators = sortedIndicators.filter(consInd => 
-              userResponses[consInd.indicatorId]?.isOriginal
-            );
-            const newIndicators = sortedIndicators.filter(consInd => 
-              !userResponses[consInd.indicatorId]?.isOriginal
-            );
-
-            return (
-              <>
-                {/* Indicadores originales del usuario */}
-                {originalIndicators.length > 0 && (
-                  <>
-                    <div className="mb-6">
-                      <p className="text-sm text-slate-600">
-                        Revise y ajuste sus ponderaciones y umbrales basándose en el promedio del grupo
-                      </p>
-                    </div>
-                    {originalIndicators.map((consInd) => {
-                      const indicator = allIndicators.find(
-                        (ind) => ind.id === consInd.indicatorId
-                      );
-                      if (!indicator) return null;
-
-                      const userResponse = userResponses[consInd.indicatorId] || {
-                        indicatorId: consInd.indicatorId,
-                        weight: 0,
-                        threshold: null,
-                        excluded: false,
-                        isOriginal: false,
-                      };
-
-                      return (
-                        <ConsolidatedIndicatorCard
-                          key={indicator.id}
-                          indicator={indicator}
-                          consolidatedData={{
-                            weights: consInd.weights,
-                            average: consInd.average,
-                            count: consInd.count,
-                            thresholds: consInd.thresholds,
-                          }}
-                          userWeight={userResponse.weight}
-                          userThreshold={userResponse.threshold}
-                          excluded={userResponse.excluded}
-                          isOriginal={userResponse.isOriginal}
-                          onWeightChange={handleWeightChange}
-                          onThresholdChange={handleThresholdChange}
-                          onExcludedChange={handleExcludedChange}
-                          showWeightWarning={showWeightWarning}
-                          allUserResponses={userResponses}
-                        />
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Indicadores nuevos propuestos por otros expertos */}
-                {newIndicators.length > 0 && (
-                  <>
-                    <div className="mt-8 mb-6">
-                      <h3 className="text-lg font-medium text-slate-800 mb-2">
-                        Indicadores propuestos por otros expertos
-                      </h3>
-                      <p className="text-sm text-slate-600">
-                        Considere estos indicadores adicionales que otros expertos seleccionaron
-                      </p>
-                    </div>
-                    {newIndicators.map((consInd) => {
-                      const indicator = allIndicators.find(
-                        (ind) => ind.id === consInd.indicatorId
-                      );
-                      if (!indicator) return null;
-
-                      const userResponse = userResponses[consInd.indicatorId] || {
-                        indicatorId: consInd.indicatorId,
-                        weight: 0,
-                        threshold: null,
-                        excluded: false,
-                        isOriginal: false,
-                      };
-
-                      return (
-                        <ConsolidatedIndicatorCard
-                          key={indicator.id}
-                          indicator={indicator}
-                          consolidatedData={{
-                            weights: consInd.weights,
-                            average: consInd.average,
-                            count: consInd.count,
-                            thresholds: consInd.thresholds,
-                          }}
-                          userWeight={userResponse.weight}
-                          userThreshold={userResponse.threshold}
-                          excluded={userResponse.excluded}
-                          isOriginal={userResponse.isOriginal}
-                          onWeightChange={handleWeightChange}
-                          onThresholdChange={handleThresholdChange}
-                          onExcludedChange={handleExcludedChange}
-                          showWeightWarning={showWeightWarning}
-                          allUserResponses={userResponses}
-                        />
-                      );
-                    })}
-                  </>
-                )}
-              </>
-            );
-          })()}
-
-          {consolidatedIndicators.length === 0 && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
-              <p className="text-slate-600">
-                No hay indicadores seleccionados para esta estrategia.
+          {/* Header y Botón Excel */}
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+                Indicadores propuestos por usted y el grupo en la primera iteración
+              </h2>
+              <p className="text-sm text-slate-600">
+                Revise y ajuste sus ponderaciones y umbrales basándose en el promedio del grupo.
+                Haga clic en "Ver" para expandir los detalles de cada indicador.
               </p>
             </div>
-          )}
+
+            {/* Botón Vista Excel */}
+            <div className="flex items-center justify-end">
+              <button
+                onClick={() => setShowExcelModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                📊 Abrir Vista Excel (Pantalla Completa)
+              </button>
+            </div>
+          </div>
+
+          {/* Vista Compacta (siempre visible) */}
+          <ConsolidatedIndicatorsTable
+            indicators={allIndicators}
+            consolidatedIndicators={consolidatedIndicators}
+            userResponses={userResponses}
+            onWeightChange={handleWeightChange}
+            onThresholdChange={handleThresholdChange}
+            allUserResponses={userResponses}
+          />
         </div>
 
         {/* Navigation Footer */}
@@ -992,6 +869,79 @@ export default function SecondIterationStrategyPage({
                       : "Completar revisión"
                   }
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Vista Excel - Pantalla Completa */}
+        {showExcelModal && (
+          <div className="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-sm">
+            <div className="h-full flex flex-col">
+              {/* Header del Modal */}
+              <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                    </svg>
+                    <div>
+                      <h2 className="text-lg font-bold">Vista Excel - Pantalla Completa</h2>
+                      <p className="text-sm text-green-100">
+                        Compare todas las ponderaciones horizontalmente. Los cambios se guardan automáticamente.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowExcelModal(false)}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    aria-label="Cerrar"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Contenido del Modal - Tabla Excel */}
+              <div className="flex-1 overflow-hidden bg-white">
+                <div className="h-full px-4 py-6 overflow-auto">
+                  <PivotIndicatorsTable
+                    indicators={allIndicators}
+                    consolidatedIndicators={consolidatedIndicators}
+                    userResponses={userResponses}
+                    onWeightChange={handleWeightChange}
+                    onThresholdChange={handleThresholdChange}
+                    allUserResponses={userResponses}
+                  />
+                </div>
+              </div>
+
+              {/* Footer del Modal */}
+              <div className="bg-slate-100 border-t border-slate-300 px-6 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span>Promedio del grupo</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span>Tu ponderación</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span>Tu umbral</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowExcelModal(false)}
+                    className="px-6 py-2 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                  >
+                    Cerrar Vista Excel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
