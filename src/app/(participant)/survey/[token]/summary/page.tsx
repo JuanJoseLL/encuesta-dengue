@@ -242,7 +242,7 @@ export default function SurveySummaryPage({
             </h1>
             <p className="mt-2 text-slate-600">
               Revise cuidadosamente sus respuestas{sessionStatus === "submitted" ? ". Puede seguir editando cualquier estrategia seleccionando" : " antes de enviar la encuesta. Puede editar cualquier estrategia seleccionando la opción"}{" "}
-              <b>Editar ponderación</b>
+              <b>Editar pesos y umbrales</b>
             </p>
           </div>
 
@@ -390,7 +390,7 @@ export default function SurveySummaryPage({
                     href={`/survey/${token}/strategies/${summary.strategyId}`}
                     className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
-                    Editar ponderación
+                    Editar pesos y umbrales
                   </Link>
                 </div>
               </header>

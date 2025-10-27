@@ -35,7 +35,7 @@ export default function HomePage() {
             <ul className="text-left space-y-2 mx-auto max-w-2xl">
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">•</span>
-                <span>Revise cuidadosamente cada estrategia.</span>
+                <span>Revise cuidadosamente las instrucciones para cada estrategia.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">•</span>
@@ -47,7 +47,7 @@ export default function HomePage() {
               </li>
             </ul>
             <p className="mt-4">
-              La información recopilada será utilizada exclusivamente con fines analíticos y contribuirá al diseño de un modelo de inteligencia artificial basado en evidencia y conocimiento experto.
+              La información recopilada será utilizada exclusivamente con fines analíticos para consolidar los parámetros del modelo prescriptivo basado en juicio de expertos, y que utilizará técnicas de inteligencia artificial.
             </p>
           </div>
         </section>
