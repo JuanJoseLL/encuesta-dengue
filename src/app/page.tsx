@@ -17,7 +17,7 @@ export default function HomePage() {
             />
           </div>
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-            Encuesta de ponderación de indicadores por expertos
+            Herramienta de Asistencia para Elicitación de Juicio de Expertos para la Mitigación del Dengue en Santiago de Cali
           </span>
           <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
             Ponderación de indicadores para priorizar estrategias de respuesta al dengue en Cali
@@ -27,7 +27,7 @@ export default function HomePage() {
               <strong>Estimado(a) experto(a):</strong>
             </p>
             <p>
-              Su participación nos ayudará a construir un sistema inteligente de apoyo a decisiones basado en evidencia real y contextualizada en Cali.
+            Con su valiosa participación contribuirá a la parametrización de un modelo prescriptivo para generar recomendaciones contextualizadas para la mitigación del Dengue en Cali.
             </p>
             <p>
               En esta encuesta se presentan diversas estrategias de intervención junto con indicadores asociados. Se solicita que:

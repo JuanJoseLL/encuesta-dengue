@@ -131,7 +131,7 @@ export default function SurveyLoginPage() {
             Ponderación de indicadores para priorizar estrategias de respuesta al dengue en Cali
           </h1>
           <p className="text-lg text-slate-600">
-            Su participación nos ayudará a construir un sistema inteligente de apoyo a decisiones basado en evidencia real y contextualizada en Cali.   
+            Con su valiosa participación contribuirá a la parametrización de un modelo prescriptivo para generar recomendaciones contextualizadas para la mitigación del Dengue en Cali.
           </p>
         </div>
 
@@ -324,7 +324,7 @@ export default function SurveyLoginPage() {
                 </li>
               </ul>
               <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-                <strong>Tiempo estimado:</strong> 25 a 35 minutos
+                <strong>Tiempo estimado:</strong> 4 a 5 horas
               </div>
             </div>
           </div>

@@ -354,13 +354,25 @@ export default function StrategyWizardPage({
     return !associatedIndicatorIds.includes(indicatorNumericId);
   });
 
-  const filteredAssociatedIndicators = associatedIndicators.filter((ind) =>
-    ind.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAssociatedIndicators = associatedIndicators.filter((ind) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
 
-  const filteredAdditionalIndicators = additionalIndicators.filter((ind) =>
-    ind.name.toLowerCase().includes(additionalSearchQuery.toLowerCase())
-  );
+    const name = ind.name.toLowerCase();
+    const description = (ind.description || "").toLowerCase();
+
+    return name.includes(query) || description.includes(query);
+  });
+
+  const filteredAdditionalIndicators = additionalIndicators.filter((ind) => {
+    const query = additionalSearchQuery.toLowerCase().trim();
+    if (!query) return true;
+
+    const name = ind.name.toLowerCase();
+    const description = (ind.description || "").toLowerCase();
+
+    return name.includes(query) || description.includes(query);
+  });
 
   if (!strategy) {
     return (
