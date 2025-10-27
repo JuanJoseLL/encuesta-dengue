@@ -155,7 +155,7 @@ export default function SecondIterationStrategiesPage({
               <p className="text-base leading-relaxed text-indigo-50">
                 En esta segunda iteración, podrá <strong className="font-bold text-white">ver todos los indicadores</strong> que
                 fueron seleccionados por al menos un experto para cada
-                estrategia, en la iteración anterior. Además, podrá <strong className="font-bold text-white">ver y modificar el peso</strong> que usted asignó, así como el
+                estrategia, en la iteración anterior. Además, <strong className="font-bold text-white">revise el valor que asignó y decida si lo ajusta o lo deja igual,</strong> así como el
                 promedio del grupo. Es decir, la idea es <strong className="font-bold text-white">avanzar hacia un consenso final</strong>. Los cambios se guardan automáticamente en una copia
                 separada de sus respuestas iniciales, por trazabilidad.
               </p>
