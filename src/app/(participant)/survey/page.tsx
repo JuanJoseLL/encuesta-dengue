@@ -29,7 +29,7 @@ export default function SurveyLoginPage() {
     e.preventDefault();
     
     if (!email.trim()) {
-      setError("Por favor ingresa tu correo electrónico");
+      setError("Por favor ingrese su correo electrónico");
       return;
     }
 
@@ -65,7 +65,7 @@ export default function SurveyLoginPage() {
     e.preventDefault();
 
     if (!selectedRole) {
-      setError("Por favor selecciona tu rol profesional");
+      setError("Por favor seleccione su rol profesional");
       return;
     }
 

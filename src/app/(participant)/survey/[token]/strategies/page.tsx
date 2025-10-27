@@ -134,7 +134,7 @@ export default function StrategyOverviewPage({
 
   const handleRoleSelected = () => {
     if (!selectedRole) {
-      alert("Por favor selecciona tu rol profesional");
+      alert("Por favor seleccione su rol profesional");
       return;
     }
     setShowRoleModal(false);

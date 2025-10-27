@@ -29,7 +29,7 @@ export default function SurveyLoginPage() {
     e.preventDefault();
     
     if (!email.trim()) {
-      setError("Por favor ingresa tu correo electrónico");
+      setError("Por favor ingrese su correo electrónico");
       return;
     }
 

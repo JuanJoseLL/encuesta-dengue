@@ -56,8 +56,8 @@ export default function HomePage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">¿Eres participante?</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Accede con tu nombre completo y correo electrónico para comenzar o continuar la encuesta. 
-              Tu progreso se guarda automáticamente y puedes retomar en cualquier momento.
+              Accede con su correo electrónico para comenzar o continuar la encuesta. 
+              Su progreso se guarda automáticamente y puedes retomar en cualquier momento.
             </p>
             <div className="mt-6">
               <Link

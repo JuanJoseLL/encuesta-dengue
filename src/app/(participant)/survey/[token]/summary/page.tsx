@@ -126,7 +126,7 @@ export default function SurveySummaryPage({
 
   const handleRoleSelected = () => {
     if (!selectedRole) {
-      alert("Por favor selecciona tu rol profesional");
+      alert("Por favor seleccione su rol profesional");
       return;
     }
     setShowRoleModal(false);
@@ -322,7 +322,7 @@ export default function SurveySummaryPage({
           {canSubmit && (
             <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
               <strong>Listo para enviar:</strong> Todas las estrategias están
-              completas. Puedes revisar y enviar tu encuesta.
+              completas. Puede revisar y enviar su encuesta.
             </div>
           )}
         </header>
@@ -465,7 +465,7 @@ export default function SurveySummaryPage({
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-w-md w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
               <h3 className="text-xl font-semibold text-slate-900">
-                Selecciona tu rol profesional
+                Seleccione su rol profesional
               </h3>
               <p className="mt-2 text-sm text-slate-600">
                 Esta información nos ayuda a analizar las respuestas según

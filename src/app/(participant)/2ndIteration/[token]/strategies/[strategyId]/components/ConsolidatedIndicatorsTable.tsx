@@ -167,7 +167,7 @@ export function ConsolidatedIndicatorsTable({
       },
       {
         accessorKey: "userResponse.weight",
-        header: "Tu Peso",
+        header: "Su Peso",
         cell: ({ row }) => {
           const indicatorId = row.original.indicator.id;
           const weight = row.original.userResponse.weight;
@@ -243,7 +243,7 @@ export function ConsolidatedIndicatorsTable({
       },
       {
         accessorKey: "userResponse.threshold",
-        header: "Tu Umbral",
+        header: "Su Umbral",
         cell: ({ row }) => {
           const indicatorId = row.original.indicator.id;
           const threshold = row.original.userResponse.threshold;

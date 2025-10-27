@@ -22,7 +22,7 @@ export default function SuccessPage({
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-slate-900">Encuesta enviada con éxito</h1>
           <p className="text-lg text-slate-600 leading-relaxed">
-            Gracias por ser parte activa de esta iniciativa de salud pública. Tu participación como experto(a) es fundamental para construir un modelo prescriptivo sólido, basado en evidencia local, que contribuirá a mejorar la toma de decisiones frente a brotes de dengue en Santiago de Cali.
+            Gracias por ser parte activa de esta iniciativa de salud pública. Su participación como experto(a) es fundamental para construir un modelo prescriptivo sólido, basado en evidencia local, que contribuirá a mejorar la toma de decisiones frente a brotes de dengue en Santiago de Cali.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function SuccessPage({
             </li>
           </ul>
           <p className="mt-6 text-sm text-slate-700 italic border-t border-slate-200 pt-4">
-            Tu experiencia transforma datos en decisiones. Gracias por ser parte de esta construcción colectiva hacia una Cali más saludable y resiliente.
+            Su experiencia transforma datos en decisiones. Gracias por ser parte de esta construcción colectiva hacia una Cali más saludable y resiliente.
           </p>
         </div>
 
