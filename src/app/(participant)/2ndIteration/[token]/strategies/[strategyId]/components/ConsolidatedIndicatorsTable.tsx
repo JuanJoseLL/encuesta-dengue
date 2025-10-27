@@ -14,6 +14,33 @@ import {
 import type { Indicator } from "@/domain/models";
 import { getIndicatorScale } from "@/domain/constants";
 
+// Estilos para tooltip rápido
+const tooltipStyles = `
+  .fast-tooltip {
+    position: relative;
+  }
+  .fast-tooltip[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: normal;
+    max-width: 300px;
+    z-index: 1000;
+    margin-bottom: 5px;
+    animation: fadeIn 0.15s ease-in;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
 interface UserResponse {
   indicatorId: string;
   weight: number;
@@ -65,8 +92,8 @@ export function ConsolidatedIndicatorsTable({
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   // Preparar datos para la tabla
-  const tableData = useMemo<TableRow[]>(() => {
-    return consolidatedIndicators
+  const { originalIndicators, newIndicators } = useMemo(() => {
+    const allData = consolidatedIndicators
       .map((consInd) => {
         const indicator = indicators.find((ind) => ind.id === consInd.indicatorId);
         if (!indicator) return null;
@@ -90,71 +117,53 @@ export function ConsolidatedIndicatorsTable({
           userResponse,
         };
       })
-      .filter((item): item is TableRow => item !== null)
-      .sort((a, b) => {
-        // Ordenar: primero los originales del usuario
-        if (a.userResponse.isOriginal === b.userResponse.isOriginal) {
-          return 0;
-        }
-        return a.userResponse.isOriginal ? -1 : 1;
-      });
+      .filter((item): item is TableRow => item !== null);
+
+    const original = allData.filter(item => item.userResponse.isOriginal);
+    const newOnes = allData.filter(item => !item.userResponse.isOriginal);
+
+    return { originalIndicators: original, newIndicators: newOnes };
   }, [consolidatedIndicators, indicators, userResponses]);
 
   // Definir columnas
   const columns = useMemo<ColumnDef<TableRow>[]>(
     () => [
       {
-        id: "expander",
-        header: () => null,
-        cell: ({ row }) => {
-          return row.getCanExpand() ? (
-            <button
-              onClick={row.getToggleExpandedHandler()}
-              className="cursor-pointer p-1 hover:bg-slate-100 rounded"
-              aria-label={row.getIsExpanded() ? "Colapsar" : "Expandir"}
-            >
-              <svg
-                className={`w-4 h-4 text-slate-600 transition-transform ${
-                  row.getIsExpanded() ? "rotate-90" : ""
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-          ) : null;
-        },
-        size: 40,
+        id: "detalle",
+        header: "Detalle",
+        cell: ({ row }) => (
+          <button
+            onClick={row.getToggleExpandedHandler()}
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
+          >
+            {row.getIsExpanded() ? "Ocultar" : "Ver detalle"}
+          </button>
+        ),
+        size: 100,
       },
       {
         accessorKey: "indicator.name",
         header: "Indicador",
         cell: ({ row }) => {
           const indicator = row.original.indicator;
-          const isOriginal = row.original.userResponse.isOriginal;
           return (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 text-sm">
-                  {indicator.name}
-                </span>
-                {!isOriginal && (
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 whitespace-nowrap">
-                    Nuevo
+            <div className="flex items-center gap-2">
+              {/* Nombre del indicador con tooltip */}
+              <span 
+                className="font-medium text-slate-900 text-sm fast-tooltip"
+                title={indicator.description || undefined}
+              >
+                {indicator.name}
+                {getIndicatorScale(indicator.name) && (
+                  <span className="text-slate-500 font-normal ml-2">
+                    ({getIndicatorScale(indicator.name)})
                   </span>
                 )}
-              </div>
+              </span>
             </div>
           );
         },
-        size: 250,
+        size: 290,
       },
       {
         accessorKey: "userResponse.weight",
@@ -233,23 +242,6 @@ export function ConsolidatedIndicatorsTable({
         sortingFn: "auto",
       },
       {
-        id: "groupWeights",
-        header: "Pesos Grupo",
-        cell: ({ row }) => {
-          const weights = row.original.consolidatedData.weights;
-          const count = row.original.consolidatedData.count;
-          return (
-            <button
-              onClick={row.getToggleExpandedHandler()}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
-            >
-              Ver ({count})
-            </button>
-          );
-        },
-        size: 120,
-      },
-      {
         accessorKey: "userResponse.threshold",
         header: "Tu Umbral",
         cell: ({ row }) => {
@@ -275,8 +267,23 @@ export function ConsolidatedIndicatorsTable({
     [allUserResponses, onWeightChange, onThresholdChange]
   );
 
-  const table = useReactTable({
-    data: tableData,
+  const originalTable = useReactTable({
+    data: originalIndicators,
+    columns,
+    state: {
+      sorting,
+      expanded,
+    },
+    onSortingChange: setSorting,
+    onExpandedChange: setExpanded,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getRowCanExpand: () => true,
+  });
+
+  const newTable = useReactTable({
+    data: newIndicators,
     columns,
     state: {
       sorting,
@@ -291,77 +298,167 @@ export function ConsolidatedIndicatorsTable({
   });
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider"
-                    style={{ width: header.getSize() }}
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={
-                          header.column.getCanSort()
-                            ? "cursor-pointer select-none flex items-center gap-2 hover:text-slate-900"
-                            : ""
-                        }
-                        onClick={header.column.getToggleSortingHandler()}
+    <div className="space-y-6">
+      <style>{tooltipStyles}</style>
+      
+      {/* Sección de indicadores originales */}
+      {originalIndicators.length > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+            <h3 className="text-sm font-semibold text-blue-900">
+              Tus indicadores seleccionados
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                {originalTable.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider"
+                        style={{ width: header.getSize() }}
                       >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={
+                              header.column.getCanSort()
+                                ? "cursor-pointer select-none flex items-center gap-2 hover:text-slate-900"
+                                : ""
+                            }
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {header.column.getCanSort() && (
+                              <span className="text-slate-400">
+                                {{
+                                  asc: "↑",
+                                  desc: "↓",
+                                }[header.column.getIsSorted() as string] ?? "↕"}
+                              </span>
+                            )}
+                          </div>
                         )}
-                        {header.column.getCanSort() && (
-                          <span className="text-slate-400">
-                            {{
-                              asc: "↑",
-                              desc: "↓",
-                            }[header.column.getIsSorted() as string] ?? "↕"}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-3 text-sm text-slate-700"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {row.getIsExpanded() && (
-                  <tr>
-                    <td colSpan={columns.length} className="bg-blue-50 px-4 py-4">
-                      <ExpandedRowContent row={row.original} />
-                    </td>
+                      </th>
+                    ))}
                   </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {originalTable.getRowModel().rows.map((row) => (
+                  <Fragment key={row.id}>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-4 py-3 text-sm text-slate-700"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                    {row.getIsExpanded() && (
+                      <tr>
+                        <td colSpan={columns.length} className="bg-blue-50 px-4 py-4">
+                          <ExpandedRowContent row={row.original} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-      {tableData.length === 0 && (
-        <div className="p-8 text-center text-slate-500">
+      {/* Sección de indicadores nuevos */}
+      {newIndicators.length > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <div className="bg-purple-50 border-b border-purple-200 px-4 py-3">
+            <h3 className="text-sm font-semibold text-purple-900">
+              Indicadores seleccionados por otros expertos
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                {newTable.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider"
+                        style={{ width: header.getSize() }}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={
+                              header.column.getCanSort()
+                                ? "cursor-pointer select-none flex items-center gap-2 hover:text-slate-900"
+                                : ""
+                            }
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {header.column.getCanSort() && (
+                              <span className="text-slate-400">
+                                {{
+                                  asc: "↑",
+                                  desc: "↓",
+                                }[header.column.getIsSorted() as string] ?? "↕"}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {newTable.getRowModel().rows.map((row) => (
+                  <Fragment key={row.id}>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-4 py-3 text-sm text-slate-700"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                    {row.getIsExpanded() && (
+                      <tr>
+                        <td colSpan={columns.length} className="bg-blue-50 px-4 py-4">
+                          <ExpandedRowContent row={row.original} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {originalIndicators.length === 0 && newIndicators.length === 0 && (
+        <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
           No hay indicadores para mostrar
         </div>
       )}
@@ -375,20 +472,10 @@ function ExpandedRowContent({ row }: { row: TableRow }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Descripción del indicador */}
-      {indicator.description && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-slate-900">Descripción</h4>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {indicator.description}
-          </p>
-        </div>
-      )}
-
       {/* Ponderaciones individuales */}
       <div className="space-y-2">
         <h4 className="text-sm font-semibold text-slate-900">
-          Ponderaciones individuales de otros expertos
+          Ponderaciones individuales de otros expertos ({consolidatedData.count} respuestas)
         </h4>
         <div className="flex flex-wrap gap-2">
           {consolidatedData.weights.map((weight, index) => (
@@ -423,18 +510,6 @@ function ExpandedRowContent({ row }: { row: TableRow }) {
               </span>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Escala del indicador */}
-      {getIndicatorScale(indicator.name) && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-slate-900">
-            Escala del indicador
-          </h4>
-          <p className="text-sm text-slate-600">
-            {getIndicatorScale(indicator.name)}
-          </p>
         </div>
       )}
     </div>

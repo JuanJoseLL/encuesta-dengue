@@ -8,7 +8,6 @@ import type { Indicator } from "@/domain/models";
 import { getIndicatorThreshold } from "@/domain/constants";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
 import { ConsolidatedIndicatorsTable } from "./components/ConsolidatedIndicatorsTable";
-import { PivotIndicatorsTable } from "./components/PivotIndicatorsTable";
 
 interface SecondIterationPageParams {
   token: string;
@@ -64,7 +63,6 @@ export default function SecondIterationStrategyPage({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [reviewedProgress, setReviewedProgress] = useState(0);
   const [isStrategyReviewed, setIsStrategyReviewed] = useState(false);
-  const [showExcelModal, setShowExcelModal] = useState(false);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadedStrategyIdRef = useRef<string | null>(null);
@@ -626,33 +624,13 @@ export default function SecondIterationStrategyPage({
 
         {/* Indicators Table */}
         <div className="space-y-4">
-          {/* Header y Botón Excel */}
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
-                Indicadores propuestos por usted y el grupo en la primera iteración
-              </h2>
-              <p className="text-sm text-slate-600">
-                Revise y ajuste sus ponderaciones y umbrales basándose en el promedio del grupo.
-                Haga clic en "Ver" para expandir los detalles de cada indicador.
-              </p>
-            </div>
-
-            {/* Botón Vista Excel */}
-            <div className="flex items-center justify-end">
-              <button
-                onClick={() => setShowExcelModal(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                </svg>
-                📊 Abrir Vista Excel (Pantalla Completa)
-              </button>
-            </div>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              Indicadores propuestos por usted y el grupo en la primera iteración
+            </h2>
+            
           </div>
 
-          {/* Vista Compacta (siempre visible) */}
           <ConsolidatedIndicatorsTable
             indicators={allIndicators}
             consolidatedIndicators={consolidatedIndicators}
@@ -861,79 +839,6 @@ export default function SecondIterationStrategyPage({
                       : "Completar revisión"
                   }
                 </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Vista Excel - Pantalla Completa */}
-        {showExcelModal && (
-          <div className="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-sm">
-            <div className="h-full flex flex-col">
-              {/* Header del Modal */}
-              <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                    </svg>
-                    <div>
-                      <h2 className="text-lg font-bold">Vista Excel - Pantalla Completa</h2>
-                      <p className="text-sm text-green-100">
-                        Compare todas las ponderaciones horizontalmente. Los cambios se guardan automáticamente.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowExcelModal(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                    aria-label="Cerrar"
-                  >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Contenido del Modal - Tabla Excel */}
-              <div className="flex-1 overflow-hidden bg-white">
-                <div className="h-full px-4 py-6 overflow-auto">
-                  <PivotIndicatorsTable
-                    indicators={allIndicators}
-                    consolidatedIndicators={consolidatedIndicators}
-                    userResponses={userResponses}
-                    onWeightChange={handleWeightChange}
-                    onThresholdChange={handleThresholdChange}
-                    allUserResponses={userResponses}
-                  />
-                </div>
-              </div>
-
-              {/* Footer del Modal */}
-              <div className="bg-slate-100 border-t border-slate-300 px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span>Promedio del grupo</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span>Tu ponderación</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                      <span>Tu umbral</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowExcelModal(false)}
-                    className="px-6 py-2 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
-                  >
-                    Cerrar Vista Excel
-                  </button>
-                </div>
               </div>
             </div>
           </div>
