@@ -209,7 +209,7 @@ export function ConsolidatedIndicatorsTable({
             </div>
           );
         },
-        size: 120,
+        size: 140,
         sortingFn: "auto",
       },
       {
@@ -238,7 +238,7 @@ export function ConsolidatedIndicatorsTable({
             </div>
           );
         },
-        size: 150,
+        size: 180,
         sortingFn: "auto",
       },
       {
@@ -261,7 +261,7 @@ export function ConsolidatedIndicatorsTable({
             />
           );
         },
-        size: 200,
+        size: 250,
       },
     ],
     [allUserResponses, onWeightChange, onThresholdChange]

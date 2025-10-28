@@ -109,67 +109,70 @@ export function ConsolidatedIndicatorCard({
       </div>
 
       {/* Estadísticas consolidadas */}
-      <div className="rounded-md bg-blue-50 p-4 space-y-3">
+      <div className="rounded-md bg-blue-50 p-4 space-y-4">
         {/* Información general */}
         <div className="text-xs text-slate-600 pb-2 border-b border-blue-200">
           {consolidatedData.count} experto(s)
           {isOriginal ? " incluyéndolo a usted," : ""} seleccionaron este indicador
         </div>
 
-        {/* Sección de Pesos */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="flex-shrink-0 w-1 h-4 bg-green-500 rounded-full"></div>
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-              Ponderaciones
-            </h4>
-          </div>
-          
-          <div className="pl-4 space-y-1.5">
-            <div className="text-xs text-slate-700">
-              <span className="font-medium">Pesos individuales de otros expertos:</span>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {consolidatedData.weights.map((weight, index) => (
-                  <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium text-[11px]">
-                    {weight}%
-                  </span>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex items-baseline gap-2 pt-1">
-              <span className="text-xs font-medium text-slate-700">Promedio del grupo:</span>
-              <span className="text-lg font-bold text-green-700">
-                {normalizedPercentage.toFixed(2)}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Sección de Umbrales */}
-        {consolidatedData.thresholds.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-blue-200">
+        {/* Layout horizontal para separar Pesos y Umbrales */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
+          {/* Sección de Pesos */}
+          <div className="space-y-2 lg:max-w-[55%]">
             <div className="flex items-center gap-2">
-              <div className="flex-shrink-0 w-1 h-4 bg-purple-500 rounded-full"></div>
+              <div className="flex-shrink-0 w-1 h-4 bg-green-500 rounded-full"></div>
               <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                Umbrales
+                Ponderaciones
               </h4>
             </div>
             
-            <div className="pl-4">
+            <div className="pl-4 space-y-1.5">
               <div className="text-xs text-slate-700">
-                <span className="font-medium">Umbrales propuestos por otros expertos:</span>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {consolidatedData.thresholds.map((threshold, index) => (
-                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium text-[11px]">
-                      {threshold}
+                <span className="font-medium">Pesos individuales de otros expertos:</span>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {consolidatedData.weights.map((weight, index) => (
+                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium text-[11px]">
+                      {weight}%
                     </span>
                   ))}
                 </div>
               </div>
+              
+              <div className="flex items-baseline gap-2 pt-1">
+                <span className="text-xs font-medium text-slate-700">Promedio del grupo:</span>
+                <span className="text-lg font-bold text-green-700">
+                  {normalizedPercentage.toFixed(2)}%
+                </span>
+              </div>
             </div>
           </div>
-        )}
+
+          {/* Sección de Umbrales alineada a la derecha */}
+          {consolidatedData.thresholds.length > 0 && (
+            <div className="space-y-2 lg:max-w-[45%] lg:ml-auto lg:text-right border-l-2 border-purple-200 pl-6 lg:pl-10">
+              <div className="flex items-center gap-2 lg:justify-end">
+                <div className="flex-shrink-0 w-1 h-4 bg-purple-500 rounded-full"></div>
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                  Umbrales
+                </h4>
+              </div>
+              
+              <div className="pl-4 lg:pl-0">
+                <div className="text-xs text-slate-700 lg:text-right">
+                  <span className="font-medium">Umbrales propuestos por otros expertos:</span>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5 lg:justify-end">
+                    {consolidatedData.thresholds.map((threshold, index) => (
+                      <span key={index} className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium text-[11px]">
+                        {threshold}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Input de peso del usuario */}
