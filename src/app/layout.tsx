@@ -18,6 +18,7 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
