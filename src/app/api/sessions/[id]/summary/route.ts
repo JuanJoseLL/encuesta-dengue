@@ -52,9 +52,14 @@ export async function GET(
       responsesByStrategy.set(strategyId, [...existing, response]);
     }
 
+    // Get skipped strategies from metadata
+    const metadata = (session.metadata as any) || {};
+    const skippedStrategies = metadata.skippedStrategies || [];
+
     // Build summary items
     const items = session.survey.strategies.map((strategy: any) => {
       const strategyResponses = responsesByStrategy.get(strategy.id) || [];
+      const isSkipped = skippedStrategies.includes(strategy.id);
 
       const totalWeight = strategyResponses.reduce(
         (sum: number, r: any) => sum + r.weight,
@@ -62,8 +67,11 @@ export async function GET(
       );
 
       let status: "complete" | "incomplete" | "not-applicable";
+      let evaluationMode: "weighted" | "skipped" = isSkipped ? "skipped" : "weighted";
 
-      if (strategyResponses.length === 0) {
+      if (isSkipped) {
+        status = "complete"; // Skipped strategies are considered complete
+      } else if (strategyResponses.length === 0) {
         status = "not-applicable";
       } else if (Math.abs(totalWeight - 100) <= 0.01) {
         status = "complete";
@@ -80,6 +88,7 @@ export async function GET(
         strategyOrder: strategy.order,
         strategyAssociatedIndicators: strategy.associatedIndicators || [],
         status,
+        evaluationMode,
         totalWeight: Math.round(totalWeight * 100) / 100,
         indicatorCount: strategyResponses.length,
         indicators: strategyResponses.map((r: any) => ({

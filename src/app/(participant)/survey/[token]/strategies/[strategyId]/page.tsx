@@ -9,6 +9,7 @@ import type { Indicator } from "@/domain/models";
 import { StrategyHeader } from "./components/StrategyHeader";
 import { IndicatorSelector } from "./components/IndicatorSelector";
 import { WeightPanel } from "./components/WeightPanel";
+import { SkipStrategyToggle } from "./components/SkipStrategyToggle";
 import { useWeightManagement } from "./hooks/useWeightManagement";
 
 interface StrategyPageParams {
@@ -54,6 +55,9 @@ export default function StrategyWizardPage({
     setError,
     showWeightWarning,
     setShowWeightWarning,
+    evaluationMode,
+    setEvaluationMode,
+    handleToggleEvaluationMode,
     userMadeChangesRef,
     handleToggleIndicator,
     handleWeightChange,
@@ -137,6 +141,11 @@ export default function StrategyWizardPage({
         setAvailableIndicators(indicatorsData.indicators);
 
         if (!userMadeChangesRef.current) {
+          // Load evaluation mode if present
+          if (currentItem.evaluationMode) {
+            setEvaluationMode(currentItem.evaluationMode);
+          }
+
           const savedWeights: Record<string, any> = {};
           (currentItem.indicators || []).forEach((ind: any) => {
             savedWeights[ind.indicatorId] = {
@@ -186,6 +195,7 @@ export default function StrategyWizardPage({
           strategyId,
           weights: payload,
           currentStrategyId: strategyId,
+          evaluationMode,
         }),
       });
 
@@ -203,7 +213,7 @@ export default function StrategyWizardPage({
     } finally {
       setSaving(false);
     }
-  }, [sessionId, weights, strategyId, setError]);
+  }, [sessionId, weights, strategyId, evaluationMode, setError]);
 
   // Autosave con debounce
   useEffect(() => {
@@ -229,7 +239,7 @@ export default function StrategyWizardPage({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [weights, sessionId, strategyId, saveChanges, isInitialLoad]);
+  }, [weights, evaluationMode, sessionId, strategyId, saveChanges, isInitialLoad]);
 
   // Mostrar warning automáticamente cuando hay indicadores sin peso
   useEffect(() => {
@@ -441,6 +451,12 @@ export default function StrategyWizardPage({
           </div>
         )}
 
+        {/* Skip Strategy Toggle */}
+        <SkipStrategyToggle
+          evaluationMode={evaluationMode}
+          onToggle={handleToggleEvaluationMode}
+        />
+
         {/* Main Content */}
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           {/* Left: Indicator Selector */}
@@ -501,6 +517,7 @@ export default function StrategyWizardPage({
             previousWeights={previousWeights}
             totalWeight={totalWeight}
             isValid={isValid}
+            evaluationMode={evaluationMode}
           />
         </div>
 

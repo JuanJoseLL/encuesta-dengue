@@ -3,6 +3,13 @@ export type IndicatorAllocation = {
   threshold: string | null;
 };
 
+export type StrategyEvaluationMode = "weighted" | "skipped";
+
+export type StrategyEvaluation = {
+  mode: StrategyEvaluationMode;
+  skipReason?: string;
+};
+
 export const createEmptyAllocation = (): IndicatorAllocation => ({
   weight: 0,
   threshold: null,

@@ -13,9 +13,9 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { strategyId, weights, currentStrategyId, autosave = true } = body;
-    
-    console.log("Draft save request:", { sessionId: id, strategyId, weightsCount: weights?.length });
+    const { strategyId, weights, currentStrategyId, autosave = true, evaluationMode = "weighted" } = body;
+
+    console.log("Draft save request:", { sessionId: id, strategyId, weightsCount: weights?.length, evaluationMode });
 
     // Validate session exists and is not submitted
     const session = await prisma.responseSession.findUnique({
@@ -50,8 +50,31 @@ export async function PATCH(
       );
     }
 
-    // Upsert responses (create or update)
-    if (weights && weights.length > 0) {
+    // Handle skipped strategies: update metadata
+    const currentMetadata = (session.metadata as any) || {};
+    const skippedStrategies = currentMetadata.skippedStrategies || [];
+
+    if (evaluationMode === "skipped") {
+      // Add to skipped list if not already there
+      if (!skippedStrategies.includes(strategyId)) {
+        skippedStrategies.push(strategyId);
+      }
+    } else {
+      // Remove from skipped list if it was skipped before
+      const index = skippedStrategies.indexOf(strategyId);
+      if (index > -1) {
+        skippedStrategies.splice(index, 1);
+      }
+    }
+
+    // Update metadata with skipped strategies
+    const updatedMetadata = {
+      ...currentMetadata,
+      skippedStrategies,
+    };
+
+    // Upsert responses (create or update) - only if not skipped
+    if (evaluationMode === "weighted" && weights && weights.length > 0) {
       for (const {
         indicatorId,
         weight,
@@ -101,6 +124,7 @@ export async function PATCH(
     }
 
     // Calculate progress (completed strategies / total strategies)
+    // Consider both weighted strategies and skipped strategies as complete
     const completedStrategies = await prisma.response.groupBy({
       by: ["strategyId"],
       where: {
@@ -119,7 +143,8 @@ export async function PATCH(
       },
     });
 
-    const progress = completedStrategies.length / session.survey.strategies.length;
+    const completedCount = completedStrategies.length + skippedStrategies.length;
+    const progress = completedCount / session.survey.strategies.length;
 
     // Update session
     const updatedSession = await prisma.responseSession.update({
@@ -128,6 +153,7 @@ export async function PATCH(
         progress,
         currentStrategyId: currentStrategyId || strategy.id,
         updatedAt: new Date(),
+        metadata: updatedMetadata,
       },
     });
 
@@ -140,6 +166,7 @@ export async function PATCH(
         payload: {
           weightsCount: weights?.length || 0,
           progress,
+          evaluationMode,
           timestamp: new Date().toISOString(),
         },
       },

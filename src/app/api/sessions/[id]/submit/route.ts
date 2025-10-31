@@ -46,6 +46,10 @@ export async function POST(
     // Esto permite que el experto "re-envíe" después de editar
     const isResubmission = session.status === "submitted";
 
+    // Get skipped strategies from metadata
+    const metadata = (session.metadata as any) || {};
+    const skippedStrategies = metadata.skippedStrategies || [];
+
     // Validate completeness
     const strategyWeights = new Map<string, number>();
 
@@ -58,9 +62,11 @@ export async function POST(
 
     for (const strategy of session.survey.strategies) {
       const totalWeight = strategyWeights.get(strategy.id) || 0;
+      const isSkipped = skippedStrategies.includes(strategy.id);
 
-      // Check if strategy is complete (sum = 100) or has no responses
-      if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.01) {
+      // Check if strategy is complete (sum = 100), skipped, or has no responses
+      // Skipped strategies are considered valid
+      if (!isSkipped && totalWeight > 0 && Math.abs(totalWeight - 100) > 0.01) {
         incompleteStrategies.push({
           id: strategy.id,
           title: strategy.metodo,
@@ -89,21 +95,22 @@ export async function POST(
       });
     }
 
-    // Update session to submitted
+    // Update session to submitted - preserve skippedStrategies in metadata
+    const updatedMetadata = {
+      ...metadata,
+      ...(notes && { notes }),
+      incompleteStrategies: incompleteStrategies.length,
+      acknowledgedIncomplete: acknowledgeIncomplete,
+      ...(role && { role }),
+    };
+
     const updatedSession = await prisma.responseSession.update({
       where: { id },
       data: {
         status: "submitted",
         completedAt: new Date(),
         progress: 1.0,
-        metadata: notes
-          ? {
-              notes,
-              incompleteStrategies: incompleteStrategies.length,
-              acknowledgedIncomplete: acknowledgeIncomplete,
-              role,
-            }
-          : role ? { role } : undefined,
+        metadata: updatedMetadata,
       },
     });
 
@@ -116,6 +123,7 @@ export async function POST(
           timestamp: new Date().toISOString(),
           totalStrategies: session.survey.strategies.length,
           completedStrategies: session.survey.strategies.length - incompleteStrategies.length,
+          skippedStrategies: skippedStrategies.length,
           incompleteStrategies: incompleteStrategies.length,
           acknowledgedIncomplete: acknowledgeIncomplete,
         },

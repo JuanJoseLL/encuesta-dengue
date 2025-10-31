@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import type { Indicator } from "@/domain/models";
-import type { IndicatorAllocation } from "../types";
+import type { IndicatorAllocation, StrategyEvaluationMode } from "../types";
 import { createEmptyAllocation, cloneAllocationState } from "../types";
 import { getIndicatorThreshold } from "@/domain/constants";
 
@@ -16,6 +16,7 @@ export function useWeightManagement(props?: UseWeightManagementProps) {
   const [previousWeights, setPreviousWeights] = useState<Record<string, IndicatorAllocation> | null>(null);
   const [error, setError] = useState("");
   const [showWeightWarning, setShowWeightWarning] = useState(false);
+  const [evaluationMode, setEvaluationMode] = useState<StrategyEvaluationMode>("weighted");
   const userMadeChangesRef = useRef(false);
 
   const handleToggleIndicator = useCallback((indicatorId: string) => {
@@ -171,11 +172,21 @@ export function useWeightManagement(props?: UseWeightManagementProps) {
   );
   const hasInvalidThresholds = indicatorsWithoutThreshold.length > 0;
 
+  // Toggle evaluation mode handler
+  const handleToggleEvaluationMode = useCallback((mode: StrategyEvaluationMode) => {
+    userMadeChangesRef.current = true;
+    setEvaluationMode(mode);
+    setError("");
+    setShowWeightWarning(false);
+  }, []);
+
+  // Validation logic updated to consider evaluation mode
   const isValid =
-    Math.abs(totalWeight - 100) < 0.1 &&
-    selectedIndicators.size > 0 &&
-    !hasIndicatorsWithoutWeight &&
-    !hasInvalidThresholds;
+    evaluationMode === "skipped" ||
+    (Math.abs(totalWeight - 100) < 0.1 &&
+      selectedIndicators.size > 0 &&
+      !hasIndicatorsWithoutWeight &&
+      !hasInvalidThresholds);
 
   return {
     selectedIndicators,
@@ -187,6 +198,9 @@ export function useWeightManagement(props?: UseWeightManagementProps) {
     setError,
     showWeightWarning,
     setShowWeightWarning,
+    evaluationMode,
+    setEvaluationMode,
+    handleToggleEvaluationMode,
     userMadeChangesRef,
     handleToggleIndicator,
     handleWeightChange,

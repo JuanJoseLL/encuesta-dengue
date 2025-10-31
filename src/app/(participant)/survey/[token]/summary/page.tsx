@@ -17,9 +17,10 @@ interface StrategySummary {
   strategyObjetivo?: string;
   strategyCodigo?: string;
   order: number;
-  status: "complete" | "incomplete" | "empty";
+  status: "complete" | "incomplete" | "empty" | "skipped";
   totalWeight: number;
   indicators: Array<{ id: string; name: string; weight: number }>;
+  evaluationMode?: "weighted" | "skipped";
 }
 
 export default function SurveySummaryPage({
@@ -75,12 +76,16 @@ export default function SurveySummaryPage({
 
         // Map items to strategy summaries
         const strategySummaries = (summary.items || []).map((item: any) => {
-          const status: "complete" | "incomplete" | "empty" =
-            item.status === "complete"
-              ? "complete"
-              : item.status === "not-applicable"
-              ? "empty"
-              : "incomplete";
+          // Check if strategy is skipped based on evaluationMode
+          const isSkipped = item.evaluationMode === "skipped";
+
+          const status: "complete" | "incomplete" | "empty" | "skipped" = isSkipped
+            ? "skipped"
+            : item.status === "complete"
+            ? "complete"
+            : item.status === "not-applicable"
+            ? "empty"
+            : "incomplete";
 
           return {
             strategyId: item.strategyId,
@@ -92,14 +97,15 @@ export default function SurveySummaryPage({
             status,
             totalWeight: item.totalWeight,
             indicators: item.indicators || [],
+            evaluationMode: item.evaluationMode || "weighted",
           };
         });
 
         setSummaries(strategySummaries);
 
-        // Verificar si todas las estrategias están completas
+        // Verificar si todas las estrategias están completas o omitidas
         const allComplete = strategySummaries.every(
-          (s: StrategySummary) => s.status === "complete"
+          (s: StrategySummary) => s.status === "complete" || s.status === "skipped"
         );
         setCanSubmit(allComplete);
       } catch (error) {
@@ -194,6 +200,9 @@ export default function SurveySummaryPage({
   const completedCount = summaries.filter(
     (s) => s.status === "complete"
   ).length;
+  const skippedCount = summaries.filter(
+    (s) => s.status === "skipped"
+  ).length;
   const incompleteCount = summaries.filter(
     (s) => s.status === "incomplete"
   ).length;
@@ -285,12 +294,18 @@ export default function SurveySummaryPage({
             </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="text-2xl font-bold text-green-600">
                 {completedCount}
               </div>
               <div className="text-sm text-slate-600">Completos</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="text-2xl font-bold text-blue-600">
+                {skippedCount}
+              </div>
+              <div className="text-sm text-slate-600">Omitidas</div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="text-2xl font-bold text-amber-600">
@@ -307,22 +322,22 @@ export default function SurveySummaryPage({
           </div>
 
           <ProgressBar
-            value={completedCount / summaries.length}
-            label={`Progreso: ${completedCount}/${summaries.length} completos`}
+            value={(completedCount + skippedCount) / summaries.length}
+            label={`Progreso: ${completedCount + skippedCount}/${summaries.length} evaluadas (${completedCount} ponderadas, ${skippedCount} omitidas)`}
           />
 
           {!canSubmit && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
               <strong>Atención:</strong> Antes de enviar, asegúrese de que todas
-              las estrategias estén diligenciadas y que los pesos asignados
-              sumen exactamente el 100% en cada una.
+              las estrategias estén diligenciadas (ponderadas u omitidas) y que los pesos asignados
+              sumen exactamente el 100% en cada una de las estrategias ponderadas.
             </div>
           )}
 
           {canSubmit && (
             <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
               <strong>Listo para enviar:</strong> Todas las estrategias están
-              completas. Puede revisar y enviar su encuesta.
+              completas (ponderadas u omitidas). Puede revisar y enviar su encuesta.
             </div>
           )}
         </header>
@@ -335,6 +350,8 @@ export default function SurveySummaryPage({
               className={`rounded-2xl border-2 bg-white p-6 shadow-sm ${
                 summary.status === "complete"
                   ? "border-green-200"
+                  : summary.status === "skipped"
+                  ? "border-blue-200"
                   : summary.status === "incomplete"
                   ? "border-amber-200"
                   : "border-slate-200"
@@ -375,6 +392,8 @@ export default function SurveySummaryPage({
                     className={`rounded-full px-4 py-1.5 text-xs font-semibold ${
                       summary.status === "complete"
                         ? "bg-green-100 text-green-700"
+                        : summary.status === "skipped"
+                        ? "bg-blue-100 text-blue-700"
                         : summary.status === "incomplete"
                         ? "bg-amber-100 text-amber-700"
                         : "bg-red-100 text-red-700"
@@ -382,6 +401,8 @@ export default function SurveySummaryPage({
                   >
                     {summary.status === "complete"
                       ? "Ponderación completa"
+                      : summary.status === "skipped"
+                      ? "Estrategia omitida (No experto)"
                       : summary.status === "incomplete"
                       ? "Pendiente incompleta"
                       : "Pendiente de ponderación"}
@@ -395,7 +416,34 @@ export default function SurveySummaryPage({
                 </div>
               </header>
 
-              {summary.indicators.length > 0 ? (
+              {summary.status === "skipped" ? (
+                <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <svg
+                      className="h-5 w-5 flex-shrink-0 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-blue-900">
+                        Estrategia omitida
+                      </p>
+                      <p className="mt-1 text-xs text-blue-700">
+                        El experto indicó que no se considera calificado para ponderar
+                        esta estrategia. No se requiere ponderación de indicadores.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : summary.indicators.length > 0 ? (
                 <div className="mt-4">
                   <table className="w-full text-sm">
                     <thead>

@@ -1,5 +1,5 @@
 import type { Indicator } from "@/domain/models";
-import type { IndicatorAllocation } from "../types";
+import type { IndicatorAllocation, StrategyEvaluationMode } from "../types";
 import { WeightSlider } from "./WeightSlider";
 
 interface WeightPanelProps {
@@ -16,6 +16,7 @@ interface WeightPanelProps {
   previousWeights: Record<string, IndicatorAllocation> | null;
   totalWeight: number;
   isValid: boolean;
+  evaluationMode: StrategyEvaluationMode;
 }
 
 export function WeightPanel({
@@ -32,14 +33,24 @@ export function WeightPanel({
   previousWeights,
   totalWeight,
   isValid,
+  evaluationMode,
 }: WeightPanelProps) {
   const remaining = 100 - totalWeight;
+  const isSkipped = evaluationMode === "skipped";
 
   return (
-    <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className={`sticky top-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${isSkipped ? "opacity-50 pointer-events-none" : ""}`}>
       <h2 className="text-lg font-semibold text-slate-900">
         Asignación de pesos ponderados
       </h2>
+
+      {isSkipped && (
+        <div className="mt-4 rounded-lg border border-slate-300 bg-slate-50 p-4">
+          <p className="text-sm text-slate-700">
+            <strong>Estrategia omitida:</strong> Ha marcado que no se considera experto en esta estrategia, por lo que no es necesario ponderar indicadores.
+          </p>
+        </div>
+      )}
 
       {/* Total Progress */}
       <div className="mt-4 rounded-lg bg-slate-50 p-4">
