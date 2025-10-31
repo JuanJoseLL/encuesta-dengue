@@ -15,9 +15,9 @@ interface StrategyHeaderProps {
   saving: boolean;
   lastSaved: Date | null;
   basePath?: string; // Nueva prop opcional para definir la ruta base
-  importanceRating: StrategyImportanceRating | null;
-  onRatingChange: (rating: StrategyImportanceRating) => void;
-  evaluationMode: StrategyEvaluationMode;
+  importanceRating?: StrategyImportanceRating | null;
+  onRatingChange?: (rating: StrategyImportanceRating) => void;
+  evaluationMode?: StrategyEvaluationMode;
 }
 
 export function StrategyHeader({
@@ -106,7 +106,7 @@ export function StrategyHeader({
         )}
 
         {/* Importance Rating - Only show if not skipped */}
-        {evaluationMode !== "skipped" && (
+        {evaluationMode !== "skipped" && onRatingChange && (
           <div className="mt-5 pt-5 border-t border-slate-200">
             <div className="space-y-3">
               <div>
