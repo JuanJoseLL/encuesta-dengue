@@ -128,7 +128,7 @@ export function StrategyHeader({
                 </h3>
                 <p className="mt-1 text-xs text-slate-600">
                   Indique qué tan eficiente o importante considera esta estrategia
-                  para la mitigación y/o control del dengue (0 = no es importante, 5 = extremadamente importante)
+                  para la mitigación y/o control del dengue (0 = no es importante, 5 = muy importante)
                 </p>
               </div>
 
