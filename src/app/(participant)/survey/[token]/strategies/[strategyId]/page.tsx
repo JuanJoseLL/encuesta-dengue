@@ -11,6 +11,7 @@ import { IndicatorSelector } from "./components/IndicatorSelector";
 import { WeightPanel } from "./components/WeightPanel";
 import { SkipStrategyToggle } from "./components/SkipStrategyToggle";
 import { useWeightManagement } from "./hooks/useWeightManagement";
+import type { StrategyImportanceRating as ImportanceRatingType } from "./types";
 
 interface StrategyPageParams {
   token: string;
@@ -40,6 +41,7 @@ export default function StrategyWizardPage({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [importanceRating, setImportanceRating] = useState<ImportanceRatingType | null>(null);
 
   const autosaveInitializedRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,6 +148,13 @@ export default function StrategyWizardPage({
             setEvaluationMode(currentItem.evaluationMode);
           }
 
+          // Load importance rating if present
+          if (currentItem.importanceRating !== undefined && currentItem.importanceRating !== null) {
+            setImportanceRating(currentItem.importanceRating);
+          } else {
+            setImportanceRating(null);
+          }
+
           const savedWeights: Record<string, any> = {};
           (currentItem.indicators || []).forEach((ind: any) => {
             savedWeights[ind.indicatorId] = {
@@ -196,6 +205,7 @@ export default function StrategyWizardPage({
           weights: payload,
           currentStrategyId: strategyId,
           evaluationMode,
+          importanceRating,
         }),
       });
 
@@ -239,7 +249,7 @@ export default function StrategyWizardPage({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [weights, evaluationMode, sessionId, strategyId, saveChanges, isInitialLoad]);
+  }, [weights, evaluationMode, importanceRating, sessionId, strategyId, saveChanges, isInitialLoad]);
 
   // Mostrar warning automáticamente cuando hay indicadores sin peso
   useEffect(() => {
@@ -404,6 +414,9 @@ export default function StrategyWizardPage({
             totalStrategies={strategies.length}
             saving={saving}
             lastSaved={lastSaved}
+            importanceRating={importanceRating}
+            onRatingChange={setImportanceRating}
+            evaluationMode={evaluationMode}
           />
 
           <ProgressBar

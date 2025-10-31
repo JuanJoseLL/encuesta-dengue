@@ -52,9 +52,10 @@ export async function GET(
       responsesByStrategy.set(strategyId, [...existing, response]);
     }
 
-    // Get skipped strategies from metadata
+    // Get skipped strategies and ratings from metadata
     const metadata = (session.metadata as any) || {};
     const skippedStrategies = metadata.skippedStrategies || [];
+    const strategyRatings = metadata.strategyRatings || {};
 
     // Build summary items
     const items = session.survey.strategies.map((strategy: any) => {
@@ -89,6 +90,7 @@ export async function GET(
         strategyAssociatedIndicators: strategy.associatedIndicators || [],
         status,
         evaluationMode,
+        importanceRating: strategyRatings[strategy.id] ?? null,
         totalWeight: Math.round(totalWeight * 100) / 100,
         indicatorCount: strategyResponses.length,
         indicators: strategyResponses.map((r: any) => ({

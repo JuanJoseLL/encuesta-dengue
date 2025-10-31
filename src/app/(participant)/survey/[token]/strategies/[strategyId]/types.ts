@@ -10,6 +10,8 @@ export type StrategyEvaluation = {
   skipReason?: string;
 };
 
+export type StrategyImportanceRating = 0 | 1 | 2 | 3 | 4 | 5;
+
 export const createEmptyAllocation = (): IndicatorAllocation => ({
   weight: 0,
   threshold: null,

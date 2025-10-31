@@ -26,12 +26,11 @@ export function SkipStrategyToggle({
             htmlFor="skip-strategy"
             className="block text-sm font-semibold text-slate-900 hover:cursor-pointer"
           >
-            No me considero experto en esta estrategia
+            No me considero experto o no puedo pronunciarme sobre esta estrategia
           </label>
           <p className="mt-1 text-xs text-slate-600">
-            Marque esta opción si no se siente calificado para ponderar los
-            indicadores de esta estrategia. Podrá continuar con las demás
-            estrategias sin problema.
+            Marque esta opción si considera que por alguna razón no puede pronunciarse sobre esta estrategia. Podrá continuar con las demás
+            estrategias sin marcar indicadores.
           </p>
           {isSkipped && (
             <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">

@@ -13,7 +13,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { strategyId, weights, currentStrategyId, autosave = true, evaluationMode = "weighted" } = body;
+    const { strategyId, weights, currentStrategyId, autosave = true, evaluationMode = "weighted", importanceRating } = body;
 
     console.log("Draft save request:", { sessionId: id, strategyId, weightsCount: weights?.length, evaluationMode });
 
@@ -50,27 +50,35 @@ export async function PATCH(
       );
     }
 
-    // Handle skipped strategies: update metadata
+    // Handle skipped strategies and importance ratings: update metadata
     const currentMetadata = (session.metadata as any) || {};
     const skippedStrategies = currentMetadata.skippedStrategies || [];
+    const strategyRatings = currentMetadata.strategyRatings || {};
 
     if (evaluationMode === "skipped") {
       // Add to skipped list if not already there
       if (!skippedStrategies.includes(strategyId)) {
         skippedStrategies.push(strategyId);
       }
+      // Remove rating for skipped strategies
+      delete strategyRatings[strategyId];
     } else {
       // Remove from skipped list if it was skipped before
       const index = skippedStrategies.indexOf(strategyId);
       if (index > -1) {
         skippedStrategies.splice(index, 1);
       }
+      // Update rating for weighted strategies (if provided)
+      if (importanceRating !== undefined && importanceRating !== null) {
+        strategyRatings[strategyId] = importanceRating;
+      }
     }
 
-    // Update metadata with skipped strategies
+    // Update metadata with skipped strategies and ratings
     const updatedMetadata = {
       ...currentMetadata,
       skippedStrategies,
+      strategyRatings,
     };
 
     // Upsert responses (create or update) - only if not skipped
@@ -167,6 +175,7 @@ export async function PATCH(
           weightsCount: weights?.length || 0,
           progress,
           evaluationMode,
+          importanceRating: importanceRating ?? null,
           timestamp: new Date().toISOString(),
         },
       },
