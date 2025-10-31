@@ -417,6 +417,7 @@ export default function StrategyWizardPage({
             importanceRating={importanceRating}
             onRatingChange={setImportanceRating}
             evaluationMode={evaluationMode}
+            onSaveRating={saveChanges}
           />
 
           <ProgressBar

@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       "respondent_role",
       "strategy_title",
       "strategy_order",
+      "importance_rating",
       "indicator_name",
       "indicator_domain",
       "weight",
@@ -58,7 +59,14 @@ export async function GET(request: NextRequest) {
     const rows: string[][] = [];
 
     sessions.forEach((session) => {
+      // Extract strategy ratings from metadata
+      const metadata = (session.metadata as any) || {};
+      const strategyRatings = metadata.strategyRatings || {};
+
       session.responses.forEach((response) => {
+        // Get importance rating for this strategy
+        const importanceRating = strategyRatings[response.strategyId];
+
         rows.push([
           session.respondentId,
           session.respondent?.name || "Anónimo",
@@ -66,6 +74,7 @@ export async function GET(request: NextRequest) {
           session.respondent?.role ?? "",
           response.strategy?.metodo ?? "",
           response.strategy?.order != null ? response.strategy.order.toString() : "",
+          importanceRating != null ? importanceRating.toString() : "",
           response.indicator?.name ?? "",
           response.indicator?.domain || "",
           response.weight != null ? response.weight.toString() : "",

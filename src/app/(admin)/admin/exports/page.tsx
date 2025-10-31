@@ -115,6 +115,7 @@ export default function AdminExportsPage() {
               <ul className="ml-4 list-disc space-y-1">
                 <li>ID de participante y rol</li>
                 <li>Estrategia e indicador seleccionado</li>
+                <li>Calificación de importancia (0-5)</li>
                 <li>Peso asignado (0-100)</li>
                 <li>Timestamp de respuesta</li>
               </ul>
@@ -147,6 +148,7 @@ export default function AdminExportsPage() {
               <ul className="ml-4 list-disc space-y-1">
                 <li>Detalle de participantes, roles y organizaciones</li>
                 <li>Estrategias e indicadores consolidados por sesión</li>
+                <li>Calificación de importancia por estrategia (0-5)</li>
                 <li>Peso otorgado por indicador (0-100)</li>
                 <li>Fechas de inicio, finalización y actualización</li>
               </ul>
@@ -206,8 +208,8 @@ export default function AdminExportsPage() {
             <div>
               <strong className="text-slate-900">Estructura del CSV:</strong>
               <pre className="mt-2 overflow-x-auto rounded-lg bg-white p-3 text-xs">
-respondent_id,role,strategy_id,indicator_id,weight,timestamp
-resp-001,epidemiologist,SCN-001,IND-001,25.0,2025-01-16T12:00:00Z
+respondent_id,role,strategy_title,importance_rating,indicator_name,weight,timestamp
+resp-001,epidemiologist,Estrategia ABC,5,Indicador XYZ,25.0,2025-01-16T12:00:00Z
               </pre>
             </div>
             <div>

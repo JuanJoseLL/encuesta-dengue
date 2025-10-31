@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState } from "react";
 import type { StrategyEvaluationMode, StrategyImportanceRating } from "../types";
 
 interface StrategyHeaderProps {
@@ -18,6 +19,7 @@ interface StrategyHeaderProps {
   importanceRating?: StrategyImportanceRating | null;
   onRatingChange?: (rating: StrategyImportanceRating) => void;
   evaluationMode?: StrategyEvaluationMode;
+  onSaveRating?: () => void; // Callback para guardar manualmente
 }
 
 export function StrategyHeader({
@@ -31,7 +33,10 @@ export function StrategyHeader({
   importanceRating,
   onRatingChange,
   evaluationMode,
+  onSaveRating,
 }: StrategyHeaderProps) {
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+
   const ratings: Array<{ value: StrategyImportanceRating; label: string }> = [
     { value: 0, label: "0" },
     { value: 1, label: "1" },
@@ -40,6 +45,14 @@ export function StrategyHeader({
     { value: 4, label: "4" },
     { value: 5, label: "5" },
   ];
+
+  const handleSaveClick = () => {
+    if (onSaveRating) {
+      onSaveRating();
+    }
+    setShowSaveConfirmation(true);
+    setTimeout(() => setShowSaveConfirmation(false), 2000);
+  };
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -119,31 +132,74 @@ export function StrategyHeader({
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                {ratings.map(({ value, label }) => (
-                  <label
-                    key={value}
-                    className={`flex items-center justify-center rounded-lg border-2 px-4 py-2 hover:cursor-pointer transition-all ${
-                      importanceRating === value
-                        ? "border-blue-600 bg-blue-50 text-blue-700 font-semibold"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50"
-                    }`}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {ratings.map(({ value, label }) => (
+                    <label
+                      key={value}
+                      className={`flex items-center justify-center rounded-lg border-2 px-4 py-2 hover:cursor-pointer transition-all ${
+                        importanceRating === value
+                          ? "border-blue-600 bg-blue-50 text-blue-700 font-semibold"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="importance-rating"
+                        value={value}
+                        checked={importanceRating === value}
+                        onChange={() => onRatingChange(value)}
+                        className="sr-only"
+                      />
+                      <span className="text-sm">{label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {importanceRating !== null && (
+                  <button
+                    onClick={handleSaveClick}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
-                    <input
-                      type="radio"
-                      name="importance-rating"
-                      value={value}
-                      checked={importanceRating === value}
-                      onChange={() => onRatingChange(value)}
-                      className="sr-only"
-                    />
-                    <span className="text-sm">{label}</span>
-                  </label>
-                ))}
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Confirmar calificación
+                  </button>
+                )}
               </div>
 
-              {importanceRating !== null && (
-                <div className="flex items-center gap-2 text-xs text-green-700">
+              {importanceRating !== null && !showSaveConfirmation && (
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <svg
+                    className="h-4 w-4 text-slate-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>Calificación seleccionada: {importanceRating}/5. Presione "Confirmar calificación" para guardar.</span>
+                </div>
+              )}
+
+              {showSaveConfirmation && (
+                <div className="flex items-center gap-2 text-xs text-green-700 animate-fade-in">
                   <svg
                     className="h-4 w-4 text-green-600"
                     fill="none"
@@ -157,7 +213,7 @@ export function StrategyHeader({
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>Calificación registrada: {importanceRating}/5</span>
+                  <span className="font-medium">¡Calificación guardada correctamente!</span>
                 </div>
               )}
             </div>

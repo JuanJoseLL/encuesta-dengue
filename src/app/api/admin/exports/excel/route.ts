@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       { header: "Rol", key: "respondent_role", width: 18 },
       { header: "Estrategia", key: "strategy_metodo", width: 32 },
       { header: "Orden Estrategia", key: "strategy_order", width: 18 },
+      { header: "Calificación Importancia", key: "importance_rating", width: 24 },
       { header: "Indicador", key: "indicator_name", width: 32 },
       { header: "Dominio", key: "indicator_domain", width: 22 },
       { header: "Peso", key: "weight", width: 10 },
@@ -70,7 +71,14 @@ export async function GET(request: NextRequest) {
       const isInProgress = session.status === "in_progress";
       const statusLabel = session.status === "submitted" ? "Completada" : "En Progreso";
 
+      // Extract strategy ratings from metadata
+      const metadata = (session.metadata as any) || {};
+      const strategyRatings = metadata.strategyRatings || {};
+
       session.responses.forEach((response) => {
+        // Get importance rating for this strategy
+        const importanceRating = strategyRatings[response.strategyId] ?? null;
+
         const row = worksheet.addRow({
           session_status: statusLabel,
           respondent_id: session.respondentId,
@@ -79,6 +87,7 @@ export async function GET(request: NextRequest) {
           respondent_role: session.respondent?.role ?? "",
           strategy_metodo: response.strategy.metodo,
           strategy_order: response.strategy.order ?? null,
+          importance_rating: importanceRating !== null ? importanceRating : "",
           indicator_name: response.indicator.name,
           indicator_domain: response.indicator.domain || "",
           weight: response.weight ?? null,
