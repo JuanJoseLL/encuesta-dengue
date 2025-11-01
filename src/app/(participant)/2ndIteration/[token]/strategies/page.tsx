@@ -105,13 +105,12 @@ export default function SecondIterationStrategiesPage({
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">
-                Segunda Iteración - Revisión Colaborativa
+                Segunda Iteración - Revisión para consenso
               </h1>
               <p className="mt-2 text-slate-600">
-                Revise las respuestas consolidadas de todos los expertos y
-                ajuste sus ponderaciones si lo considera necesario. Puede
-                mantener su postura original o modificarla basándose en el
-                consenso del grupo.
+                Para cada indicador, podrá ver los pesos y umbrales que consignaron los demás expertos en la 
+                iteración 1. Si es del caso, puede usarlos para reconsiderar el peso y umbral que usted consignó, 
+                recordando que el objetivo es lograr avanzar hacia pesos y umbrales que confluyan por consenso.
               </p>
               <p className="mt-1 text-sm italic text-slate-500">
                 Usuario: <strong>{respondentEmail}</strong>
@@ -155,8 +154,7 @@ export default function SecondIterationStrategiesPage({
               <p className="text-base leading-relaxed text-indigo-50">
                 En esta segunda iteración, podrá <strong className="font-bold text-white">ver todos los indicadores</strong> que
                 fueron seleccionados por al menos un experto para cada
-                estrategia, en la iteración anterior. Además, <strong className="font-bold text-white">revise el valor que asignó y decida si lo ajusta o lo deja igual,</strong> así como el
-                promedio del grupo. Es decir, la idea es <strong className="font-bold text-white">avanzar hacia un consenso final</strong>. Los cambios se guardan automáticamente en una copia
+                estrategia, en la iteración anterior. Además, <strong className="font-bold text-white">revise el valor que asignó y decida si lo ajusta o lo deja igual.</strong> Es decir, la idea es <strong className="font-bold text-white">avanzar hacia un consenso final</strong>. Los cambios se guardan automáticamente en una copia
                 separada de sus respuestas iniciales, por trazabilidad.
               </p>
             </div>
