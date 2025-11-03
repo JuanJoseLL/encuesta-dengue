@@ -454,7 +454,7 @@ export default function SecondIterationStrategyPage({
   const proceedToComplete = async () => {
     try {
       setShowConfirmModal(false);
-      
+
       if (hasUnsavedChanges) {
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
@@ -470,8 +470,57 @@ export default function SecondIterationStrategyPage({
 
       loadedStrategyIdRef.current = null;
 
-      // Redirigir al listado de estrategias
-      router.push(`/2ndIteration/${token}/strategies`);
+      // Buscar la siguiente estrategia no revisada
+      const currentStrategyIndex = strategies.findIndex((s) => s.id === strategyId);
+
+      // Buscar la siguiente estrategia después de la actual
+      let nextStrategy = null;
+      for (let i = currentStrategyIndex + 1; i < strategies.length; i++) {
+        // Verificar el estado real de la estrategia
+        const progressResponse = await fetch(
+          `/api/second-iteration/progress?sessionId=${sessionId}`
+        );
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json();
+          const strategyStatus = progressData.strategies.find(
+            (s: any) => s.strategyId === strategies[i].id
+          );
+
+          // Si la estrategia no está revisada, es la siguiente
+          if (strategyStatus && strategyStatus.status !== "reviewed") {
+            nextStrategy = strategies[i];
+            break;
+          }
+        }
+      }
+
+      // Si no hay siguiente estrategia, volver al inicio y buscar
+      if (!nextStrategy) {
+        for (let i = 0; i < currentStrategyIndex; i++) {
+          const progressResponse = await fetch(
+            `/api/second-iteration/progress?sessionId=${sessionId}`
+          );
+          if (progressResponse.ok) {
+            const progressData = await progressResponse.json();
+            const strategyStatus = progressData.strategies.find(
+              (s: any) => s.strategyId === strategies[i].id
+            );
+
+            if (strategyStatus && strategyStatus.status !== "reviewed") {
+              nextStrategy = strategies[i];
+              break;
+            }
+          }
+        }
+      }
+
+      // Si hay una siguiente estrategia, redirigir a ella
+      if (nextStrategy) {
+        router.push(`/2ndIteration/${token}/strategies/${nextStrategy.id}`);
+      } else {
+        // Si no hay más estrategias pendientes, redirigir al listado
+        router.push(`/2ndIteration/${token}/strategies`);
+      }
     } catch (error) {
       console.error("Error during completion:", error);
       setError("Error al guardar antes de completar");

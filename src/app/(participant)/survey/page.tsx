@@ -332,7 +332,7 @@ export default function SurveyLoginPage() {
 
         {/* Help */}
         <div className="text-center text-sm text-slate-500">
-          ¿Problemas para acceder? Contacta al equipo de investigación
+          ¿Problemas para acceder? Comuníquese a través del grupo de WhatsApp de apoyo de la herramienta
         </div>
       </div>
     </main>

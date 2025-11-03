@@ -96,6 +96,7 @@ export default function SecondIterationStrategiesPage({
   }
 
   const completedCount = strategies.filter((s) => s.completed).length;
+  const allCompleted = completedCount === strategies.length && strategies.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
@@ -108,8 +109,8 @@ export default function SecondIterationStrategiesPage({
                 Segunda Iteración - Revisión para consenso
               </h1>
               <p className="mt-2 text-slate-600">
-                Para cada indicador, podrá ver los pesos y umbrales que consignaron los demás expertos en la 
-                iteración 1. Si es del caso, puede usarlos para reconsiderar el peso y umbral que usted consignó, 
+                Para cada indicador, podrá ver los pesos y umbrales que consignaron los demás expertos en la
+                iteración 1. Si es del caso, puede usarlos para reconsiderar el peso y umbral que usted consignó,
                 recordando que el objetivo es lograr avanzar hacia pesos y umbrales que confluyan por consenso.
               </p>
               <p className="mt-1 text-sm italic text-slate-500">
@@ -117,7 +118,7 @@ export default function SecondIterationStrategiesPage({
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-600">
+              <div className={`text-3xl font-bold ${allCompleted ? 'text-green-600' : 'text-blue-600'}`}>
                 {completedCount}/{strategies.length}
               </div>
               <div className="text-sm text-slate-600">revisadas</div>
@@ -128,6 +129,47 @@ export default function SecondIterationStrategiesPage({
             label={`Progreso: ${Math.round(progress * 100)}%`}
           />
         </header>
+
+        {/* Completion Banner */}
+        {allCompleted && (
+          <div className="rounded-2xl border-2 border-green-600 bg-gradient-to-br from-green-50 to-emerald-50 p-8 shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                  <svg
+                    className="h-7 w-7 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-green-900 mb-2">
+                  ¡Revisión completada!
+                </h3>
+                <p className="text-base leading-relaxed text-green-800 mb-4">
+                  Ha revisado exitosamente las <strong>{strategies.length} estrategias</strong>.
+                  Todas sus respuestas han sido guardadas automáticamente durante el proceso.
+                </p>
+                <div className="rounded-lg bg-white/70 border border-green-200 p-4">
+                  <p className="text-sm text-green-900">
+                    <strong>¿Qué sigue?</strong> Puede seguir revisando las estrategias haciendo clic en
+                    cualquiera de ellas para ajustar sus respuestas. Los cambios se guardarán automáticamente.
+                    Gracias por su participación en este proceso de consenso.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info Card */}
         <div className="rounded-2xl border-2 border-indigo-700 bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 shadow-lg">
