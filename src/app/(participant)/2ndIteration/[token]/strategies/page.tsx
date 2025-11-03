@@ -32,6 +32,7 @@ export default function SecondIterationStrategiesPage({
   const [progress, setProgress] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [respondentEmail, setRespondentEmail] = useState<string>("");
+  const [skippedCount, setSkippedCount] = useState(0);
 
   useEffect(() => {
     async function loadProgress() {
@@ -77,6 +78,12 @@ export default function SecondIterationStrategiesPage({
 
         setStrategies(strategiesWithStatus);
         setProgress(progressData.progress);
+
+        // Calculate skipped strategies count
+        // Get all strategies from survey and subtract the ones available in second iteration
+        const totalSurveyStrategies = progressData.totalStrategiesInSurvey || progressData.totalStrategies;
+        const availableStrategies = progressData.totalStrategies;
+        setSkippedCount(totalSurveyStrategies - availableStrategies);
       } catch (error) {
         console.error("Error loading progress:", error);
       } finally {
@@ -166,6 +173,38 @@ export default function SecondIterationStrategiesPage({
                     Gracias por su participación en este proceso de consenso.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Skipped Strategies Banner */}
+        {skippedCount > 0 && (
+          <div className="rounded-2xl border-2 border-slate-300 bg-slate-50 p-6 shadow-sm">
+            <div className="flex items-start gap-3">
+              <svg
+                className="h-6 w-6 flex-shrink-0 text-slate-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900">
+                  Estrategias excluidas de esta iteración
+                </h3>
+                <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+                  Usted indicó en la primera iteración que no podía pronunciarse sobre{" "}
+                  <strong>{skippedCount} estrategia{skippedCount > 1 ? "s" : ""}</strong>.
+                  Por lo tanto, {skippedCount > 1 ? "estas estrategias no aparecen" : "esta estrategia no aparece"} en
+                  esta segunda iteración de consenso, ya que no participó en su evaluación inicial.
+                </p>
               </div>
             </div>
           </div>

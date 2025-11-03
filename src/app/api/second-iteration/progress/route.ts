@@ -42,6 +42,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get skipped strategies from metadata (primera iteración)
+    const metadata = (session.metadata as any) || {};
+    const skippedStrategies = metadata.skippedStrategies || [];
+
     // Obtener respuestas originales (primera iteración)
     const originalResponses = await prisma.response.findMany({
       where: { sessionId },
@@ -90,7 +94,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Calcular el estado de cada estrategia
-    const strategyStatuses = session.survey.strategies.map((strategy) => {
+    // Filtrar estrategias que fueron skipped en la primera iteración
+    const strategyStatuses = session.survey.strategies
+      .filter((strategy) => !skippedStrategies.includes(strategy.id))
+      .map((strategy) => {
       // Obtener respuestas de segunda iteración para esta estrategia
       const strategyResponses = secondIterationResponses.filter(
         (r) => r.strategyId === strategy.id && !r.excluded
@@ -170,11 +177,14 @@ export async function GET(request: NextRequest) {
     const reviewedCount = strategyStatuses.filter((s) => s.status === "reviewed").length;
     const modifiedCount = strategyStatuses.filter((s) => s.status === "modified").length;
     const totalStrategies = strategyStatuses.length;
+    const totalStrategiesInSurvey = session.survey.strategies.length;
     const progress = totalStrategies > 0 ? reviewedCount / totalStrategies : 0;
 
     return NextResponse.json({
       sessionId,
       totalStrategies,
+      totalStrategiesInSurvey,
+      skippedStrategiesCount: skippedStrategies.length,
       reviewedStrategies: reviewedCount,
       modifiedStrategies: modifiedCount,
       progress,
