@@ -77,14 +77,15 @@ export async function GET(request: NextRequest) {
         const progress = availableStrategies > 0 ? reviewedStrategies / availableStrategies : 0;
         const isCompleted = reviewedStrategies === availableStrategies && availableStrategies > 0;
 
-        // Get the most recent activity from second iteration responses
-        const mostRecentResponse = session.secondIterationResponses
-          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+        // Get the most recent activity from second iteration responses only
+        // Prioritize the most recent second iteration response update
+        const mostRecentResponse = session.secondIterationResponses.length > 0
+          ? session.secondIterationResponses
+              .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]
+          : null;
         
-        const lastActivity =
-          session.logs[0]?.timestamp ||
-          mostRecentResponse?.updatedAt ||
-          session.updatedAt;
+        // Use only second iteration activity, not session logs which may include first iteration activity
+        const lastActivity = mostRecentResponse?.updatedAt || session.updatedAt;
 
         return {
           id: session.id,
