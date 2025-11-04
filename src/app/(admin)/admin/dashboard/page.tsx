@@ -23,25 +23,49 @@ interface Stats {
   totalStrategies: number;
 }
 
+interface SecondIterationSession {
+  id: string;
+  respondentName: string;
+  respondentRole: string;
+  progress: number;
+  reviewedStrategies: number;
+  totalStrategies: number;
+  status: string;
+  lastActivity: string;
+}
+
+interface SecondIterationStats {
+  totalSessions: number;
+  completedSessions: number;
+  inProgressSessions: number;
+  completionRate: number;
+  averageReviewedStrategies: number;
+  totalStrategies: number;
+}
+
 const SURVEY_ID = "survey-dengue-2025";
 
 export default function AdminDashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [secondIterationSessions, setSecondIterationSessions] = useState<SecondIterationSession[]>([]);
+  const [secondIterationStats, setSecondIterationStats] = useState<SecondIterationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        // Load sessions and stats in parallel
-        const [sessionsRes, statsRes] = await Promise.all([
+        // Load sessions and stats in parallel for both iterations
+        const [sessionsRes, statsRes, secondIterationSessionsRes, secondIterationStatsRes] = await Promise.all([
           fetch(`/api/admin/sessions?surveyId=${SURVEY_ID}`),
           fetch(`/api/admin/stats?surveyId=${SURVEY_ID}`),
+          fetch(`/api/admin/second-iteration/sessions?surveyId=${SURVEY_ID}`),
+          fetch(`/api/admin/second-iteration/stats?surveyId=${SURVEY_ID}`),
         ]);
 
         if (!sessionsRes.ok || !statsRes.ok) {
-          throw new Error("Failed to load data");
+          throw new Error("Failed to load first iteration data");
         }
 
         const sessionsData = await sessionsRes.json();
@@ -49,6 +73,15 @@ export default function AdminDashboardPage() {
 
         setSessions(sessionsData.sessions.slice(0, 5)); // Show only 5 recent
         setStats(statsData);
+
+        // Load second iteration data if available
+        if (secondIterationSessionsRes.ok && secondIterationStatsRes.ok) {
+          const secondIterationSessionsData = await secondIterationSessionsRes.json();
+          const secondIterationStatsData = await secondIterationStatsRes.json();
+
+          setSecondIterationSessions(secondIterationSessionsData.sessions.slice(0, 5)); // Show only 5 recent
+          setSecondIterationStats(secondIterationStatsData);
+        }
       } catch (err) {
         console.error("Error loading dashboard:", err);
         setError("Error al cargar el dashboard");
@@ -90,6 +123,11 @@ export default function AdminDashboardPage() {
             Gestiona encuestas, supervisa sesiones activas y exporta resultados consolidados
           </p>
         </header>
+
+        {/* First Iteration Section */}
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Primera Iteración</h2>
+        </div>
 
         {/* Stats Grid */}
         <section className="grid gap-4 sm:grid-cols-4">
@@ -251,8 +289,184 @@ export default function AdminDashboardPage() {
           )}
         </section>
 
+        {/* Second Iteration Section */}
+        {secondIterationStats && (
+          <>
+            <div className="border-t border-slate-200 pt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Segunda Iteración</h2>
+                <Link
+                  href="/admin/sessions/second-iteration"
+                  className="rounded-lg bg-purple-600 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-700 shadow-sm transition-colors"
+                >
+                  Ver Sesiones de Segunda Iteración →
+                </Link>
+              </div>
+            </div>
+
+            {/* Second Iteration Stats Grid */}
+            <section className="grid gap-4 sm:grid-cols-4">
+              <div className="rounded-2xl border border-purple-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Total Sesiones
+                </p>
+                <p className="mt-2 text-3xl font-bold text-slate-900">{secondIterationStats.totalSessions}</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {secondIterationStats.completedSessions} completadas
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-purple-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  En Progreso
+                </p>
+                <p className="mt-2 text-3xl font-bold text-purple-600">{secondIterationStats.inProgressSessions}</p>
+                <p className="mt-1 text-xs text-slate-600">Activas ahora</p>
+              </div>
+
+              <div className="rounded-2xl border border-purple-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Tasa de Completitud
+                </p>
+                <p className="mt-2 text-3xl font-bold text-green-600">
+                  {secondIterationStats.completionRate.toFixed(0)}%
+                </p>
+                <p className="mt-1 text-xs text-slate-600">Objetivo: ≥85%</p>
+              </div>
+
+              <div className="rounded-2xl border border-purple-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Estrategias Revisadas
+                </p>
+                <p className="mt-2 text-3xl font-bold text-purple-600">
+                  {secondIterationStats.averageReviewedStrategies.toFixed(1)}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">de {secondIterationStats.totalStrategies} estrategias</p>
+              </div>
+            </section>
+
+            {/* Second Iteration Survey Info */}
+            <section className="rounded-2xl border border-purple-200 bg-white p-8 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Segunda Iteración - Revisión para Consenso
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Revisión de ponderaciones de indicadores para avanzar hacia un consenso final
+                  </p>
+                  <div className="mt-4 flex gap-3 text-xs text-slate-500">
+                    <span className="rounded-full bg-purple-100 px-3 py-1 font-medium text-purple-700">
+                      Activa
+                    </span>
+                    <span>Iteración 2</span>
+                    <span>•</span>
+                    <span>{secondIterationStats.totalStrategies} estrategias</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Link
+                    href="/admin/sessions/second-iteration"
+                    className="rounded-lg border border-purple-200 bg-white px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50"
+                  >
+                    Ver todas las sesiones
+                  </Link>
+                  <Link
+                    href="/admin/exports"
+                    className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+                  >
+                    Exportar resultados
+                  </Link>
+                </div>
+              </div>
+            </section>
+
+            {/* Second Iteration Recent Sessions */}
+            <section className="rounded-2xl border border-purple-200 bg-white p-8 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Sesiones Recientes - Segunda Iteración</h2>
+                  <p className="mt-1 text-sm text-slate-600">Últimas actividades de revisión</p>
+                </div>
+                <Link
+                  href="/admin/sessions/second-iteration"
+                  className="text-sm font-medium text-purple-600 hover:underline"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+
+              {secondIterationSessions.length === 0 ? (
+                <div className="mt-6 text-center text-sm text-slate-500">
+                  No hay sesiones de segunda iteración aún. Los participantes comenzarán a aparecer aquí cuando accedan a la segunda iteración.
+                </div>
+              ) : (
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                        <th className="pb-3">Participante</th>
+                        <th className="pb-3">Rol</th>
+                        <th className="pb-3">Progreso</th>
+                        <th className="pb-3">Estado</th>
+                        <th className="pb-3">Última actividad</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {secondIterationSessions.map((session) => (
+                        <tr key={session.id} className="hover:bg-slate-50">
+                          <td className="py-4 font-medium text-slate-900">{session.respondentName}</td>
+                          <td className="py-4 text-slate-600">
+                            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">
+                              {session.respondentRole}
+                            </span>
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">
+                                <div
+                                  className="h-full bg-purple-600"
+                                  style={{
+                                    width: `${(session.reviewedStrategies / session.totalStrategies) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-slate-600">
+                                {session.reviewedStrategies}/{session.totalStrategies}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                session.status === "submitted"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              {session.status === "submitted" ? "Completada" : "En progreso"}
+                            </span>
+                          </td>
+                          <td className="py-4 text-slate-600">
+                            {new Date(session.lastActivity).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
         {/* Quick Actions */}
-        <section className="grid gap-4 sm:grid-cols-3">
+        <section className={`grid gap-4 ${secondIterationStats ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
             <h3 className="font-semibold text-slate-900">Analizar Resultados</h3>
             <p className="mt-2 text-sm text-slate-600">
@@ -278,6 +492,21 @@ export default function AdminDashboardPage() {
               Ver sesiones
             </Link>
           </div>
+
+          {secondIterationStats && (
+            <div className="rounded-2xl border border-dashed border-purple-300 bg-purple-50 p-6">
+              <h3 className="font-semibold text-slate-900">Segunda Iteración</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Revisa el progreso de la segunda iteración y sesiones de consenso
+              </p>
+              <Link
+                href="/admin/sessions/second-iteration"
+                className="mt-4 inline-block rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+              >
+                Ver sesiones →
+              </Link>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-dashed border-blue-300 bg-blue-50 p-6">
             <h3 className="font-semibold text-slate-900">Agregar Participantes</h3>
