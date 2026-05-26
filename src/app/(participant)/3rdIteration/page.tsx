@@ -1,0 +1,140 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { apiRoutes } from "@/lib/api/routes";
+import Image from "next/image";
+
+export default function ThirdIterationLoginPage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [respondent, setRespondent] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const checkRespondent = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email.trim()) {
+      setError("Por favor ingrese su correo electrónico");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/respondents/by-email?email=${encodeURIComponent(email)}`);
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "No se encontró un participante con este correo");
+      }
+
+      const data = await response.json();
+      setRespondent(data.respondent);
+      proceedToSurvey(data.respondent.token);
+    } catch (err: any) {
+      setError(err.message || "Error al verificar el correo");
+      setLoading(false);
+    }
+  };
+
+  const proceedToSurvey = async (token: string) => {
+    try {
+      const sessionResponse = await fetch(apiRoutes.sessionGet(token));
+
+      if (!sessionResponse.ok) {
+        throw new Error("No se pudo acceder a la sesión");
+      }
+
+      router.push(`/3rdIteration/${token}/strategies`);
+    } catch (err) {
+      setError("Error al acceder a la encuesta");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50 px-6 py-12">
+      <div className="mx-auto max-w-2xl space-y-8">
+        {/* Header */}
+        <div className="space-y-4 text-center">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/Logo Dengue-IA color negativo.png"
+              alt="Logo Dengue-IA Cali"
+              width={200}
+              height={100}
+              className="object-contain"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <h1 className="text-3xl font-bold text-slate-900">
+                Iteración 3: Ponderación de Indicadores
+              </h1>
+              <span className="inline-flex h-7 w-12 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">
+                3/3
+              </span>
+            </div>
+            <p className="text-base text-slate-600">
+              En esta etapa final, revisará las ponderaciones grupales y ajustará el peso que asigna a cada indicador para alcanzar el consenso definitivo en un grupo seleccionado de estrategias de respuesta al dengue en Cali.
+            </p>
+          </div>
+        </div>
+
+        {/* Email Input Card */}
+        {!respondent && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900">Acceso a la Encuesta</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Ingrese su correo electrónico para acceder a la tercera iteración de la encuesta.
+            </p>
+
+            <form onSubmit={checkRespondent} className="mt-6 space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                  Correo Electrónico
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ejemplo@correo.com"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  disabled={loading}
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Debe estar registrado previamente por el administrador
+                </p>
+              </div>
+
+              {error && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800">
+                  <strong>Error:</strong> {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={!email.trim() || loading}
+                className="w-full rounded-full bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? "Verificando..." : "Acceder"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Help */}
+        <div className="text-center text-sm text-slate-500">
+          ¿Problemas para acceder? Contacta al equipo de investigación
+        </div>
+      </div>
+    </main>
+  );
+}

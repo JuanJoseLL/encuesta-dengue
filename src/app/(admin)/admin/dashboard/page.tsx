@@ -43,6 +43,9 @@ interface SecondIterationStats {
   totalStrategies: number;
 }
 
+type ThirdIterationSession = SecondIterationSession;
+type ThirdIterationStats = SecondIterationStats;
+
 const SURVEY_ID = "survey-dengue-2025";
 
 export default function AdminDashboardPage() {
@@ -50,6 +53,8 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [secondIterationSessions, setSecondIterationSessions] = useState<SecondIterationSession[]>([]);
   const [secondIterationStats, setSecondIterationStats] = useState<SecondIterationStats | null>(null);
+  const [thirdIterationSessions, setThirdIterationSessions] = useState<ThirdIterationSession[]>([]);
+  const [thirdIterationStats, setThirdIterationStats] = useState<ThirdIterationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,11 +62,20 @@ export default function AdminDashboardPage() {
     async function loadData() {
       try {
         // Load sessions and stats in parallel for both iterations
-        const [sessionsRes, statsRes, secondIterationSessionsRes, secondIterationStatsRes] = await Promise.all([
+        const [
+          sessionsRes,
+          statsRes,
+          secondIterationSessionsRes,
+          secondIterationStatsRes,
+          thirdIterationSessionsRes,
+          thirdIterationStatsRes,
+        ] = await Promise.all([
           fetch(`/api/admin/sessions?surveyId=${SURVEY_ID}`),
           fetch(`/api/admin/stats?surveyId=${SURVEY_ID}`),
           fetch(`/api/admin/second-iteration/sessions?surveyId=${SURVEY_ID}`),
           fetch(`/api/admin/second-iteration/stats?surveyId=${SURVEY_ID}`),
+          fetch(`/api/admin/third-iteration/sessions?surveyId=${SURVEY_ID}`),
+          fetch(`/api/admin/third-iteration/stats?surveyId=${SURVEY_ID}`),
         ]);
 
         if (!sessionsRes.ok || !statsRes.ok) {
@@ -81,6 +95,15 @@ export default function AdminDashboardPage() {
 
           setSecondIterationSessions(secondIterationSessionsData.sessions.slice(0, 5)); // Show only 5 recent
           setSecondIterationStats(secondIterationStatsData);
+        }
+
+        // Load third iteration data if available
+        if (thirdIterationSessionsRes.ok && thirdIterationStatsRes.ok) {
+          const thirdIterationSessionsData = await thirdIterationSessionsRes.json();
+          const thirdIterationStatsData = await thirdIterationStatsRes.json();
+
+          setThirdIterationSessions(thirdIterationSessionsData.sessions.slice(0, 5)); // Show only 5 recent
+          setThirdIterationStats(thirdIterationStatsData);
         }
       } catch (err) {
         console.error("Error loading dashboard:", err);
@@ -428,6 +451,182 @@ export default function AdminDashboardPage() {
                                   className="h-full bg-purple-600"
                                   style={{
                                     width: `${(session.reviewedStrategies / session.totalStrategies) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-slate-600">
+                                {session.reviewedStrategies}/{session.totalStrategies}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                session.status === "submitted"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              {session.status === "submitted" ? "Completada" : "En progreso"}
+                            </span>
+                          </td>
+                          <td className="py-4 text-slate-600">
+                            {new Date(session.lastActivity).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* Third Iteration Section */}
+        {thirdIterationStats && thirdIterationStats.totalSessions > 0 && (
+          <>
+            <div className="border-t border-slate-200 pt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Tercera Iteración</h2>
+                <Link
+                  href="/admin/sessions/third-iteration"
+                  className="rounded-lg bg-teal-600 px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700 shadow-sm transition-colors"
+                >
+                  Ver Sesiones de Tercera Iteración →
+                </Link>
+              </div>
+            </div>
+
+            {/* Third Iteration Stats Grid */}
+            <section className="grid gap-4 sm:grid-cols-4">
+              <div className="rounded-2xl border border-teal-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Total Sesiones
+                </p>
+                <p className="mt-2 text-3xl font-bold text-slate-900">{thirdIterationStats.totalSessions}</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {thirdIterationStats.completedSessions} completadas
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-teal-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  En Progreso
+                </p>
+                <p className="mt-2 text-3xl font-bold text-teal-600">{thirdIterationStats.inProgressSessions}</p>
+                <p className="mt-1 text-xs text-slate-600">Activas ahora</p>
+              </div>
+
+              <div className="rounded-2xl border border-teal-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Tasa de Completitud
+                </p>
+                <p className="mt-2 text-3xl font-bold text-green-600">
+                  {thirdIterationStats.completionRate.toFixed(0)}%
+                </p>
+                <p className="mt-1 text-xs text-slate-600">Objetivo: ≥85%</p>
+              </div>
+
+              <div className="rounded-2xl border border-teal-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Estrategias Revisadas
+                </p>
+                <p className="mt-2 text-3xl font-bold text-teal-600">
+                  {thirdIterationStats.averageReviewedStrategies.toFixed(1)}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">de {thirdIterationStats.totalStrategies} estrategias</p>
+              </div>
+            </section>
+
+            {/* Third Iteration Survey Info */}
+            <section className="rounded-2xl border border-teal-200 bg-white p-8 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Tercera Iteración - Consenso Final
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Ajuste de ponderaciones (solo pesos) sobre un grupo seleccionado de estrategias para alcanzar el consenso definitivo
+                  </p>
+                  <div className="mt-4 flex gap-3 text-xs text-slate-500">
+                    <span className="rounded-full bg-teal-100 px-3 py-1 font-medium text-teal-700">
+                      Activa
+                    </span>
+                    <span>Iteración 3</span>
+                    <span>•</span>
+                    <span>{thirdIterationStats.totalStrategies} estrategias</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Link
+                    href="/admin/sessions/third-iteration"
+                    className="rounded-lg border border-teal-200 bg-white px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50"
+                  >
+                    Ver todas las sesiones
+                  </Link>
+                  <Link
+                    href="/admin/exports/third-iteration"
+                    className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+                  >
+                    Exportar resultados
+                  </Link>
+                </div>
+              </div>
+            </section>
+
+            {/* Third Iteration Recent Sessions */}
+            <section className="rounded-2xl border border-teal-200 bg-white p-8 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Sesiones Recientes - Tercera Iteración</h2>
+                  <p className="mt-1 text-sm text-slate-600">Últimas actividades de consenso final</p>
+                </div>
+                <Link
+                  href="/admin/sessions/third-iteration"
+                  className="text-sm font-medium text-teal-600 hover:underline"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+
+              {thirdIterationSessions.length === 0 ? (
+                <div className="mt-6 text-center text-sm text-slate-500">
+                  No hay sesiones de tercera iteración aún.
+                </div>
+              ) : (
+                <div className="mt-6 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                        <th className="pb-3">Participante</th>
+                        <th className="pb-3">Rol</th>
+                        <th className="pb-3">Progreso</th>
+                        <th className="pb-3">Estado</th>
+                        <th className="pb-3">Última actividad</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {thirdIterationSessions.map((session) => (
+                        <tr key={session.id} className="hover:bg-slate-50">
+                          <td className="py-4 font-medium text-slate-900">{session.respondentName}</td>
+                          <td className="py-4 text-slate-600">
+                            <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">
+                              {session.respondentRole}
+                            </span>
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">
+                                <div
+                                  className="h-full bg-teal-600"
+                                  style={{
+                                    width: `${session.totalStrategies > 0 ? (session.reviewedStrategies / session.totalStrategies) * 100 : 0}%`,
                                   }}
                                 />
                               </div>

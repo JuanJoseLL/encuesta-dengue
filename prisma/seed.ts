@@ -519,7 +519,7 @@ const strategies = [
     associatedIndicators: [1, 2, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 25, 34, 45, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 67],
   },
   {
-    metodo: "Aplicar larvicidas químicos en criaderos específicos de gran volumen donde no es viable eliminar el agua acumulada, como tanques o reservorios.",
+    metodo: "Aplicar larvicidas químicos en criaderos específicos donde no es viable eliminar el agua acumulada, como sumideros.",
     objetivo: "Reducir la supervivencia larvaria en depósitos que representan focos persistentes de reproducción del vector.",
     codigo: "Vector / Control químico / Larvas",
     order: 15,

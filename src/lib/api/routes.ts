@@ -32,4 +32,12 @@ export const apiRoutes = {
     `/api/second-iteration/strategy/${strategyId}/status?token=${encodeURIComponent(token)}`,
   secondIterationExport: (surveyId: string) =>
     `/api/second-iteration/export?surveyId=${encodeURIComponent(surveyId)}`,
+
+  // Third Iteration
+  thirdIterationConsolidated: (strategyId: string, sessionId?: string) => {
+    const baseUrl = `/api/third-iteration/consolidated/${strategyId}`;
+    return sessionId ? `${baseUrl}?sessionId=${encodeURIComponent(sessionId)}` : baseUrl;
+  },
+  thirdIterationUserResponses: (sessionId: string, strategyId: string) =>
+    `/api/third-iteration/session/${sessionId}/strategy/${strategyId}`,
 };
