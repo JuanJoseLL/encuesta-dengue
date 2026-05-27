@@ -68,6 +68,9 @@ interface TableRow {
   userResponse: UserResponse;
 }
 
+// Indicador que requiere una explicación enriquecida y siempre visible
+const PLUVIOSIDAD_INDICATOR_NAME = "Índice de pluviosidad (días previos)";
+
 interface ConsolidatedIndicatorsTableProps {
   indicators: Indicator[];
   consolidatedIndicators: ConsolidatedIndicator[];
@@ -87,7 +90,7 @@ export function ConsolidatedIndicatorsTable({
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   // Preparar datos para la tabla
-  const { originalIndicators, newIndicators } = useMemo(() => {
+  const { originalIndicators, newIndicators, hasPluviosidad } = useMemo(() => {
     const allData = consolidatedIndicators
       .map((consInd) => {
         const indicator = indicators.find((ind) => ind.id === consInd.indicatorId);
@@ -115,7 +118,11 @@ export function ConsolidatedIndicatorsTable({
     const original = allData.filter(item => item.userResponse.isOriginal);
     const newOnes = allData.filter(item => !item.userResponse.isOriginal);
 
-    return { originalIndicators: original, newIndicators: newOnes };
+    const hasPluviosidad = allData.some(
+      (item) => item.indicator.name === PLUVIOSIDAD_INDICATOR_NAME
+    );
+
+    return { originalIndicators: original, newIndicators: newOnes, hasPluviosidad };
   }, [consolidatedIndicators, indicators, userResponses]);
 
   // Definir columnas (sin columna de umbral)
@@ -263,6 +270,9 @@ export function ConsolidatedIndicatorsTable({
   return (
     <div className="space-y-6">
       <style>{tooltipStyles}</style>
+
+      {/* Explicación enriquecida y siempre visible para pluviosidad */}
+      {hasPluviosidad && <PluviosidadInfoCard />}
 
       {/* Sección de indicadores originales */}
       {originalIndicators.length > 0 && (
@@ -425,6 +435,66 @@ export function ConsolidatedIndicatorsTable({
           No hay indicadores para mostrar
         </div>
       )}
+    </div>
+  );
+}
+
+// Tarjeta de explicación enriquecida y siempre visible para el indicador de pluviosidad.
+// Se muestra porque los expertos han tenido dificultad para entender el contexto operativo
+// de este indicador climático específico.
+function PluviosidadInfoCard() {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      {/* Encabezado */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 pb-4">
+        <svg
+          className="h-6 w-6 flex-shrink-0 text-blue-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.8}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"
+          />
+        </svg>
+        <h3 className="text-xl font-bold text-slate-900">
+          Pluviosidad días previos
+        </h3>
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+          Indicador climático
+        </span>
+      </div>
+
+      {/* Qué mide */}
+      <div className="mt-5">
+        <p className="text-base text-slate-500">Qué mide</p>
+        <p className="mt-1 text-lg text-slate-900">
+          Precipitación acumulada en los últimos 7 días, en milímetros.
+        </p>
+      </div>
+
+      {/* Cuándo se activa */}
+      <div className="mt-5">
+        <p className="text-base text-slate-500">Cuándo se activa</p>
+        <p className="mt-1 text-lg text-slate-900">
+          Cuando la precipitación supera 30 mm acumulados en los últimos 7 días.
+        </p>
+      </div>
+
+      {/* Qué situación operativa implica */}
+      <div className="mt-5">
+        <p className="text-base text-slate-500">Qué situación operativa implica</p>
+        <div className="mt-2 rounded-r-md border-l-4 border-amber-400 bg-amber-50 px-5 py-4">
+          <p className="text-lg leading-relaxed text-slate-800">
+            Sumideros probablemente obstruidos, criaderos en formación, alta
+            probabilidad de seguir lloviendo, dificultad logística para brigadas
+            de campo, los químicos en spray se lavan rápidamente.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
