@@ -90,7 +90,7 @@ export function ConsolidatedIndicatorsTable({
   const [expanded, setExpanded] = useState<ExpandedState>({});
 
   // Preparar datos para la tabla
-  const { originalIndicators, newIndicators, hasPluviosidad } = useMemo(() => {
+  const { originalIndicators, newIndicators } = useMemo(() => {
     const allData = consolidatedIndicators
       .map((consInd) => {
         const indicator = indicators.find((ind) => ind.id === consInd.indicatorId);
@@ -118,11 +118,7 @@ export function ConsolidatedIndicatorsTable({
     const original = allData.filter(item => item.userResponse.isOriginal);
     const newOnes = allData.filter(item => !item.userResponse.isOriginal);
 
-    const hasPluviosidad = allData.some(
-      (item) => item.indicator.name === PLUVIOSIDAD_INDICATOR_NAME
-    );
-
-    return { originalIndicators: original, newIndicators: newOnes, hasPluviosidad };
+    return { originalIndicators: original, newIndicators: newOnes };
   }, [consolidatedIndicators, indicators, userResponses]);
 
   // Definir columnas (sin columna de umbral)
@@ -270,9 +266,6 @@ export function ConsolidatedIndicatorsTable({
   return (
     <div className="space-y-6">
       <style>{tooltipStyles}</style>
-
-      {/* Explicación enriquecida y siempre visible para pluviosidad */}
-      {hasPluviosidad && <PluviosidadInfoCard />}
 
       {/* Sección de indicadores originales */}
       {originalIndicators.length > 0 && (
@@ -502,7 +495,17 @@ function PluviosidadInfoCard() {
 // Componente para el contenido expandido (solo ponderaciones, sin umbrales)
 function ExpandedRowContent({ row }: { row: TableRow }) {
   const { consolidatedData } = row;
+  const isPluviosidad = row.indicator.name === PLUVIOSIDAD_INDICATOR_NAME;
 
+  return (
+    <div className="space-y-4">
+      {isPluviosidad && <PluviosidadInfoCard />}
+      <PonderacionesContent consolidatedData={consolidatedData} />
+    </div>
+  );
+}
+
+function PonderacionesContent({ consolidatedData }: { consolidatedData: TableRow["consolidatedData"] }) {
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-semibold text-slate-900">
