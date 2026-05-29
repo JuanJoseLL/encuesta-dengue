@@ -473,20 +473,10 @@ function PluviosidadInfoCard() {
       <div className="mt-5">
         <p className="text-base text-slate-500">Cuándo se activa</p>
         <p className="mt-1 text-lg text-slate-900">
-          Cuando la precipitación supera 30 mm acumulados en los últimos 7 días.
+          Este indicador se activa cuando la precipitación de la semana supera el
+          comportamiento histórico esperado para esa misma semana en ese barrio
+          (percentil 90 de los últimos 6 años).
         </p>
-      </div>
-
-      {/* Qué situación operativa implica */}
-      <div className="mt-5">
-        <p className="text-base text-slate-500">Qué situación operativa implica</p>
-        <div className="mt-2 rounded-r-md border-l-4 border-amber-400 bg-amber-50 px-5 py-4">
-          <p className="text-lg leading-relaxed text-slate-800">
-            Sumideros probablemente obstruidos, criaderos en formación, alta
-            probabilidad de seguir lloviendo, dificultad logística para brigadas
-            de campo, los químicos en spray se lavan rápidamente.
-          </p>
-        </div>
       </div>
     </div>
   );
