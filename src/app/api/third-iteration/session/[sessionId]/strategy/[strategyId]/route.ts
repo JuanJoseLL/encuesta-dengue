@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { isThirdIterationIndicator } from "@/domain/constants";
 
 /**
  * GET /api/third-iteration/session/[sessionId]/strategy/[strategyId]
@@ -25,14 +26,17 @@ export async function GET(
         where: { sessionId, strategyId, excluded: false },
       });
 
-      const createData = secondIterationResponses.map((r) => ({
-        sessionId,
-        strategyId,
-        indicatorId: r.indicatorId,
-        weight: r.weight,
-        excluded: false,
-        isOriginal: true, // proviene de la respuesta del propio usuario en la 2da iteración
-      }));
+      const createData = secondIterationResponses
+        // La tercera iteración solo trabaja un subconjunto de indicadores.
+        .filter((r) => isThirdIterationIndicator(r.indicatorId))
+        .map((r) => ({
+          sessionId,
+          strategyId,
+          indicatorId: r.indicatorId,
+          weight: r.weight,
+          excluded: false,
+          isOriginal: true, // proviene de la respuesta del propio usuario en la 2da iteración
+        }));
 
       if (createData.length > 0) {
         await prisma.thirdIterationResponse.createMany({ data: createData });

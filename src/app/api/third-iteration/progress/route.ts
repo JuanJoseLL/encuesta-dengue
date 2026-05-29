@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { isThirdIterationStrategy } from "@/domain/constants";
+import { isThirdIterationStrategy, isThirdIterationIndicator } from "@/domain/constants";
 
 /**
  * GET /api/third-iteration/progress?sessionId=[sessionId]
@@ -70,14 +70,20 @@ export async function GET(request: NextRequest) {
         select: { indicatorId: true },
         distinct: ["indicatorId"],
       });
-      strategyIndicatorCounts.set(strategy.id, distinctIndicators.length);
+      const eligibleIndicators = distinctIndicators.filter((d) =>
+        isThirdIterationIndicator(d.indicatorId)
+      );
+      strategyIndicatorCounts.set(strategy.id, eligibleIndicators.length);
     }
 
     const strategyStatuses = thirdIterationStrategies
       .filter((strategy) => !skippedStrategies.includes(strategy.id))
       .map((strategy) => {
         const strategyResponses = thirdIterationResponses.filter(
-          (r) => r.strategyId === strategy.id && !r.excluded
+          (r) =>
+            r.strategyId === strategy.id &&
+            !r.excluded &&
+            isThirdIterationIndicator(r.indicatorId)
         );
 
         const availableIndicatorCount = strategyIndicatorCounts.get(strategy.id) || 0;

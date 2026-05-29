@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { isThirdIterationIndicator } from "@/domain/constants";
 
 /**
  * GET /api/third-iteration/consolidated/[strategyId]?sessionId=[sessionId]
@@ -70,6 +71,10 @@ export async function GET(
 
     for (const response of responses) {
       const indicatorId = response.indicatorId;
+
+      // La tercera iteración solo trabaja un subconjunto de indicadores.
+      if (!isThirdIterationIndicator(indicatorId)) continue;
+
       const info = indicatorInfo.get(indicatorId);
       const indicatorName = info?.name || indicatorId;
       const indicatorDescription = info?.description ?? null;

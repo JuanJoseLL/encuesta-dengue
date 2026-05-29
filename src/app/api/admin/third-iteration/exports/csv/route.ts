@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { isThirdIterationIndicator } from "@/domain/constants";
 
 /**
  * GET /api/admin/third-iteration/exports/csv?surveyId=...
@@ -56,6 +57,9 @@ export async function GET(request: NextRequest) {
 
     sessions.forEach((session) => {
       session.thirdIterationResponses.forEach((response) => {
+        // La tercera iteración solo incluye un subconjunto de indicadores.
+        if (!isThirdIterationIndicator(response.indicatorId)) return;
+
         const strategy = strategyMap.get(response.strategyId);
         const indicator = indicatorMap.get(response.indicatorId);
 
