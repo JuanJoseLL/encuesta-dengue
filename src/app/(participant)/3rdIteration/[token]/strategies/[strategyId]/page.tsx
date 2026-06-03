@@ -7,6 +7,7 @@ import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator } from "@/domain/models";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
 import { ConsolidatedIndicatorsTable } from "./components/ConsolidatedIndicatorsTable";
+import { StrategyTimingBanner } from "./components/StrategyTimingBanner";
 
 interface ThirdIterationPageParams {
   token: string;
@@ -510,37 +511,8 @@ export default function ThirdIterationStrategyPage({
           />
         </header>
 
-        {/* Info banner */}
-        <div className="rounded-2xl border-2 border-indigo-700 bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 shadow-lg">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-6 w-6 text-indigo-100"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-white mb-2">
-                Consenso Final
-              </h3>
-              <p className="text-sm leading-relaxed text-indigo-50">
-                A continuación se muestran los indicadores con las <strong className="font-bold text-white">ponderaciones de cada
-                experto</strong> y el <strong className="font-bold text-white">promedio del grupo</strong> de la iteración anterior.
-                Ajuste sus pesos según considere. Recuerde que la idea es <strong className="font-bold text-white">alcanzar el consenso final</strong>.
-                (Los pesos deben sumar 100%).
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Info banner: encuadre + tiempo de la brigada + pregunta del peso */}
+        <StrategyTimingBanner codigo={strategy.codigo} />
 
         {/* Weight summary */}
         <div className="sticky top-0 z-9999 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

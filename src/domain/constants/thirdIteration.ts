@@ -65,3 +65,46 @@ export function isThirdIterationIndicator(indicatorId?: string | null): boolean 
   if (!indicatorId) return false;
   return THIRD_ITERATION_INDICATOR_ID_SET.has(indicatorId);
 }
+
+/**
+ * Tiempo estimado que le toma a la brigada respectiva poner cada estrategia en
+ * ejecución efectiva en terreno, una vez tomada la decisión de implementarla.
+ *
+ * Fuente: «19_Estrategias_definitivas.xlsx» (columna «Tiempo estimado para
+ * accionar la estrategia (En días)», valor provisto por Andrés). Se conserva el
+ * rango tal cual aparece en el archivo, normalizando únicamente el espaciado.
+ *
+ * Las estrategias se identifican por su `codigo` (ver prisma/seed.ts). El mapa
+ * incluye las 19 estrategias; en la tercera iteración solo se muestran las que
+ * estén en THIRD_ITERATION_STRATEGY_CODIGOS.
+ */
+export const STRATEGY_LEAD_TIME_BY_CODIGO: Record<string, string> = {
+  "Vector / Control químico / Adultos": "3 - 7 días",
+  "Vector / Control químico / Larvas": "3 - 7 días",
+  "Vector / Biológico / Larvas": "3 - 7 días",
+  "Vector / Biológico / Adultos": "14 - 21 días",
+  "Vector / Control físico / Larvas": "3 - 7 días",
+  "Vector / Control físico / Adultos": "7 - 14 días",
+  "Comunicación de riesgo / Comunitario": "3 - 7 días",
+  "Contacto / Protección individual": "3 - 7 días",
+  "Ambiental / Político": "14 - 21 días",
+  "Ambiental / Comunitario / Cultural": "3 - 7 días",
+  "Ambiental / Económico": ">30 días",
+  "Ambiental / Control físico": "3 - 7 días",
+  "Ambiental / Clima": "7 - 14 días",
+  "Ambiental / Social": "3 - 7 días",
+  "Susceptible / Prevención en el Huésped": "14 - 21 días",
+  "Reservorio / Reservorios humanos": "7 - 14 días",
+  "Gestión clínica / Institucional": "14 - 21 días",
+  "Coordinación / Intersectorial": "7 - 14 días",
+  "Vigilancia / Predicción / Clima": "3 - 7 días",
+};
+
+/**
+ * Tiempo estimado para accionar la estrategia (por `codigo`).
+ * Devuelve null si no hay un valor registrado para esa estrategia.
+ */
+export function getStrategyLeadTime(codigo?: string | null): string | null {
+  if (!codigo) return null;
+  return STRATEGY_LEAD_TIME_BY_CODIGO[codigo] ?? null;
+}

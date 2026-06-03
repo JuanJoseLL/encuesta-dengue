@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
+import { getStrategyLeadTime } from "@/domain/constants/thirdIteration";
 
 interface StrategyStatus {
   id: string;
@@ -268,10 +269,28 @@ export default function ThirdIterationStrategiesPage({
                     </div>
                   )}
 
-                  <div className="mt-3 flex gap-2 text-xs text-slate-500">
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                     <span className="rounded-full bg-slate-100 px-3 py-1">
                       {strategy.indicatorCount} indicadores disponibles
                     </span>
+                    {getStrategyLeadTime(strategy.codigo) && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 font-medium text-indigo-700">
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Implementación: {getStrategyLeadTime(strategy.codigo)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
