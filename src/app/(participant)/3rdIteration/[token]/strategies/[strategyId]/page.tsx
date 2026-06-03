@@ -6,6 +6,7 @@ import { ProgressBar } from "@/components/common/ProgressBar";
 import { apiRoutes } from "@/lib/api/routes";
 import type { Indicator } from "@/domain/models";
 import { StrategyHeader } from "@/app/(participant)/survey/[token]/strategies/[strategyId]/components/StrategyHeader";
+import { getStrategyLeadTime } from "@/domain/constants/thirdIteration";
 import { ConsolidatedIndicatorsTable } from "./components/ConsolidatedIndicatorsTable";
 import { StrategyTimingBanner } from "./components/StrategyTimingBanner";
 
@@ -503,6 +504,7 @@ export default function ThirdIterationStrategyPage({
             saving={saving}
             lastSaved={lastSaved}
             basePath="3rdIteration"
+            leadTime={getStrategyLeadTime(strategy.codigo)}
           />
 
           <ProgressBar

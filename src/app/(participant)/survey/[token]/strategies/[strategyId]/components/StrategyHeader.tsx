@@ -16,6 +16,7 @@ interface StrategyHeaderProps {
   saving: boolean;
   lastSaved: Date | null;
   basePath?: string; // Nueva prop opcional para definir la ruta base
+  leadTime?: string | null; // Tiempo estimado de implementación (3ra iteración)
   importanceRating?: StrategyImportanceRating | null;
   onRatingChange?: (rating: StrategyImportanceRating) => void;
   evaluationMode?: StrategyEvaluationMode;
@@ -30,6 +31,7 @@ export function StrategyHeader({
   saving,
   lastSaved,
   basePath = "survey", // Por defecto usa "survey"
+  leadTime,
   importanceRating,
   onRatingChange,
   evaluationMode,
@@ -115,6 +117,33 @@ export function StrategyHeader({
             <span className="text-sm text-slate-600">
               {strategy.objetivo}
             </span>
+          </div>
+        )}
+
+        {/* Lead time: tiempo estimado de implementación (3ra iteración) */}
+        {leadTime && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
+            <svg
+              className="mt-0.5 h-4 w-4 flex-shrink-0 text-indigo-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-sm leading-relaxed text-indigo-900">
+              <span className="font-semibold">
+                Tiempo estimado de implementación: {leadTime}.
+              </span>{" "}
+              Una vez tomada la decisión de implementarla, a la brigada respectiva
+              le toma ese tiempo tenerla en ejecución efectivamente en terreno
+              (p. ej., aplicar el larvicida químico).
+            </p>
           </div>
         )}
 

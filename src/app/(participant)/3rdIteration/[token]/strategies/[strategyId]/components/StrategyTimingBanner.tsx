@@ -40,16 +40,6 @@ export function StrategyTimingBanner({ codigo }: { codigo?: string | null }) {
             según la ronda anterior, inciden para que sea recomendada.
           </p>
 
-          {leadTime && (
-            <p className="text-sm leading-relaxed text-indigo-50">
-              Tenga en cuenta que, una vez tomada la decisión de implementarla, a
-              la brigada respectiva le toma{" "}
-              <strong className="font-bold text-white">{leadTime}</strong> tenerla
-              en ejecución efectivamente en terreno (p. ej., aplicar el larvicida
-              químico).
-            </p>
-          )}
-
           <p className="text-sm leading-relaxed text-indigo-50">
             Con esto en mente, ¿cuál es su mejor apuesta para el peso de cada
             indicador? Los pesos (que deben sumar{" "}
