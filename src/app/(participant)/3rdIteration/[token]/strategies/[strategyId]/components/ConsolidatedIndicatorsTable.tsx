@@ -438,31 +438,8 @@ export function ConsolidatedIndicatorsTable({
 function PluviosidadInfoCard() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Encabezado */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 pb-4">
-        <svg
-          className="h-6 w-6 flex-shrink-0 text-blue-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"
-          />
-        </svg>
-        <h3 className="text-xl font-bold text-slate-900">
-          Pluviosidad días previos
-        </h3>
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-          Indicador climático
-        </span>
-      </div>
-
       {/* Qué mide */}
-      <div className="mt-5">
+      <div>
         <p className="text-base text-slate-500">Qué mide</p>
         <p className="mt-1 text-lg text-slate-900">
           Precipitación acumulada en los últimos 7 días, en milímetros.

@@ -44,12 +44,12 @@ export function StrategyTimingBanner({ codigo }: { codigo?: string | null }) {
             Con esto en mente, ¿cuál es su mejor apuesta para el peso de cada
             indicador? Los pesos (que deben sumar{" "}
             <strong className="font-bold text-white">100%</strong>) reflejan el
-            grado en que usted recomendaría adoptar la estrategia cuando el
-            indicador se manifiesta. Por ejemplo, asignar un peso alto —digamos{" "}
+            grado en que usted recomendaría la estrategia cuando el
+            indicador se manifiesta. Por ejemplo, asignar un peso moderado —digamos{" "}
             <strong className="font-bold text-white">40%</strong>— al indicador de
             pluviosidad significa que, con la sola información de los indicadores,
-            ese indicador inclina bastante su recomendación de adoptar la
-            estrategia cuando se cumple
+            ese indicador inclina en un 40% su recomendación para poner en marcha la
+            estrategia cuando se cumple el indicador
             {leadTime ? (
               <>
                 {" "}
