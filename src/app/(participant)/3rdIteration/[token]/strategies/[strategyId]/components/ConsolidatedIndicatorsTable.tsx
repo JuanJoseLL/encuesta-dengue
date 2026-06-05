@@ -12,7 +12,11 @@ import {
   type ExpandedState,
 } from "@tanstack/react-table";
 import type { Indicator } from "@/domain/models";
-import { getIndicatorScale } from "@/domain/constants";
+import {
+  getIndicatorScale,
+  getIndicatorThreshold,
+  getThirdIterationIndicatorDetail,
+} from "@/domain/constants";
 
 // Estilos para tooltip rápido
 const tooltipStyles = `
@@ -67,9 +71,6 @@ interface TableRow {
   };
   userResponse: UserResponse;
 }
-
-// Indicador que requiere una explicación enriquecida y siempre visible
-const PLUVIOSIDAD_INDICATOR_NAME = "Índice de pluviosidad (días previos)";
 
 interface ConsolidatedIndicatorsTableProps {
   indicators: Indicator[];
@@ -432,29 +433,34 @@ export function ConsolidatedIndicatorsTable({
   );
 }
 
-// Tarjeta de explicación enriquecida y siempre visible para el indicador de pluviosidad.
-// Se muestra porque los expertos han tenido dificultad para entender el contexto operativo
-// de este indicador climático específico.
-function PluviosidadInfoCard() {
+function IndicatorInfoCard({ indicator }: { indicator: Indicator }) {
+  const detail = getThirdIterationIndicatorDetail(indicator.id);
+  const threshold = getIndicatorThreshold(indicator.name);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Qué mide */}
       <div>
         <p className="text-base text-slate-500">Qué mide</p>
         <p className="mt-1 text-lg text-slate-900">
-          Precipitación acumulada en los últimos 7 días, en milímetros.
+          {detail?.whatMeasures ||
+            indicator.description ||
+            "Descripción no registrada para este indicador."}
         </p>
       </div>
 
-      {/* Cuándo se activa */}
       <div className="mt-5">
-        <p className="text-base text-slate-500">Cuándo se activa</p>
+        <p className="text-base text-slate-500">Cómo interpretarlo en esta iteración</p>
         <p className="mt-1 text-lg text-slate-900">
-          Este indicador se activa cuando la precipitación de la semana supera el
-          comportamiento histórico esperado para esa misma semana en ese barrio
-          (percentil 90 de los últimos 6 años).
+          {detail?.interpretation ||
+            "Use este indicador como referencia contextual para valorar si la estrategia responde al riesgo observado en el territorio."}
         </p>
       </div>
+
+      {threshold && (
+        <p className="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
+          Referencia operativa: <strong className="text-slate-800">{threshold}</strong>
+        </p>
+      )}
     </div>
   );
 }
@@ -462,11 +468,10 @@ function PluviosidadInfoCard() {
 // Componente para el contenido expandido (solo ponderaciones, sin umbrales)
 function ExpandedRowContent({ row }: { row: TableRow }) {
   const { consolidatedData } = row;
-  const isPluviosidad = row.indicator.name === PLUVIOSIDAD_INDICATOR_NAME;
 
   return (
     <div className="space-y-4">
-      {isPluviosidad && <PluviosidadInfoCard />}
+      <IndicatorInfoCard indicator={row.indicator} />
       <PonderacionesContent consolidatedData={consolidatedData} />
     </div>
   );
