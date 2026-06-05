@@ -552,7 +552,6 @@ export default function ThirdIterationStrategyPage({
             consolidatedIndicators={consolidatedIndicators}
             userResponses={userResponses}
             onWeightChange={handleWeightChange}
-            allUserResponses={userResponses}
           />
         </div>
 

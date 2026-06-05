@@ -77,7 +77,6 @@ interface ConsolidatedIndicatorsTableProps {
   consolidatedIndicators: ConsolidatedIndicator[];
   userResponses: Record<string, UserResponse>;
   onWeightChange: (indicatorId: string, value: number) => void;
-  allUserResponses: Record<string, UserResponse>;
 }
 
 export function ConsolidatedIndicatorsTable({
@@ -85,7 +84,6 @@ export function ConsolidatedIndicatorsTable({
   consolidatedIndicators,
   userResponses,
   onWeightChange,
-  allUserResponses,
 }: ConsolidatedIndicatorsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
@@ -168,17 +166,6 @@ export function ConsolidatedIndicatorsTable({
           const indicatorId = row.original.indicator.id;
           const weight = row.original.userResponse.weight;
 
-          const othersTotal = Object.entries(allUserResponses).reduce(
-            (sum, [id, response]) => {
-              if (id === indicatorId || response.excluded) {
-                return sum;
-              }
-              return sum + response.weight;
-            },
-            0
-          );
-          const maxAllowed = Math.max(0, 100 - othersTotal);
-
           return (
             <div className="flex items-center gap-2">
               <input
@@ -189,7 +176,7 @@ export function ConsolidatedIndicatorsTable({
                 value={weight === 0 ? "" : Math.round(weight)}
                 onChange={(e) => {
                   const value = Math.round(Number.parseFloat(e.target.value) || 0);
-                  const clampedValue = Math.min(value, maxAllowed);
+                  const clampedValue = Math.min(value, 100);
                   onWeightChange(indicatorId, clampedValue);
                 }}
                 onKeyDown={(e) => {
@@ -237,7 +224,7 @@ export function ConsolidatedIndicatorsTable({
         sortingFn: "auto",
       },
     ],
-    [allUserResponses, onWeightChange]
+    [onWeightChange]
   );
 
   const originalTable = useReactTable({
@@ -246,6 +233,7 @@ export function ConsolidatedIndicatorsTable({
     state: { sorting, expanded },
     onSortingChange: setSorting,
     onExpandedChange: setExpanded,
+    getRowId: (row) => row.indicator.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -258,6 +246,7 @@ export function ConsolidatedIndicatorsTable({
     state: { sorting, expanded },
     onSortingChange: setSorting,
     onExpandedChange: setExpanded,
+    getRowId: (row) => row.indicator.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
