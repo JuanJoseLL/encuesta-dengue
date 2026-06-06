@@ -68,226 +68,226 @@ export function isThirdIterationIndicator(indicatorId?: string | null): boolean 
 
 export interface ThirdIterationIndicatorDetail {
   whatMeasures: string;
-  interpretation: string;
+  whenActivates: string;
 }
 
 /**
- * Explicaciones breves para ayudar al experto a interpretar cada indicador en
- * la tercera iteración. Están redactadas como apoyo operativo, no como reemplazo
- * de la definición técnica del indicador.
+ * Para cada indicador: qué mide y cuándo se activa (la condición de activación
+ * derivada del umbral definido para el indicador). Sirven de apoyo operativo en
+ * la tercera iteración, no reemplazan la definición técnica del indicador.
  */
 export const THIRD_ITERATION_INDICATOR_DETAILS: Record<string, ThirdIterationIndicatorDetail> = {
   "1": {
     whatMeasures: "La cantidad de criaderos positivos encontrados por cada 100 viviendas inspeccionadas.",
-    interpretation: "En esta iteración, un IB alto debe entenderse como señal de transmisión vectorial activa en viviendas y puede justificar mayor peso a estrategias de control larvario, eliminación de criaderos y acciones focalizadas en barrios con mayor carga.",
+    whenActivates: "Se activa cuando el Índice de Breteau supera 20 criaderos positivos por cada 100 viviendas inspeccionadas, señal de alta infestación y transmisión vectorial activa.",
   },
   "2": {
     whatMeasures: "La proporción de viviendas donde se encontró al menos un criadero positivo.",
-    interpretation: "Ayuda a leer qué tan distribuido está el riesgo dentro del barrio. Si muchas viviendas tienen criaderos, conviene priorizar intervenciones domiciliarias, educación preventiva y cobertura amplia, no solo acciones puntuales.",
+    whenActivates: "Se activa cuando más del 10% de las viviendas inspeccionadas tienen al menos un criadero positivo, lo que indica un riesgo distribuido en el barrio.",
   },
   "3": {
     whatMeasures: "La proporción de depósitos inspeccionados que resultaron positivos para Aedes.",
-    interpretation: "Permite identificar si el problema está concentrado en recipientes o depósitos específicos. Debe pesar más cuando la estrategia depende de intervenir depósitos, eliminar criaderos o aplicar control larvario.",
+    whenActivates: "Se activa cuando más del 5% de los depósitos inspeccionados resultan positivos para Aedes.",
   },
   "4": {
     whatMeasures: "El tipo de recipiente que aparece con mayor frecuencia como depósito positivo.",
-    interpretation: "Orienta el tipo de acción requerida. Si domina un depósito como tanque, lavadero, llanta o recipiente desechable, el indicador ayuda a escoger estrategias más ajustadas al origen real de los criaderos.",
+    whenActivates: "Se activa cuando un mismo tipo de depósito (por ejemplo tanque o lavadero) concentra al menos el 40% de los criaderos positivos, orientando el tipo de intervención requerida.",
   },
   "5": {
     whatMeasures: "La cantidad estimada de pupas por persona, como aproximación a la producción futura de mosquitos adultos.",
-    interpretation: "Es útil para valorar riesgo cercano de aumento del vector. Cuando el índice pupal es alto, conviene dar más peso a acciones que corten rápidamente la producción de mosquitos.",
+    whenActivates: "Se activa cuando el índice pupal supera 1 pupa por persona, anticipando un aumento cercano en la producción de mosquitos adultos.",
   },
   "6": {
     whatMeasures: "La proporción o número de ovitrampas con presencia de huevos de Aedes.",
-    interpretation: "Sirve como alerta temprana de actividad del vector, incluso antes de observar aumento claro de casos. Debe pesar más en estrategias de vigilancia, focalización territorial y respuesta preventiva.",
+    whenActivates: "Se activa cuando más del 60% de las ovitrampas presentan huevos de Aedes, alerta temprana de actividad del vector.",
   },
   "8": {
     whatMeasures: "La presencia de larvas de Aedes en sumideros urbanos inspeccionados.",
-    interpretation: "Ayuda a decidir si el drenaje urbano está funcionando como fuente de reproducción. Si el valor es alto, las acciones sobre sumideros, canales y control ambiental deberían ganar relevancia.",
+    whenActivates: "Se activa cuando más del 5% de los sumideros inspeccionados presentan larvas de Aedes, señal de que el drenaje urbano está funcionando como criadero.",
   },
   "9": {
     whatMeasures: "La proporción de predios positivos en lugares de alta concentración de personas.",
-    interpretation: "Indica riesgo en espacios donde muchas personas se exponen en poco tiempo, como escuelas, mercados o instituciones. Debe pesar más cuando la estrategia busca proteger nodos de alta movilidad o contacto.",
+    whenActivates: "Se activa cuando más del 1% de los predios en lugares de alta concentración de personas (escuelas, mercados, instituciones) resultan positivos.",
   },
   "10": {
     whatMeasures: "La proporción de depósitos positivos dentro de lugares de concentración humana.",
-    interpretation: "Complementa el indicador de predios al mostrar si el problema está en recipientes específicos dentro de esos lugares. Es relevante para priorizar inspección, control y mantenimiento en sitios colectivos.",
+    whenActivates: "Se activa cuando más del 2% de los depósitos en lugares de concentración humana resultan positivos.",
   },
   "11": {
     whatMeasures: "El porcentaje de mosquitos Aedes con Wolbachia establecido en la población local.",
-    interpretation: "Permite valorar si una estrategia basada en Wolbachia tiene condiciones de sostenibilidad. Un establecimiento suficiente puede indicar continuidad; uno bajo puede requerir refuerzo, seguimiento o estrategias complementarias.",
+    whenActivates: "Se activa cuando el establecimiento de Wolbachia supera el 60% de los mosquitos locales, umbral que sugiere una colonización suficiente para sostener la estrategia.",
   },
   "12": {
     whatMeasures: "El número de casos reportados durante la semana epidemiológica en el territorio evaluado.",
-    interpretation: "Es una señal directa de carga actual de enfermedad. Cuando aumenta, debe empujar decisiones de respuesta rápida, comunicación de riesgo y control focalizado en las zonas con mayor notificación.",
+    whenActivates: "Se activa cuando se reportan más de 3 casos por barrio en la semana epidemiológica, señal de carga actual de enfermedad.",
   },
   "13": {
     whatMeasures: "Los casos nuevos ajustados por población, normalmente por cada 100.000 habitantes.",
-    interpretation: "Permite comparar barrios o comunas con tamaños de población distintos. Debe pesar más cuando se busca priorizar territorios de forma proporcional al riesgo y no solo por número absoluto de casos.",
+    whenActivates: "Se activa cuando la incidencia supera 20 casos por cada 100.000 habitantes en la semana, permitiendo comparar el riesgo entre territorios de distinto tamaño.",
   },
   "14": {
     whatMeasures: "La posición del territorio dentro del canal endémico: seguridad, alerta, epidemia u otra zona definida.",
-    interpretation: "Resume si el comportamiento semanal está dentro de lo esperado o por encima de lo habitual. En zona de alerta o epidemia, las estrategias de respuesta y contención deberían tener mayor prioridad.",
+    whenActivates: "Se activa cuando el territorio entra en zona de alerta o epidemia del canal endémico, es decir, por encima del comportamiento esperado.",
   },
   "15": {
     whatMeasures: "El crecimiento de casos frente al mismo periodo del año anterior.",
-    interpretation: "Ayuda a detectar aceleración epidémica comparando con una referencia conocida. Si la razón sube, el indicador favorece acciones anticipadas antes de que el brote se consolide.",
+    whenActivates: "Se activa cuando los casos superan 1,3 veces los del mismo periodo del año anterior, señal de aceleración epidémica.",
   },
   "16": {
     whatMeasures: "El cambio porcentual reciente en los casos o eventos vigilados.",
-    interpretation: "Sirve para captar variaciones rápidas. Una variación positiva importante debe interpretarse como alerta de cambio de tendencia y puede justificar aumentar el peso de estrategias de respuesta temprana.",
+    whenActivates: "Se activa cuando los casos aumentan más del 10% respecto al periodo previo, alerta de cambio de tendencia.",
   },
   "17": {
     whatMeasures: "La diferencia entre la situación actual y el promedio de años anteriores.",
-    interpretation: "Permite distinguir fluctuaciones normales de comportamientos inusuales. Si el valor supera el promedio histórico, debe apoyar decisiones de intensificación o focalización territorial.",
+    whenActivates: "Se activa cuando la situación actual supera en más del 15% el promedio de los años anteriores, indicando un comportamiento inusual.",
   },
   "19": {
     whatMeasures: "La proporción de casos de dengue que requieren hospitalización.",
-    interpretation: "Muestra presión clínica y posible severidad del evento. Si aumenta, conviene dar más peso a estrategias que reduzcan rápidamente transmisión y fortalezcan detección, comunicación y atención oportuna.",
+    whenActivates: "Se activa cuando más del 10% de los casos de dengue requieren hospitalización, señal de mayor presión clínica y severidad.",
   },
   "20": {
     whatMeasures: "La edad típica o promedio de las personas hospitalizadas por dengue.",
-    interpretation: "Ayuda a identificar grupos más afectados o vulnerables. Si la hospitalización se concentra en niños, adultos mayores u otro grupo, el indicador orienta mensajes, vigilancia y protección diferenciada.",
+    whenActivates: "Se activa cuando la hospitalización se concentra en menores de 15 años, grupo de mayor vulnerabilidad.",
   },
   "21": {
     whatMeasures: "La distribución de hospitalizaciones según tipo clínico o gravedad.",
-    interpretation: "Permite ver si la carga hospitalaria se concentra en casos con signos de alarma o dengue grave. Debe pesar más cuando la estrategia busca evitar complicaciones y reducir presión sobre servicios de salud.",
+    whenActivates: "Se activa cuando más del 20% de las hospitalizaciones corresponden a casos con signos de alarma o dengue grave.",
   },
   "22": {
     whatMeasures: "La distribución de casos según clasificación clínica: sin alarma, con alarma o grave.",
-    interpretation: "Da contexto sobre severidad y no solo cantidad de casos. Si crece la proporción de casos con alarma o graves, las acciones de comunicación, consulta temprana y respuesta sanitaria deben ganar peso.",
+    whenActivates: "Se activa cuando más del 20% de los casos presentan signos de alarma, indicando mayor severidad y no solo más casos.",
   },
   "23": {
     whatMeasures: "La proporción de casos que cuentan con confirmación por laboratorio.",
-    interpretation: "Ayuda a valorar la certeza de la señal epidemiológica. Una baja confirmación puede indicar necesidad de cautela, pero también de reforzar vigilancia, diagnóstico y oportunidad de confirmación.",
+    whenActivates: "Se activa cuando menos del 60% de los casos cuentan con confirmación de laboratorio, lo que reduce la certeza de la señal epidemiológica.",
   },
   "24": {
     whatMeasures: "La proporción de muertes atribuidas o probables por dengue frente al total de casos.",
-    interpretation: "Es una señal crítica de desenlace grave. Aunque el número sea bajo, debe aumentar la prioridad de estrategias de atención oportuna, comunicación de signos de alarma y reducción rápida de transmisión.",
+    whenActivates: "Se activa cuando la letalidad supera el 0,05% de los casos, señal crítica de desenlaces graves.",
   },
   "25": {
     whatMeasures: "El número de muertes probables asociadas a dengue en el periodo o territorio.",
-    interpretation: "Funciona como alerta de máxima gravedad para la respuesta. Su presencia debe influir en priorizar acciones intensivas, revisión clínica, comunicación urgente y control en el área relacionada.",
+    whenActivates: "Se activa cuando se registra al menos una muerte probable por dengue en la comuna, alerta de máxima gravedad.",
   },
   "26": {
     whatMeasures: "Los días promedio entre el inicio de síntomas y la primera consulta.",
-    interpretation: "Indica oportunidad de búsqueda de atención. Si las personas consultan tarde, deben pesar más las estrategias de comunicación de riesgo, reconocimiento de signos de alarma y acceso temprano a servicios.",
+    whenActivates: "Se activa cuando, en promedio, las personas tardan más de 3 días en consultar desde el inicio de síntomas.",
   },
   "27": {
     whatMeasures: "Los días promedio entre la consulta y la notificación al sistema de vigilancia.",
-    interpretation: "Mide oportunidad del sistema para activar respuesta. Si la notificación se demora, conviene priorizar mejoras de vigilancia, coordinación institucional y respuesta operativa más ágil.",
+    whenActivates: "Se activa cuando la notificación al sistema de vigilancia tarda más de 2 días desde la consulta.",
   },
   "29": {
     whatMeasures: "Los serotipos de dengue que están circulando y su frecuencia relativa.",
-    interpretation: "Ayuda a estimar riesgo de expansión o severidad por circulación simultánea. La presencia de varios serotipos puede justificar mayor peso a vigilancia, comunicación y control preventivo.",
+    whenActivates: "Se activa cuando circulan 2 o más serotipos de dengue de forma simultánea, aumentando el riesgo de expansión o severidad.",
   },
   "30": {
     whatMeasures: "El tiempo entre aparición, notificación y confirmación de los casos en el sistema.",
-    interpretation: "Resume la oportunidad de la información para tomar decisiones. Si el tiempo es alto, la respuesta puede llegar tarde, por lo que deben ganar peso estrategias que reduzcan demoras de vigilancia y confirmación.",
+    whenActivates: "Se activa cuando la notificación y confirmación de casos tarda más de 72 horas, retrasando la capacidad de respuesta.",
   },
   "31": {
     whatMeasures: "La cantidad de organizaciones sociales o comunitarias activas en la zona.",
-    interpretation: "Indica capacidad local para movilizar mensajes, visitas y acciones sostenidas. Pocas organizaciones pueden limitar estrategias comunitarias; muchas pueden facilitar campañas, vigilancia social y adherencia.",
+    whenActivates: "Se activa cuando hay menos de 2 organizaciones sociales activas por comuna, lo que limita la capacidad de movilización comunitaria.",
   },
   "32": {
     whatMeasures: "Un índice compuesto de condiciones sociales como pobreza, hacinamiento o educación.",
-    interpretation: "Ayuda a reconocer territorios donde el dengue puede tener mayor impacto y menor capacidad de respuesta. Debe pesar más cuando la estrategia requiere focalizar recursos en población vulnerable.",
+    whenActivates: "Se activa cuando el índice de vulnerabilidad socioeconómica supera 0,6, señal de territorios con mayor impacto potencial y menor capacidad de respuesta.",
   },
   "33": {
     whatMeasures: "La concentración de habitantes por área en el barrio o comuna.",
-    interpretation: "Una mayor densidad puede acelerar exposición y transmisión en entornos urbanos. Este indicador debe orientar estrategias de cobertura amplia, comunicación masiva y control en zonas de alta concentración.",
+    whenActivates: "Se activa cuando la densidad supera 10.000 habitantes por km², condición que puede acelerar la exposición y la transmisión.",
   },
   "35": {
     whatMeasures: "La proporción de población alcanzada por actividades de educación preventiva.",
-    interpretation: "Muestra si la comunidad ya recibió información suficiente para actuar. Una cobertura baja sugiere dar más peso a comunicación de riesgo y educación práctica antes o junto con acciones de control.",
+    whenActivates: "Se activa cuando la educación preventiva ha alcanzado menos del 60% de la población, indicando una cobertura insuficiente.",
   },
   "36": {
     whatMeasures: "La adopción de prácticas preventivas en hogares y comunidad.",
-    interpretation: "Permite estimar si las recomendaciones se están convirtiendo en acciones. Si las prácticas son bajas, deben priorizarse estrategias que cambien comportamiento y mantengan prevención cotidiana.",
+    whenActivates: "Se activa cuando menos del 50% de los hogares aplican prácticas preventivas.",
   },
   "37": {
     whatMeasures: "La cobertura de inspección y control realizada sobre sumideros.",
-    interpretation: "Indica si una fuente urbana importante está siendo atendida. Coberturas bajas deben aumentar el peso de estrategias ambientales y operativas enfocadas en sumideros y drenaje.",
+    whenActivates: "Se activa cuando la cobertura de inspección y control de sumideros es menor al 80%.",
   },
   "38": {
     whatMeasures: "La cobertura de inspección e intervención en viviendas.",
-    interpretation: "Muestra alcance del control domiciliario. Si la cobertura es baja en zonas con riesgo, conviene priorizar visitas, eliminación de criaderos y acciones que lleguen directamente al hogar.",
+    whenActivates: "Se activa cuando la cobertura de inspección y control en viviendas es menor al 70%.",
   },
   "39": {
     whatMeasures: "La cobertura de inspección y control en lugares donde se concentra mucha población.",
-    interpretation: "Ayuda a proteger puntos con alta exposición colectiva. Debe pesar más cuando hay escuelas, mercados, instituciones u otros sitios que pueden amplificar el riesgo de contacto.",
+    whenActivates: "Se activa cuando se ha visitado menos del 80% de los lugares de concentración humana.",
   },
   "40": {
     whatMeasures: "La proporción de instituciones educativas cubiertas por inspección o intervención.",
-    interpretation: "Sirve para valorar protección en población escolar y espacios de alta permanencia. Coberturas bajas pueden justificar priorizar acciones en colegios y entornos educativos.",
+    whenActivates: "Se activa cuando la cobertura en instituciones educativas es menor al 80%.",
   },
   "41": {
     whatMeasures: "La cobertura de inspección y control biológico en cuerpos de agua o depósitos grandes.",
-    interpretation: "Es relevante cuando existen criaderos que no se eliminan fácilmente. Debe pesar más en estrategias de control biológico y seguimiento de depósitos permanentes.",
+    whenActivates: "Se activa cuando se ha controlado menos del 80% de los cuerpos de agua o depósitos grandes identificados.",
   },
   "42": {
     whatMeasures: "La actividad económica predominante o presencia de obras y dinámicas urbanas que pueden modificar el riesgo.",
-    interpretation: "Ayuda a anticipar criaderos, movilidad y exposición asociados a ciertas actividades. Debe considerarse cuando la estrategia depende de coordinar con sectores económicos, obras o actores privados.",
+    whenActivates: "Se activa cuando hay más de 3 obras o dinámicas urbanas por km² que pueden modificar el riesgo (criaderos, movilidad, exposición).",
   },
   "43": {
     whatMeasures: "La proporción de población con acceso adecuado a agua potable.",
-    interpretation: "Baja cobertura puede llevar al almacenamiento de agua en recipientes, aumentando criaderos. En ese contexto, deben pesar más acciones sobre depósitos, educación y gestión ambiental.",
+    whenActivates: "Se activa cuando menos del 90% de la población tiene acceso adecuado a agua potable, lo que favorece el almacenamiento en recipientes.",
   },
   "44": {
     whatMeasures: "La regularidad del suministro de agua en horas o continuidad del servicio.",
-    interpretation: "La intermitencia favorece almacenamiento doméstico y criaderos. Si la continuidad es baja, conviene priorizar control de depósitos, comunicación específica y coordinación con servicios públicos.",
+    whenActivates: "Se activa cuando el servicio de acueducto está disponible menos de 20 horas al día, favoreciendo el almacenamiento doméstico y los criaderos.",
   },
   "46": {
     whatMeasures: "La presencia de basureros ilegales o puntos críticos donde se acumulan residuos.",
-    interpretation: "Estos puntos pueden generar recipientes expuestos a lluvia y criaderos. Deben pesar más las estrategias de saneamiento, control ambiental y articulación con aseo urbano.",
+    whenActivates: "Se activa cuando hay más de un punto crítico de residuos por km², potenciales fuentes de recipientes expuestos a la lluvia.",
   },
   "47": {
     whatMeasures: "La condición de canales pluviales, especialmente si están limpios, obstruidos o con agua estancada.",
-    interpretation: "Canales obstruidos pueden retener agua y sostener criaderos después de lluvias. Este indicador favorece estrategias de mantenimiento, drenaje y gestión ambiental focalizada.",
+    whenActivates: "Se activa cuando más del 30% de los canales pluviales están obstruidos, lo que retiene agua y sostiene criaderos tras las lluvias.",
   },
   "48": {
     whatMeasures: "La condición operativa de los sumideros urbanos, incluyendo limpieza u obstrucción.",
-    interpretation: "Sumideros obstruidos pueden convertirse en criaderos persistentes. Si el indicador es alto, deben ganar peso las acciones de inspección, limpieza y control larvario en infraestructura urbana.",
+    whenActivates: "Se activa cuando más del 20% de los sumideros están obstruidos, condición que los convierte en criaderos persistentes.",
   },
   "49": {
     whatMeasures: "La proporción del barrio cubierta por zonas verdes y arbolado.",
-    interpretation: "La cobertura vegetal puede modificar humedad, sombra y permanencia de recipientes o criaderos. Debe interpretarse junto con lluvia, residuos y control ambiental antes de priorizar acciones.",
+    whenActivates: "Se activa cuando más del 30% del área del barrio corresponde a zonas verdes o arbolado, lo que puede modificar humedad, sombra y permanencia de criaderos.",
   },
   "50": {
     whatMeasures: "La frecuencia semanal con la que se recolectan residuos sólidos.",
-    interpretation: "Recolección insuficiente favorece acumulación de recipientes que pueden llenarse de agua. Debe pesar más cuando se evalúan estrategias de limpieza, saneamiento y prevención comunitaria.",
+    whenActivates: "Se activa cuando los residuos sólidos se recolectan menos de 2 veces por semana, favoreciendo la acumulación de recipientes.",
   },
   "51": {
     whatMeasures: "Precipitación acumulada en los últimos 7 días, en milímetros.",
-    interpretation: "Este indicador se activa cuando la precipitación de la semana supera el comportamiento histórico esperado para esa misma semana en ese barrio (percentil 90 de los últimos 6 años).",
+    whenActivates: "Este indicador se activa cuando la precipitación de la semana supera el comportamiento histórico esperado para esa misma semana en ese barrio (percentil 90 de los últimos 6 años).",
   },
   "52": {
     whatMeasures: "La temperatura máxima registrada en los días previos.",
-    interpretation: "La temperatura afecta actividad del mosquito, evaporación y eficacia de algunas acciones químicas. Debe pesar más cuando las condiciones térmicas pueden acelerar el ciclo vectorial o limitar una intervención.",
+    whenActivates: "Se activa cuando la temperatura máxima de los días previos supera los 27°C, condición que puede acelerar el ciclo del vector.",
   },
   "56": {
     whatMeasures: "El tiempo entre la notificación de un caso y la primera acción de control vectorial.",
-    interpretation: "Mide capacidad de respuesta operativa. Si la respuesta tarda, el brote puede avanzar antes de intervenir; por eso deben pesar más estrategias que acorten tiempos y prioricen zonas críticas.",
+    whenActivates: "Se activa cuando el control vectorial tarda más de 72 horas en iniciarse desde la notificación del caso.",
   },
   "57": {
     whatMeasures: "La proporción del área de brote cubierta por eliminación de criaderos o control químico.",
-    interpretation: "Indica si la intervención llega a suficiente territorio para tener efecto. Coberturas bajas sugieren reforzar capacidad operativa, focalización y seguimiento de la zona intervenida.",
+    whenActivates: "Se activa cuando se ha intervenido menos del 60% de las manzanas en la zona de brote, cobertura insuficiente para tener efecto.",
   },
   "64": {
     whatMeasures: "La reducción esperada de casos después de aplicar una intervención.",
-    interpretation: "Ayuda a ponderar impacto probable, no solo factibilidad. Debe pesar más cuando se compara entre estrategias y se busca priorizar las que podrían reducir más casos en el corto plazo.",
+    whenActivates: "Se activa cuando la reducción esperada de casos tras la intervención es menor al 70%, señalando un impacto probable limitado.",
   },
   "66": {
     whatMeasures: "La proporción de hogares que mantienen prácticas preventivas después de la intervención educativa.",
-    interpretation: "Mide sostenibilidad del aprendizaje comunitario. Si la retención es baja, deben ganar peso estrategias de refuerzo, acompañamiento y comunicación repetida, no solo mensajes únicos.",
+    whenActivates: "Se activa cuando menos del 70% de los hogares mantienen las prácticas aprendidas tras la intervención educativa.",
   },
   "68": {
     whatMeasures: "La disponibilidad de camas hospitalarias o UCI para atender dengue grave.",
-    interpretation: "Indica margen del sistema de salud ante aumento de severidad. Si hay pocas camas libres, conviene priorizar estrategias que reduzcan transmisión, consulta tardía y progresión a casos graves.",
+    whenActivates: "Se activa cuando queda menos del 10% de camas hospitalarias o UCI libres para atender dengue grave, reduciendo el margen del sistema de salud.",
   },
   "69": {
     whatMeasures: "La proporción de hogares alcanzados con mensajes de riesgo sobre dengue.",
-    interpretation: "Permite valorar alcance real de la comunicación. Si la cobertura es baja, deben pesar más estrategias de mensajes focalizados, canales comunitarios y comunicación oportuna en zonas de brote.",
+    whenActivates: "Se activa cuando los mensajes de riesgo han alcanzado menos del 60% de los hogares.",
   },
 };
 

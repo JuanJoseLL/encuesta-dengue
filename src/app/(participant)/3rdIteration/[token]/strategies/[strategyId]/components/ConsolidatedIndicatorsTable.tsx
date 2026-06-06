@@ -14,7 +14,6 @@ import {
 import type { Indicator } from "@/domain/models";
 import {
   getIndicatorScale,
-  getIndicatorThreshold,
   getThirdIterationIndicatorDetail,
 } from "@/domain/constants";
 
@@ -424,7 +423,6 @@ export function ConsolidatedIndicatorsTable({
 
 function IndicatorInfoCard({ indicator }: { indicator: Indicator }) {
   const detail = getThirdIterationIndicatorDetail(indicator.id);
-  const threshold = getIndicatorThreshold(indicator.name);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -438,18 +436,12 @@ function IndicatorInfoCard({ indicator }: { indicator: Indicator }) {
       </div>
 
       <div className="mt-5">
-        <p className="text-base text-slate-500">Cómo interpretarlo en esta iteración</p>
+        <p className="text-base text-slate-500">Cuándo se activa</p>
         <p className="mt-1 text-lg text-slate-900">
-          {detail?.interpretation ||
+          {detail?.whenActivates ||
             "Use este indicador como referencia contextual para valorar si la estrategia responde al riesgo observado en el territorio."}
         </p>
       </div>
-
-      {threshold && (
-        <p className="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
-          Referencia operativa: <strong className="text-slate-800">{threshold}</strong>
-        </p>
-      )}
     </div>
   );
 }
