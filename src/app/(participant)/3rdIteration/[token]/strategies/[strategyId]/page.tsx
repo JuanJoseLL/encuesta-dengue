@@ -62,9 +62,15 @@ export default function ThirdIterationStrategyPage({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [reviewedProgress, setReviewedProgress] = useState(0);
   const [isStrategyReviewed, setIsStrategyReviewed] = useState(false);
+  const [weightInputError, setWeightInputError] = useState("");
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadedStrategyIdRef = useRef<string | null>(null);
+  const userResponsesRef = useRef<Record<string, UserResponse>>({});
+
+  useEffect(() => {
+    userResponsesRef.current = userResponses;
+  }, [userResponses]);
 
   // Cargar datos
   useEffect(() => {
@@ -277,27 +283,34 @@ export default function ThirdIterationStrategyPage({
   const handleWeightChange = useCallback((indicatorId: string, value: number) => {
     const clampedValue = Math.min(100, Math.max(0, value));
     const roundedValue = Math.round(clampedValue);
+    const currentResponses = userResponsesRef.current;
 
-    setUserResponses((prev) => {
-      const others = Object.entries(prev).reduce((sum, [id, r]) => {
-        if (id === indicatorId || r.excluded) return sum;
-        return sum + r.weight;
-      }, 0);
+    const others = Object.entries(currentResponses).reduce((sum, [id, r]) => {
+      if (id === indicatorId || r.excluded) return sum;
+      return sum + r.weight;
+    }, 0);
 
-      const maxAllowed = Math.max(0, 100 - others);
+    const maxAllowed = Math.max(0, 100 - others);
 
-      if (roundedValue <= maxAllowed) {
-        return {
-          ...prev,
-          [indicatorId]: {
-            ...prev[indicatorId],
-            weight: roundedValue,
-          },
-        };
-      }
-      return prev;
-    });
+    if (roundedValue > maxAllowed) {
+      setWeightInputError(
+        `El total no puede superar 100%. Para este indicador puede asignar máximo ${maxAllowed}%.`
+      );
+      return;
+    }
 
+    const nextResponses = {
+      ...currentResponses,
+      [indicatorId]: {
+        ...currentResponses[indicatorId],
+        indicatorId,
+        weight: roundedValue,
+      },
+    };
+
+    userResponsesRef.current = nextResponses;
+    setUserResponses(nextResponses);
+    setWeightInputError("");
     setError("");
   }, []);
 
@@ -537,6 +550,15 @@ export default function ThirdIterationStrategyPage({
               <span className="text-sm text-slate-500">/ 100%</span>
             </div>
           </div>
+          {weightInputError && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+            >
+              {weightInputError}
+            </div>
+          )}
         </div>
 
         {/* Indicators Table */}
@@ -552,6 +574,7 @@ export default function ThirdIterationStrategyPage({
             consolidatedIndicators={consolidatedIndicators}
             userResponses={userResponses}
             onWeightChange={handleWeightChange}
+            onWeightInputError={setWeightInputError}
           />
         </div>
 

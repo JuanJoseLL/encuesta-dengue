@@ -76,6 +76,7 @@ interface ConsolidatedIndicatorsTableProps {
   consolidatedIndicators: ConsolidatedIndicator[];
   userResponses: Record<string, UserResponse>;
   onWeightChange: (indicatorId: string, value: number) => void;
+  onWeightInputError: (message: string) => void;
 }
 
 export function ConsolidatedIndicatorsTable({
@@ -83,6 +84,7 @@ export function ConsolidatedIndicatorsTable({
   consolidatedIndicators,
   userResponses,
   onWeightChange,
+  onWeightInputError,
 }: ConsolidatedIndicatorsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
@@ -168,22 +170,52 @@ export function ConsolidatedIndicatorsTable({
           return (
             <div className="flex items-center gap-2">
               <input
-                type="number"
-                min="0"
-                max="100"
-                step="1"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={weight === 0 ? "" : Math.round(weight)}
                 onChange={(e) => {
-                  const value = Math.round(Number.parseFloat(e.target.value) || 0);
-                  const clampedValue = Math.min(value, 100);
-                  onWeightChange(indicatorId, clampedValue);
+                  const rawValue = e.target.value;
+
+                  if (!/^\d*$/.test(rawValue)) {
+                    onWeightInputError("Ingrese solo números enteros para el peso.");
+                    return;
+                  }
+
+                  const value = rawValue === "" ? 0 : Number.parseInt(rawValue, 10);
+                  if (value > 100) {
+                    onWeightInputError("El peso de un indicador no puede superar 100%.");
+                    return;
+                  }
+
+                  onWeightChange(indicatorId, value);
                 }}
                 onKeyDown={(e) => {
-                  if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
+                  const allowedControlKeys = [
+                    "Backspace",
+                    "Delete",
+                    "Tab",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "Home",
+                    "End",
+                  ];
+
+                  if (
+                    e.ctrlKey ||
+                    e.metaKey ||
+                    allowedControlKeys.includes(e.key)
+                  ) {
+                    return;
+                  }
+
+                  if (!/^\d$/.test(e.key)) {
                     e.preventDefault();
+                    onWeightInputError("Ingrese solo números enteros para el peso.");
                   }
                 }}
                 placeholder="0"
+                aria-label={`Peso para ${row.original.indicator.name}`}
                 className="w-16 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-slate-600">%</span>
@@ -223,7 +255,7 @@ export function ConsolidatedIndicatorsTable({
         sortingFn: "auto",
       },
     ],
-    [onWeightChange]
+    [onWeightChange, onWeightInputError]
   );
 
   const originalTable = useReactTable({
